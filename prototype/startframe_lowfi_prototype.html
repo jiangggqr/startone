@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>StartFrame Agent 低保真交互原型</title>
+  <style>
+    :root {
+      --bg:#f4f4f4; --surface:#fff; --ink:#171717; --muted:#666; --line:#aaa;
+      --soft:#e9e9e9; --strong:#2d2d2d; --focus:#000; --radius:10px; --gap:16px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);line-height:1.45}
+    button,input,select,textarea{font:inherit;color:inherit}
+    button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+    button{min-height:44px;border:1px solid #777;background:#fff;border-radius:8px;padding:9px 14px;cursor:pointer}
+    button.primary{background:var(--strong);color:#fff;border-color:var(--strong);font-weight:700}
+    button.ghost{background:transparent}
+    button.danger{border-style:dashed}
+    button:disabled{opacity:.45;cursor:not-allowed}
+    input,select,textarea{width:100%;min-height:44px;border:1px solid #888;border-radius:7px;background:#fff;padding:9px 10px}
+    textarea{min-height:118px;resize:vertical}
+    a{color:inherit}
+    .app{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+    .sidebar{position:sticky;top:0;height:100vh;overflow:auto;background:#1e1e1e;color:#fff;padding:20px 16px}
+    .sidebar h1{font-size:21px;margin:0 0 4px}.sidebar p{font-size:13px;color:#ccc;margin:0 0 18px}
+    .screen-nav{display:grid;gap:6px}.screen-nav button{width:100%;text-align:left;background:#2d2d2d;color:#fff;border-color:#555;min-height:40px;padding:7px 10px}
+    .screen-nav button.active{background:#fff;color:#111;font-weight:700}
+    .side-note{border-top:1px solid #555;margin-top:18px;padding-top:14px;font-size:12px;color:#ccc}
+    .workspace{min-width:0}
+    .topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;justify-content:space-between;background:#fff;border-bottom:1px solid #aaa;padding:10px 18px}
+    .topbar .left,.topbar .right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .badge{display:inline-flex;align-items:center;gap:6px;border:1px solid #777;border-radius:999px;padding:4px 9px;font-size:12px;background:#fff}
+    .content{padding:24px;max-width:1500px;margin:auto}
+    .screen{display:none}.screen.active{display:block}
+    .screen-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
+    .screen-head h2{margin:0;font-size:26px}.screen-head p{margin:4px 0 0;color:var(--muted);max-width:800px}
+    .frame{border:2px solid #666;border-radius:12px;background:#fff;min-height:650px;overflow:hidden;box-shadow:0 2px 0 rgba(0,0,0,.05)}
+    .frame-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;background:#efefef;border-bottom:1px solid #aaa;font-size:13px}
+    .frame-body{padding:18px}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.grid-3{display:grid;grid-template-columns:250px 1fr 280px;gap:16px}
+    .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .card{border:1px solid #999;border-radius:9px;background:#fff;padding:14px}
+    .card h3,.card h4{margin:0 0 8px}.card p{margin:6px 0}
+    .muted{color:var(--muted)}.small{font-size:12px}.tiny{font-size:11px}
+    .stack{display:grid;gap:12px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row.between{justify-content:space-between}
+    .choice{border:1px solid #888;border-radius:10px;padding:18px;text-align:center;min-height:150px;display:grid;place-content:center;gap:8px}
+    .choice strong{font-size:18px}.icon{font-size:30px;line-height:1}
+    .callout{border:1px dashed #777;background:#f7f7f7;border-radius:8px;padding:11px 12px}
+    .callout strong{display:block;margin-bottom:3px}
+    .progress{height:12px;background:#ddd;border-radius:999px;overflow:hidden}.progress span{display:block;height:100%;background:#555;width:60%}
+    .file{display:flex;gap:10px;justify-content:space-between;align-items:flex-start;border:1px solid #aaa;border-radius:8px;padding:10px}
+    .tree ul{list-style:none;margin:4px 0 4px 16px;padding:0}.tree li{padding:4px 0}
+    .node-map{display:grid;place-items:center;gap:12px;padding:20px;min-height:380px}.node-row{display:flex;justify-content:center;gap:20px}.node{border:2px solid #777;border-radius:8px;padding:10px 14px;background:#fff;min-width:130px;text-align:center}.node.current{background:#ddd;border-color:#222;font-weight:700}
+    .arrow{font-size:22px;color:#555;text-align:center}
+    .concept-list{display:grid;gap:7px}.concept{display:flex;align-items:center;gap:9px;border:1px solid #aaa;border-radius:7px;padding:9px}.concept.active{background:#ddd;border-color:#333;font-weight:700}.concept.done::before{content:"✓"}.concept.locked{opacity:.55}
+    .primary-action{border:2px solid #222;background:#f1f1f1;border-radius:10px;padding:16px}
+    .source-label{display:inline-flex;border:1px solid #777;border-radius:999px;padding:3px 8px;font-size:11px;margin-right:5px}.source-uploaded{background:#e7e7e7}.source-external{border-style:dashed}.source-ai{background:#fff}
+    .quick-actions{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:9px}
+    .drawer{border-left:2px solid #555;background:#fff;padding:14px;min-height:570px}.chat{display:grid;gap:10px;max-height:360px;overflow:auto;padding-right:4px}.bubble{max-width:85%;border:1px solid #888;border-radius:10px;padding:10px}.bubble.user{justify-self:end;background:#eee}.bubble.tutor{justify-self:start}.chips{display:flex;flex-wrap:wrap;gap:7px}.chip{min-height:36px;border-radius:999px;padding:6px 10px;font-size:12px}
+    .tabs{display:flex;border-bottom:1px solid #888}.tab{border-radius:0;border:0;border-bottom:3px solid transparent}.tab.active{border-bottom-color:#111;font-weight:700}
+    .option{display:flex;align-items:flex-start;gap:9px;border:1px solid #aaa;border-radius:8px;padding:10px}.option input{width:auto;min-height:auto;margin-top:4px}
+    .feedback-block{border-left:5px solid #555;background:#f6f6f6;padding:12px 14px;border-radius:6px}.feedback-block h4{margin:0 0 5px}
+    .hint{border:1px solid #999;border-radius:8px;padding:10px}.hint.locked{opacity:.55}.hint.open{background:#eee}
+    .evidence{display:grid;grid-template-columns:1fr auto;gap:8px;border-bottom:1px solid #ddd;padding:7px 0}
+    .radio-list{display:grid;gap:7px}.radio-item{display:flex;gap:8px;border:1px solid #aaa;border-radius:8px;padding:9px}.radio-item input{width:auto;min-height:auto}
+    .result{border:1px solid #999;border-radius:8px;padding:11px}.result.selected{border:2px solid #222;background:#eee}
+    .timeline{display:flex;gap:0;align-items:center}.dot{width:30px;height:30px;border-radius:50%;border:2px solid #777;display:grid;place-content:center;background:#fff}.dot.done{background:#555;color:#fff}.line{height:2px;background:#777;flex:1}
+    .state-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.state-card{border:1px solid #999;border-radius:8px;padding:12px;min-height:180px}
+    .skeleton{display:grid;gap:9px}.skeleton span{display:block;height:13px;background:#ddd;border-radius:4px}.skeleton span:nth-child(2){width:80%}.skeleton span:nth-child(3){width:65%}
+    .flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.flow .step{border:1px solid #888;border-radius:8px;padding:9px 12px;background:#fff}.flow .arr{font-size:18px;color:#666}
+    .mobile-shell{width:360px;margin:auto;border:8px solid #333;border-radius:22px;background:#fff;overflow:hidden}.mobile-top{padding:12px;border-bottom:1px solid #aaa}.mobile-body{padding:14px;min-height:520px}.mobile-bottom{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #aaa}.mobile-bottom button{border:0;border-radius:0;font-size:11px;padding:8px 2px}
+    .annotation{margin-top:12px;border-top:1px solid #bbb;padding-top:10px;font-size:12px;color:#555}
+    .board-mode .app{display:block}.board-mode .sidebar,.board-mode .topbar{display:none}.board-mode .content{max-width:1680px}.board-mode .screen{display:block!important;margin-bottom:28px;break-inside:avoid}.board-mode .screen-head{border-top:4px solid #222;padding-top:12px}.board-mode .frame{min-height:auto}.board-mode .frame-body{min-height:620px}
+    .kbd{border:1px solid #888;border-bottom-width:3px;border-radius:5px;padding:1px 5px;font-size:11px;background:#fff}
+    @media (max-width:1100px){.app{grid-template-columns:220px 1fr}.grid-3{grid-template-columns:200px 1fr}.grid-3>.session-rail{grid-column:1/-1}.quick-actions{grid-template-columns:repeat(2,1fr)}.grid-4{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:760px){.app{display:block}.sidebar{display:none}.topbar{position:relative}.content{padding:12px}.grid-2,.grid-3,.grid-4,.state-grid{grid-template-columns:1fr}.quick-actions{grid-template-columns:1fr}.frame-body{padding:12px}.screen-head{display:block}.screen-head h2{font-size:22px}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" aria-label="原型页面导航">
+    <h1>StartFrame Agent</h1>
+    <p>低保真 UI/UX 交互原型 · V4</p>
+    <nav class="screen-nav" id="screenNav"></nav>
+    <div class="side-note">
+      <strong>使用方法</strong><br>
+      点击页面名称或原型内按钮切换流程。<br><br>
+      加上 <code>?board=1</code> 可显示全部页面，便于截图与 Codex 总览。
+    </div>
+  </aside>
+  <main class="workspace">
+    <header class="topbar">
+      <div class="left"><strong>StartFrame Agent</strong><span class="badge">低保真</span><span class="badge">Demo mode</span></div>
+      <div class="right"><span class="badge">自动保存：已保存</span><button class="ghost" data-go="history">学习记录</button><button class="ghost" data-go="settings">设置</button></div>
+    </header>
+    <div class="content">
+
+      <section class="screen" id="overview" data-title="00 总览与完整流程">
+        <div class="screen-head"><div><h2>00 总览与完整流程</h2><p>产品信息架构、学习闭环、Agent 边界和生产级设计要求。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>StartFrame Agent · Product Blueprint</span><span>上传材料优先 · 搜索受控 · 一次一个下一步</span></div><div class="frame-body stack">
+          <div class="callout"><strong>一句话定义</strong>用户上传自己的学习材料，系统把材料转化为可核查的知识地图和短学习任务；Tutor 负责当前知识点的讲解与练习，规划 Agent 根据学习证据只选择一个下一步。</div>
+          <div class="flow">
+            <span class="step">上传材料并新建会话</span><span class="arr">→</span><span class="step">设定目标</span><span class="arr">→</span><span class="step">解析来源</span><span class="arr">→</span><span class="step">确认学习地图</span><span class="arr">→</span><span class="step">2 分钟启动</span><span class="arr">→</span><span class="step">当前概念</span><span class="arr">→</span><span class="step">Tutor / Quiz / 复述</span><span class="arr">→</span><span class="step">反馈与补救</span><span class="arr">→</span><span class="step">LearningEvidence</span><span class="arr">→</span><span class="step">Agent 下一步</span><span class="arr">→</span><span class="step">总结与恢复</span>
+          </div>
+          <div class="grid-2">
+            <div class="card"><h3>Guided Mastery Loop</h3><p>Tutor、Quiz、复述、提示、反馈、鼓励、补救练习都围绕<strong>当前概念</strong>工作，并产生客观学习证据。</p><p class="small muted">不改变全局路线，不直接启动网络搜索。</p></div>
+            <div class="card"><h3>Adaptive Planning Agent</h3><p>读取证据后只选择一个动作：继续、重试、换练习、简化、插入前置知识、复习、请求搜索或结束。</p><p class="small muted">必须显示面向用户的理由，并允许用户选择其他路径。</p></div>
+          </div>
+          <div class="grid-4">
+            <div class="card"><h4>来源可信</h4><p class="small">每个概念、题目和解释都带来源标签和可打开的位置。</p></div>
+            <div class="card"><h4>ADHD-informed</h4><p class="small">一个概念、一个主动作、可暂停、自动保存、低威胁反馈。</p></div>
+            <div class="card"><h4>生产级状态</h4><p class="small">加载、空、错误、部分成功、离线、模型失败均有恢复路径。</p></div>
+            <div class="card"><h4>无障碍与响应式</h4><p class="small">键盘可用、焦点清晰、语义正确、桌面至手机均可完成核心流程。</p></div>
+          </div>
+          <div class="callout"><strong>实现顺序</strong>来源与状态 → 知识地图 → 专注学习界面 → Tutor → Quiz/复述/反馈 → Agent → 受控搜索 → 全流程测试。</div>
+        </div></div>
+      </section>
+
+      <section class="screen" id="landing" data-title="01 首页与学习资料库">
+        <div class="screen-head"><div><h2>01 首页与学习资料库</h2><p>上传材料是主入口；历史学习会话和继续学习始终可见。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>StartFrame Agent</span><span>资料库　学习记录　设置　帮助</span></div><div class="frame-body stack">
+          <div class="grid-2">
+            <div class="card stack"><h3>把已有材料变成可以开始的学习过程</h3><p class="muted">上传课程讲义、论文或笔记。系统先建立来源可核查的知识地图，再带你完成一个短学习闭环。</p><div class="row"><button class="primary" data-go="setup">上传材料并新建会话</button><button data-go="history">继续上次学习</button></div><div class="callout"><strong>ADHD-informed</strong>不会先展示一长串任务。系统首先给出一个 1–2 分钟可完成的动作。</div></div>
+            <div class="grid-2">
+              <div class="choice"><span class="icon">▣</span><strong>上传 PDF / MD / TXT</strong><span class="small muted">主入口 · 基于你的材料学习</span></div>
+              <div class="choice"><span class="icon">✎</span><strong>仅输入学习主题</strong><span class="small muted">备用模式 · 明确标注为 AI 生成</span></div>
+            </div>
+          </div>
+          <div><h3>最近会话</h3><div class="grid-3" style="grid-template-columns:repeat(3,1fr)">
+            <div class="card"><strong>Transformer 基础</strong><p class="small">进度 3/6 · 下一步：位置编码</p><button data-go="focus">继续</button></div>
+            <div class="card"><strong>正则化方法</strong><p class="small">进度 1/5 · 下一步：区分 L1 与 L2</p><button data-go="summary">查看总结</button></div>
+            <div class="card"><strong>新会话</strong><p class="small">上传材料并设定本次目标</p><button data-go="setup">开始新会话</button></div>
+          </div></div>
+          <div class="annotation">生产要求：不要把“仅输入主题”与“上传材料”做成同等强度；首页必须显示数据保存与删除入口。</div>
+        </div></div>
+      </section>
+
+      <section class="screen" id="setup" data-title="02 新建会话：目标与偏好">
+        <div class="screen-head"><div><h2>02 新建会话：目标与偏好</h2><p>收集最少但足够的信息，用于控制学习范围和支持方式。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>步骤 1/4 · 设定本次学习</span><span>草稿自动保存</span></div><div class="frame-body">
+          <div class="grid-2">
+            <div class="stack">
+              <label>本次学习目标<input value="理解 Transformer 中 self-attention 的作用和基本流程" /></label>
+              <div class="grid-2"><label>已有基础<select><option>几乎不了解</option><option selected>知道基础机器学习</option><option>已经学过一遍</option></select></label><label>本次可用时间<select><option>10 分钟</option><option selected>25 分钟</option><option>45 分钟</option></select></label></div>
+              <div class="grid-2"><label>当前精力<select><option>低</option><option selected>中等</option><option>高</option></select></label><label>学习语言<select><option selected>简体中文</option><option>English</option></select></label></div>
+              <label>你最想解决的问题（可选）<textarea>我经常看完就忘，而且不知道应该先学什么。</textarea></label>
+            </div>
+            <div class="stack">
+              <div class="card"><h3>支持偏好</h3><label class="row"><input type="checkbox" checked style="width:auto;min-height:auto"> 先直接解释，不默认使用比喻</label><label class="row"><input type="checkbox" checked style="width:auto;min-height:auto"> 专业术语单独解释</label><label class="row"><input type="checkbox" checked style="width:auto;min-height:auto"> 用更短的步骤推进</label><label class="row"><input type="checkbox" style="width:auto;min-height:auto"> 显示倒计时</label><label class="row"><input type="checkbox" checked style="width:auto;min-height:auto"> 允许随时暂停且不记为失败</label></div>
+              <div class="card"><h3>外部搜索权限</h3><label class="row"><input type="checkbox" checked style="width:auto;min-height:auto"> 材料明确不足时，可以建议搜索</label><p class="small muted">即使开启，系统仍会在每次搜索前展示缺口和原因，由你确认。</p></div>
+              <div class="callout"><strong>你下一步只需要做什么？</strong>继续后上传材料。系统不会要求你先完成完整学习计划。</div>
+            </div>
+          </div>
+          <div class="row between" style="margin-top:18px"><button data-go="landing">返回</button><button class="primary" data-go="upload">继续上传材料</button></div>
+        </div></div>
+      </section>
+
+      <section class="screen" id="upload" data-title="03 上传、解析与来源预览">
+        <div class="screen-head"><div><h2>03 上传、解析与来源预览</h2><p>显示真实解析状态、部分成功和可恢复错误；不把“正在处理”伪装成完成。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>步骤 2/4 · 添加学习材料</span><span>支持 PDF、Markdown、TXT、粘贴文本</span></div><div class="frame-body stack">
+          <div class="callout"><strong>拖放文件或点击选择</strong><span class="small">支持 PDF、Markdown、TXT；最多 5 个文件，单文件最多 20 MB。扫描 PDF 无可提取文字时要明确提示，不得伪造页码。</span><div class="row" style="margin-top:8px"><button>选择文件</button><button>粘贴文本</button></div></div>
+          <div class="grid-3">
+            <div class="stack"><h3>文件</h3><div class="file"><div><strong>transformer_notes.md</strong><div class="small muted">25 行 · 解析完成</div></div><span aria-label="成功">✓</span></div><div class="file"><div><strong>matrix_prerequisite.md</strong><div class="small muted">13 行 · 解析完成</div></div><span aria-label="成功">✓</span></div><div class="file"><div><strong>scanned_appendix.pdf</strong><div class="small">无法提取文字</div><button class="small">重试或移除</button></div><span aria-label="错误">!</span></div><button>＋ 添加文件</button></div>
+            <div class="card tree"><h3>识别到的结构</h3><ul><li>第 1 章 Transformer 概览<ul><li>1.1 序列建模问题</li><li>1.2 Encoder 与 Decoder</li></ul></li><li>第 2 章 Self-attention<ul><li>2.1 Query、Key、Value</li><li>2.2 Attention score</li><li>2.3 Weighted sum</li></ul></li><li>第 3 章 位置编码</li></ul><p class="small muted">点击标题可定位原文；用户可以取消勾选不想纳入学习的章节。</p></div>
+            <div class="card"><h3>来源片段</h3><p><strong>transformer_notes.md</strong></p><p class="small">2. Self-attention · 第 7–13 行</p><div class="callout small">Self-attention 先比较同一序列中的位置，再按相关程度汇总 value 信息。</div><div class="row"><button>上一处</button><button>下一处</button></div><p><span class="source-label source-uploaded">用户上传材料</span></p></div>
+          </div>
+          <div class="row between"><button data-go="setup">返回</button><div class="row"><button>保存稍后继续</button><button class="primary" data-go="source-review">审阅来源覆盖</button></div></div>
+        </div></div>
+      </section>
+
+      <section class="screen" id="source-review" data-title="04 来源覆盖与缺口审阅">
+        <div class="screen-head"><div><h2>04 来源覆盖与缺口审阅</h2><p>在生成路径之前，先让用户知道材料覆盖了什么、缺什么。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>步骤 3/4 · 来源覆盖</span><span>尚未搜索互联网</span></div><div class="frame-body stack">
+          <div class="grid-2">
+            <div class="card"><h3>材料已覆盖</h3><div class="concept-list"><div class="concept done">Transformer 的整体目标</div><div class="concept done">Self-attention 基本流程</div><div class="concept done">Query、Key、Value</div><div class="concept done">Scaled dot-product attention</div><div class="concept done">位置编码</div></div></div>
+            <div class="card"><h3>材料可能缺少</h3><div class="concept-list"><div class="concept">矩阵乘法直观理解 <span class="badge">前置知识</span></div><div class="concept">为什么除以 √d<sub>k</sub> <span class="badge">解释较少</span></div></div><p class="small muted">缺口只是候选，不代表必须搜索。Agent 会先看用户表现，再决定是否需要补充。</p></div>
+          </div>
+          <div class="card"><h3>来源使用规则</h3><div class="grid-3" style="grid-template-columns:repeat(3,1fr)"><div><span class="source-label source-uploaded">用户上传材料</span><p class="small">默认主来源。概念、题目和反馈首先基于此。</p></div><div><span class="source-label source-external">外部补充</span><p class="small">只有明确缺口、Agent 请求、用户确认后才使用。</p></div><div><span class="source-label source-ai">AI 补充解释</span><p class="small">用于简化、组织或生成例子，不能冒充原文。</p></div></div></div>
+          <div class="row between"><button data-go="upload">返回材料</button><button class="primary" data-go="path">生成学习地图</button></div>
+        </div></div>
+      </section>
+
+      <section class="screen" id="path" data-title="05 学习地图与路线确认">
+        <div class="screen-head"><div><h2>05 学习地图与路线确认</h2><p>知识地图表达依赖关系；路线表达这次实际要走的顺序，两者不能混为一谈。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>步骤 4/4 · 确认本次路线</span><span>预计 25 分钟 · 3 个概念</span></div><div class="frame-body">
+          <div class="grid-2">
+            <div class="card node-map"><div class="node">Transformer 目标</div><div class="arrow">↓</div><div class="node current">Self-attention</div><div class="arrow">↓</div><div class="node">Q / K / V</div><div class="arrow">↓</div><div class="node-row"><div class="node">Scaled dot-product</div><div class="node">位置信息</div></div></div>
+            <div class="stack"><div class="card"><h3>本次推荐路线</h3><ol><li><strong>Self-attention 的作用</strong> · 7 分钟</li><li><strong>Q / K / V</strong> · 8 分钟</li><li><strong>Scaled dot-product attention</strong> · 7 分钟</li></ol><p class="small muted">位置信息保留在完整地图；剩余 3 分钟用于总结和保存下次启动动作。</p></div><div class="card"><h3>第一个 1–2 分钟动作</h3><p><strong>写一句你目前认为 self-attention 是什么。</strong></p><p class="small">完成条件：写出一句可检查的回答，不要求正确。</p></div><div class="card"><h3>可调整项</h3><div class="row"><button>减少概念</button><button>调整重点</button><button>改为 10 分钟</button></div></div></div>
+          </div>
+          <div class="row between" style="margin-top:16px"><button data-go="source-review">返回</button><button class="primary" data-go="start-action">确认并开始</button></div>
+        </div></div>
+      </section>
+
+      <section class="screen" id="start-action" data-title="06 两分钟启动动作">
+        <div class="screen-head"><div><h2>06 两分钟启动动作</h2><p>进入内容前只展示一个可执行动作，降低启动成本。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>本次会话已开始</span><button>暂停并保存</button></div><div class="frame-body" style="display:grid;place-items:center;min-height:620px">
+          <div class="card stack" style="max-width:720px;width:100%;padding:28px"><span class="badge">启动动作 · 约 90 秒</span><h2 style="margin:0">不用查资料，写一句你现在认为 self-attention 是什么。</h2><p class="muted">不要求正确。你的回答只用于确定从哪里开始。</p><textarea aria-label="启动动作回答" placeholder="我认为 self-attention 是……"></textarea><div class="row between"><button>先暂停</button><button class="primary" data-go="focus">完成，进入第一个概念</button></div><div class="callout small"><strong>完成条件</strong>输入一句可检查的回答。系统不会因为错误扣分，也不会显示红叉。</div></div>
+        </div></div>
+      </section>
+
+      <section class="screen" id="focus" data-title="07 专注学习工作区">
+        <div class="screen-head"><div><h2>07 专注学习工作区</h2><p>桌面端三栏；中间始终只有一个当前概念和一个主推荐动作。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>Transformer 基础　›　Self-attention</span><span>已保存 · <button>暂停并保存</button></span></div><div class="frame-body grid-3">
+          <aside class="card"><h3>知识地图</h3><div class="concept-list"><div class="concept done">已完成：Transformer 目标</div><div class="concept active">当前：Self-attention</div><div class="concept">可进入：Q / K / V</div><div class="concept locked">锁定：Scaled dot-product</div><div class="concept locked">锁定：位置信息</div></div><p class="small muted">进度 1/5</p><button data-go="path">查看完整地图</button></aside>
+          <main class="stack"><div><span class="badge">当前概念 2/5</span><h2>Self-attention</h2><p><strong>它在整体中的作用：</strong>让序列中的每个位置根据与其他位置的关系，选择并汇总相关信息。</p></div><div class="card"><h3>简练解释</h3><p>Self-attention 先比较当前位置与其他位置的相关程度，再按照这些相关程度汇总信息。这样，每个位置都能形成包含上下文的新表示。</p><p><span class="source-label source-uploaded">用户上传材料</span> transformer_notes.md · 2. Self-attention · 第 7–13 行</p><button data-go="source-viewer">打开原文位置</button></div><div class="primary-action"><span class="badge">推荐下一步 · 约 2 分钟</span><h3>先让 Tutor 检查你对“相关程度”的理解</h3><button class="primary" data-go="tutor">打开 Tutor</button></div><div class="quick-actions"><button data-go="quiz">开始 Quiz</button><button data-go="recall">自由复述</button><button data-go="tutor">解释简单一点</button><button data-go="source-viewer">查看来源</button></div></main>
+          <aside class="card session-rail"><h3>会话状态</h3><p>当前用时：06:18</p><p>剩余时间：18:42</p><label class="row"><input type="checkbox" style="width:auto;min-height:auto"> 隐藏时间显示</label><div class="progress"><span style="width:28%"></span></div><p class="small">本概念进度 28%</p><hr><h4>最近信号</h4><p class="small">启动回答提到“关注其他词”，但未提到信息汇总。</p><hr><button>保存并退出</button><button class="danger">删除本次会话</button></aside>
+        </div></div>
+      </section>
+
+      <section class="screen" id="tutor" data-title="08 情境化 Tutor 与连续引导">
+        <div class="screen-head"><div><h2>08 情境化 Tutor 与连续引导</h2><p>Tutor 只解决当前概念的理解问题；默认先引导，不立即给完整答案。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>Self-attention · Tutor</span><span><span class="source-label source-uploaded">基于上传材料</span> <button data-go="focus">关闭 Tutor</button></span></div><div class="frame-body grid-2">
+          <div class="drawer stack"><div class="chat"><div class="bubble tutor"><strong>Tutor</strong><br>你刚才说 self-attention 是“关注其他词”。先想一个更小的问题：当前位置为什么不能只看自己？</div><div class="bubble user">因为一个词的意思会受到前后文影响。</div><div class="bubble tutor"><strong>Tutor</strong><br>对。那它还需要做哪一步，才能把前后文真正加入当前位置的表示？</div><div class="bubble user">把相关的信息加进来？</div><div class="bubble tutor"><strong>Tutor</strong><br>是。你已经得到两个关键动作：判断哪些位置相关，然后汇总相关位置的信息。你能用自己的话连成一句吗？</div></div><div class="chips"><button class="chip">解释简单一点</button><button class="chip">解释术语</button><button class="chip">给具体例子</button><button class="chip">和上一部分有什么关系</button><button class="chip">只给提示</button><button class="chip">检查我的理解</button></div><div class="row"><input placeholder="输入你的问题或回答" aria-label="Tutor 输入"><button class="primary">发送</button></div></div>
+          <div class="stack"><div class="card"><h3>当前上下文</h3><p class="small">概念：Self-attention</p><p class="small">来源：transformer_notes.md，第 7–13 行</p><p class="small">知识关系：Transformer 目标 → Self-attention → Q/K/V</p><p class="small">已出现困难：尚未清楚“汇总信息”</p></div><div class="card"><h3>引导阶梯</h3><ol class="small"><li>澄清用户具体不懂什么</li><li>给思考方向</li><li>给结构</li><li>给关键词</li><li>给部分例子</li><li>给简练解释</li><li>提出检查问题</li></ol></div><div class="callout small"><strong>边界</strong>Tutor 可以记录“可能缺少前置知识”，但不能改变路线或自行搜索。检查边界、明确困惑或关闭 Tutor 时才聚合 LearningEvidence。</div><div class="row"><button data-go="focus">返回概念</button><button class="primary" data-go="recall">现在复述</button></div></div>
+        </div></div>
+      </section>
+
+      <section class="screen" id="quiz" data-title="09 Quiz：识别误解">
+        <div class="screen-head"><div><h2>09 Quiz：识别误解</h2><p>一次一题；错误选项来自真实常见误解，而不是随机填充。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>Self-attention · Quiz 1/2</span><span>约 90 秒</span></div><div class="frame-body grid-2">
+          <div class="stack"><div class="tabs" role="tablist" aria-label="练习类型"><button class="tab active" role="tab" aria-selected="true">选择题</button><button class="tab" role="tab" aria-selected="false" data-go="recall">自由复述</button></div><h3>Self-attention 中，计算相关程度之后最关键的下一步是什么？</h3><p><span class="source-label source-uploaded">用户上传材料</span> transformer_notes.md · 第 9–13 行</p><fieldset class="stack"><legend class="small">选择一个答案</legend><label class="option"><input type="radio" name="q">A. 删除相关程度较低的所有词</label><label class="option"><input type="radio" name="q" checked>B. 按相关程度对其他位置的信息加权汇总</label><label class="option"><input type="radio" name="q">C. 只保留当前位置原来的表示</label><label class="option"><input type="radio" name="q">D. 把序列重新排序</label></fieldset><div class="row between"><button data-go="focus">退出练习</button><button class="primary" data-go="feedback">提交答案</button></div></div>
+          <div class="stack"><div class="card"><h3>提示（可选）</h3><div class="hint open"><strong>提示 1：方向</strong><p class="small">思考“知道哪些位置相关”之后，怎样把这些位置的信息用于当前位置。</p></div><div class="hint locked"><strong>提示 2：结构</strong><p class="small">比较 → 权重 → ______</p></div><div class="hint locked"><strong>提示 3：关键词</strong><p class="small">加权、汇总、新表示</p></div></div><div class="callout small"><strong>记录</strong>系统保存作答时间、是否修改答案、提示深度和选择的误解类型。</div></div>
+        </div></div>
+      </section>
+
+      <section class="screen" id="recall" data-title="10 自由复述与分层提示">
+        <div class="screen-head"><div><h2>10 自由复述与分层提示</h2><p>自由复述用于发现知识缺口；提示按需逐级揭示，不在一开始暴露答案。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>Self-attention · 自由复述</span><span>已用 01:12</span></div><div class="frame-body grid-2">
+          <div class="stack"><div class="card"><h3>不用看讲解，用 2–3 句话说明 Self-attention 做了什么。</h3><p class="small muted">建议包括：它为什么需要上下文、怎样判断关系、怎样形成新表示。</p><p><span class="source-label source-uploaded">用户上传材料</span> transformer_notes.md · 第 7–13 行</p></div><textarea aria-label="自由复述回答" placeholder="在这里复述。表达不完整也可以。">Self-attention 会看其他词和当前位置有没有关系，然后把重要的信息放进来。</textarea><div class="row between"><button data-go="focus">返回讲解</button><button class="primary" data-go="feedback">提交复述</button></div></div>
+          <div class="stack"><div class="card"><h3>提示阶梯</h3><div class="hint open"><strong>提示 1：方向</strong><p class="small">分成“比较”和“更新”两个动作回答。</p></div><button>显示提示 2：结构</button><button>显示提示 3：关键词</button><p class="small muted">当前使用 1/3 级提示。显示更多提示不会被视为失败。</p></div><div class="callout small"><strong>设计原则</strong>提示按钮必须清楚说明会显示多少信息；不能用突然弹出的完整答案替代分层支持。</div></div>
+        </div></div>
+      </section>
+
+      <section class="screen" id="feedback" data-title="11 即时反馈与具体鼓励">
+        <div class="screen-head"><div><h2>11 即时反馈与具体鼓励</h2><p>先指出已经掌握的内容，再说明缺口和可执行的下一步；不评价人格。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>Self-attention · 复述反馈</span><span><span class="source-label source-uploaded">用户上传材料</span> 第 7–13 行</span></div><div class="frame-body grid-2">
+          <div class="stack"><div class="feedback-block"><h4>你已经掌握</h4><p>你说出了两个核心动作：判断当前位置与其他位置的关系，以及把重要信息加入当前位置。</p></div><div class="feedback-block"><h4>需要补充或澄清</h4><p>“放进来”可以更准确地表述为：按照相关程度对其他位置的信息进行加权汇总。</p></div><div class="feedback-block"><h4>简练修正答案</h4><p>Self-attention 比较当前位置与其他位置的相关程度，再按这些相关程度汇总信息，形成包含上下文的新表示。</p></div><div class="feedback-block"><h4>具体鼓励</h4><p>你已经抓住了“先判断关系，再加入信息”的结构。现在只需要把“怎样加入”说得更准确。</p></div></div>
+          <div class="stack"><div class="primary-action"><span class="badge">推荐下一步</span><h3>做一个 60 秒小练习，补全“加权汇总”</h3><p class="small">原因：核心结构已掌握，只剩一个表达与理解缺口。</p><button class="primary" data-go="remedial">开始补救练习</button></div><div class="card"><h3>其他选择</h3><div class="row"><button data-go="recall">再次复述</button><button data-go="focus">回看讲解</button><button data-go="agent">让 Agent 评估下一步</button></div></div><div class="callout small"><strong>反馈生成规则</strong>不得只显示“正确/错误”；不得用“你很聪明”等泛化人格评价；不得声称诊断用户能力。</div></div>
+        </div></div>
+      </section>
+
+      <section class="screen" id="remedial" data-title="12 错误驱动的补救练习">
+        <div class="screen-head"><div><h2>12 错误驱动的补救练习</h2><p>补救内容由当前误解驱动，仍属于掌握循环，不是 Agent 的教学输出。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>检测到具体缺口：不清楚“加权汇总”</span><span>约 60–90 秒</span></div><div class="frame-body stack">
+          <div class="grid-3" style="grid-template-columns:repeat(3,1fr)"><button class="card"><h3>更简单解释</h3><p class="small">只保留必要步骤，不使用新术语。</p></button><button class="card"><h3>更小问题</h3><p class="small">先回答一个局部问题，再返回完整概念。</p></button><button class="card"><h3>具体例子</h3><p class="small">明确标注为 AI 补充例子，不冒充原文。</p></button></div>
+          <div class="card"><h3>更小问题</h3><p><span class="source-label source-uploaded">用户上传材料</span> matrix_prerequisite.md · 第 7–9 行</p><p>如果位置 A 与位置 B 的相关程度更高，位置 A 在更新自己时，应该怎样处理来自 B 的信息？</p><textarea aria-label="补救练习回答" placeholder="用一句话回答"></textarea><div class="row between"><button data-go="feedback">换一种帮助</button><button class="primary" data-go="agent">提交并形成学习证据</button></div></div>
+          <div class="callout small"><strong>循环保护</strong>连续两次补救仍未改善时，不继续重复同一题型；Agent 应选择简化概念、插入前置知识或结束本次会话。</div>
+        </div></div>
+      </section>
+
+      <section class="screen" id="agent" data-title="13 LearningEvidence 与 Agent 决策">
+        <div class="screen-head"><div><h2>13 LearningEvidence 与 Agent 决策</h2><p>证据只描述发生了什么；Agent 才根据证据选择全局下一步。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>当前概念完成检查</span><span>Agent 只选择一个动作</span></div><div class="frame-body grid-2">
+          <div class="card"><h3>LearningEvidence</h3><div class="evidence"><span>Quiz</span><strong>1/1 正确</strong></div><div class="evidence"><span>复述要点覆盖</span><strong>2/3</strong></div><div class="evidence"><span>提示深度</span><strong>1/3</strong></div><div class="evidence"><span>Tutor 信号</span><strong>曾不清楚“汇总”</strong></div><div class="evidence"><span>补救练习</span><strong>回答正确</strong></div><div class="evidence"><span>本概念用时</span><strong>9 分 20 秒</strong></div><div class="evidence"><span>来源缺口</span><strong>无明确缺口</strong></div><p class="small muted">这里不能包含 next_action、recommendation 或“应该继续”等结论。</p></div>
+          <div class="stack"><div class="card"><h3>当前允许的其他路径</h3><div class="radio-list"><label class="radio-item"><input type="radio" checked name="a">继续下一个概念：Q / K / V</label><label class="radio-item"><input type="radio" name="a">再做一次复述</label><label class="radio-item"><input type="radio" name="a">换一种练习</label><label class="radio-item"><input type="radio" name="a">简化当前概念</label><label class="radio-item"><input type="radio" name="a">复习上一概念</label><label class="radio-item"><input type="radio" name="a">结束本次会话</label></div><p class="small muted">当前没有命名来源缺口，因此不提供搜索；当前证据也不需要插入前置知识。</p></div><div class="primary-action"><h3>Agent 唯一推荐：继续 Q / K / V</h3><p>你已经能说明核心流程，补救练习也解决了“加权汇总”的缺口。下一概念依赖于当前理解。</p><p class="small">预计下一步 6 分钟</p><div class="row"><button data-go="summary">结束并生成总结</button><button class="primary" data-go="focus">继续 Q / K / V</button></div></div></div>
+        </div></div>
+      </section>
+
+      <section class="screen" id="search" data-title="14 受控外部搜索">
+        <div class="screen-head"><div><h2>14 受控外部搜索</h2><p>四重搜索门：会话允许、明确来源缺口、Agent 请求、用户本次确认。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>外部补充请求</span><span>当前未调用搜索</span></div><div class="frame-body stack">
+          <div class="callout"><strong>前三项已验证，本次确认待完成</strong><span class="small">会话允许建议搜索 ✓　命名 SourceGap ✓　Agent request_search ✓　用户本次确认：待完成</span><br><strong>检测到的材料缺口</strong>当前搜索场景只包含 transformer_notes.md；材料使用点积但没有解释点积怎样产生 Q/K 相关程度。你连续两次询问了该前置知识。</div>
+          <div class="grid-2"><div class="card"><h3>搜索将寻找什么</h3><p>一个适合初学者、解释矩阵乘法与向量点积的短资料。</p><p class="small">优先：大学课程官方讲义、教材、官方文档。</p><label class="row"><input type="checkbox" checked style="width:auto;min-height:auto"> 仅使用可公开访问的来源</label></div><div class="card"><h3>你的控制</h3><p class="small">搜索结果会明确标记为外部来源，不替代上传材料。拒绝搜索不会中断当前会话。</p><div class="row"><button data-go="agent">暂不搜索</button><button class="primary" data-go="search-results">确认搜索</button></div></div></div>
+          <div class="callout small"><strong>失败恢复</strong>搜索超时、无结果或来源打不开时，系统返回当前概念，并提供“基于现有材料继续”或“稍后再试”。</div>
+        </div></div>
+      </section>
+
+      <section class="screen" id="search-results" data-title="15 外部来源选择与引用">
+        <div class="screen-head"><div><h2>15 外部来源选择与引用</h2><p>不展示无差别链接列表；显示少量候选、选择原因和填补的具体缺口。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>找到 3 个候选来源</span><span><span class="source-label source-external">外部补充</span></span></div><div class="frame-body stack">
+          <div class="result selected"><div class="row between"><div><strong>MIT OpenCourseWare · Linear Algebra</strong><p class="small">官方课程 · 可公开访问 · 访问于 2026-07-20</p><p class="small">https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/</p></div><span class="badge">推荐</span></div><p><strong>引用片段：</strong>点积把两个同维向量的对应分量相乘后求和，得到一个标量。</p><p><strong>选择原因：</strong>短范围即可解释向量点积和加权组合。</p><p><strong>填补缺口：</strong>帮助理解 attention score 与 weighted sum。</p><div class="row"><button data-go="source-viewer">预览来源</button><button class="primary" data-go="focus">使用该来源并插入前置任务</button></div></div>
+          <div class="result"><strong>Stanford CS229 Notes</strong><p class="small">官方课程 · URL 与访问时间已记录；内容可靠，但范围更大、数学密度较高。</p><button>选择该来源</button></div>
+          <div class="result"><strong>University short tutorial</strong><p class="small">大学教学资料 · URL 与访问时间已记录；解释较简洁，但引用位置不如第一项明确。</p><button>选择该来源</button></div>
+          <div class="row between"><button data-go="focus">忽略外部来源，继续现有路线</button><button>重新搜索</button></div>
+        </div></div>
+      </section>
+
+      <section class="screen" id="source-viewer" data-title="16 来源查看器与 AI 透明度">
+        <div class="screen-head"><div><h2>16 来源查看器与 AI 透明度</h2><p>用户能够核查解释依据；来源位置错误时可以报告。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>来源查看器</span><button data-go="focus">关闭来源查看器</button></div><div class="frame-body grid-2">
+          <div class="card"><h3>transformer_notes.md</h3><p>2. Self-attention · 第 7–13 行</p><div class="callout" style="min-height:380px"><p class="small">[Markdown 片段预览]</p><p>Self-attention lets each position compare itself with other positions in the same sequence. It first computes how relevant other positions are, then uses those relevance scores to combine information from the corresponding value representations.</p></div><div class="row"><button>上一处</button><button>下一处</button><button>打开完整材料</button></div></div>
+          <div class="stack"><div class="card"><h3>这段内容用于什么？</h3><p>支持“相关程度之后需要对 values 进行加权汇总”的解释和 Quiz 正确答案。</p></div><div class="card"><h3>来源标签</h3><p><span class="source-label source-uploaded">用户上传材料</span>可定位到文件、标题和行号。</p><p><span class="source-label source-external">外部补充</span>显示网页标题、URL、访问时间、引用片段和选用原因。</p><p><span class="source-label source-ai">AI 补充解释</span>没有原文依据时明确说明，不显示虚假位置。</p></div><div class="row"><button>报告定位错误</button><button data-go="focus" class="primary">返回学习</button></div></div>
+        </div></div>
+      </section>
+
+      <section class="screen" id="summary" data-title="17 会话总结、保存与恢复">
+        <div class="screen-head"><div><h2>17 会话总结、保存与恢复</h2><p>结束时定义下一次最小启动动作，而不是只显示“完成”。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>本次学习总结</span><span>已保存</span></div><div class="frame-body stack">
+          <div class="grid-2"><div class="card"><h3>本次完成</h3><ul><li>理解 Self-attention 的两个核心动作</li><li>完成 1 次 Quiz、1 次复述和 1 次补救练习</li><li>解决“加权汇总”表达不清的问题</li></ul><h4>仍需复习</h4><p>Q / K / V 各自的作用尚未学习。</p></div><div class="card"><h3>下次 2 分钟启动动作</h3><p><strong>不看笔记，写出 Q、K、V 三个字母分别代表什么。</strong></p><p class="small">预计下次完整学习 15–20 分钟。</p><div class="timeline"><span class="dot done">1</span><span class="line"></span><span class="dot done">2</span><span class="line"></span><span class="dot">3</span><span class="line"></span><span class="dot">4</span><span class="line"></span><span class="dot">5</span></div></div></div>
+          <div class="row between"><button data-go="history">保存并退出</button><div class="row"><button>导出学习记录</button><button class="primary" data-go="focus">继续学习</button></div></div>
+        </div></div>
+      </section>
+
+      <section class="screen" id="history" data-title="18 学习记录与会话管理">
+        <div class="screen-head"><div><h2>18 学习记录与会话管理</h2><p>支持继续、复制、删除和查看来源；避免用户不知道数据存在哪里。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>学习记录</span><span>搜索会话　筛选状态</span></div><div class="frame-body stack">
+          <div class="file"><div><strong>Transformer 基础</strong><p class="small">最后学习：今天 · 进度 2/5 · 2 个来源</p></div><div class="row"><button data-go="focus">继续</button><button data-go="summary">总结</button><button>更多</button></div></div>
+          <div class="file"><div><strong>正则化方法</strong><p class="small">最后学习：昨天 · 已结束 · 1 个来源</p></div><div class="row"><button data-go="summary">查看</button><button>复制为新会话</button><button>更多</button></div></div>
+          <div class="callout"><strong>删除确认</strong>删除会话时必须说明会删除哪些学习记录和上传文件；提供取消，不使用模糊文案。</div>
+          <div class="row between"><button data-go="landing">返回首页</button><button class="primary" data-go="setup">新建会话</button></div>
+        </div></div>
+      </section>
+
+      <section class="screen" id="settings" data-title="19 设置、隐私与数据控制">
+        <div class="screen-head"><div><h2>19 设置、隐私与数据控制</h2><p>生产级产品必须让用户理解数据、搜索权限和 AI 行为。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>设置</span><span>保存状态：已保存</span></div><div class="frame-body grid-2">
+          <div class="stack"><div class="card"><h3>学习体验</h3><label class="row"><input type="checkbox" checked style="width:auto;min-height:auto"> 一屏一个概念</label><label class="row"><input type="checkbox" checked style="width:auto;min-height:auto"> 反馈先显示已掌握内容</label><label class="row"><input type="checkbox" style="width:auto;min-height:auto"> 默认显示倒计时</label><label>默认语言<select><option>简体中文</option></select></label></div><div class="card"><h3>无障碍</h3><label class="row"><input type="checkbox" checked style="width:auto;min-height:auto"> 减少动画</label><label class="row"><input type="checkbox" style="width:auto;min-height:auto"> 更大字号</label><label class="row"><input type="checkbox" checked style="width:auto;min-height:auto"> 键盘焦点高亮</label></div></div>
+          <div class="stack"><div class="card"><h3>外部搜索</h3><label class="row"><input type="checkbox" checked style="width:auto;min-height:auto"> 允许系统建议搜索</label><label class="row"><input type="checkbox" checked style="width:auto;min-height:auto"> 每次搜索前都确认</label></div><div class="card"><h3>数据控制</h3><button>下载我的学习数据</button><button class="danger">删除全部上传材料</button><button class="danger">删除全部数据</button><p class="small muted">删除操作应二次确认，并明确是否可恢复。</p></div><div class="card"><h3>AI 透明度</h3><p class="small">查看模型输出来源标签、Agent 决策记录和搜索记录。</p><button>查看 AI 活动记录</button></div></div>
+        </div></div>
+      </section>
+
+      <section class="screen" id="system-states" data-title="20 加载、空、错误与恢复状态">
+        <div class="screen-head"><div><h2>20 加载、空、错误与恢复状态</h2><p>所有异步和失败状态都必须可理解、可取消、可恢复。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>跨页面状态规范</span><span>不得只显示无限转圈</span></div><div class="frame-body state-grid">
+          <div class="state-card"><h3>加载与后台继续</h3><div class="skeleton"><span></span><span></span><span></span></div><p class="small">正在提取第 12/48 页。你的其他进度已保存。</p><div class="row"><button>取消解析</button><button class="primary">转到后台继续</button></div></div>
+          <div class="state-card"><h3>空状态</h3><p>尚未上传材料。</p><button class="primary" data-go="upload">添加第一个文件</button><p class="small">空状态必须包含下一步，不只是空白。</p></div>
+          <div class="state-card"><h3>部分成功</h3><p>2 个文件解析成功，1 个扫描 PDF 无法读取。</p><div class="row"><button>查看问题</button><button class="primary">继续使用成功文件</button></div></div>
+          <div class="state-card"><h3>模型输出无效</h3><p>系统未能生成符合结构的学习地图。上传材料仍已保存。</p><div class="row"><button class="primary">重新生成地图</button><button>切换到明确标记的 Demo mode</button></div><p class="small">切换模式后必须持续显示 Demo 标签；不得把原始 JSON 错误暴露给普通用户。</p></div>
+          <div class="state-card"><h3>网络或搜索失败</h3><p>外部搜索暂时不可用。你的学习进度已保存。</p><div class="row"><button data-go="focus">基于现有材料继续</button><button>稍后重试</button></div></div>
+          <div class="state-card"><h3>离线与自动保存</h3><p>当前离线。新回答先保存在本地，恢复网络后同步。</p><button class="primary">查看待同步项目</button></div>
+          <div class="state-card"><h3>保存失败</h3><p>回答暂时无法保存到服务器。本地草稿仍在。</p><div class="row"><button>导出草稿</button><button class="primary">重新保存</button></div></div>
+          <div class="state-card"><h3>版本冲突</h3><p>另一页面保存了不同版本。两个版本都已保留。</p><div class="row"><button>比较两个版本</button><button class="primary">选择要保留的版本</button></div></div>
+          <div class="state-card"><h3>权限拒绝</h3><p>此文件不属于当前匿名 workspace，无法打开。当前会话未受影响。</p><button class="primary" data-go="history">返回我的学习记录</button></div>
+          <div class="state-card"><h3>提交失败与重试</h3><p>练习尚未提交；你的答案和提示深度已保存。</p><button class="primary">重新提交答案</button></div>
+          <div class="state-card"><h3>删除失败</h3><p>删除未完成，材料和会话仍然保留。</p><div class="row"><button>取消</button><button class="primary">重试删除</button></div></div>
+          <div class="state-card"><h3>恢复成功</h3><p>已恢复 Self-attention、复述草稿、1/3 级提示和剩余时间。</p><button class="primary" data-go="recall">返回未完成复述</button></div>
+          <div class="state-card"><h3>表单错误</h3><p><strong>需要补充 1 项：</strong>请填写本次学习目标。</p><button class="primary" data-go="setup">返回目标字段</button></div>
+          <div class="state-card"><h3>无历史会话</h3><p>这里还没有学习记录。</p><button class="primary" data-go="setup">上传材料并新建会话</button></div>
+          <div class="state-card"><h3>搜索无结果</h3><p>没有找到能可靠填补当前缺口的公开来源。</p><button class="primary" data-go="focus">基于现有材料继续</button></div>
+          <div class="state-card"><h3>来源引用无效</h3><p>生成内容引用了不存在的位置，因此没有显示。原材料仍可使用。</p><button class="primary">重新生成并验证引用</button></div>
+          <div class="state-card"><h3>正在重试</h3><p>正在重新解析 scanned_appendix.pdf（第 1/1 次）。</p><button class="primary">停止重试</button></div>
+        </div></div>
+      </section>
+
+      <section class="screen" id="responsive" data-title="21 响应式与键盘交互">
+        <div class="screen-head"><div><h2>21 响应式与键盘交互</h2><p>核心学习流程在手机上仍可完成；不是把桌面三栏简单缩小。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>移动端示例 · 390px</span><span>WCAG 2.2 AA 目标</span></div><div class="frame-body grid-2">
+          <div class="mobile-shell"><div class="mobile-top"><strong>Self-attention</strong><div class="small">进度 2/5 · 已保存</div></div><div class="mobile-body stack"><span class="badge">当前概念</span><h2>Self-attention</h2><p>比较相关程度，再汇总相关信息。</p><div class="primary-action"><strong>推荐：让 Tutor 检查理解</strong><button class="primary" data-go="tutor">打开 Tutor</button></div><button data-go="quiz">Quiz</button><button data-go="recall">复述</button><button data-go="source-viewer">来源</button></div><nav class="mobile-bottom" aria-label="移动端会话导航"><button data-go="path">地图</button><button data-go="focus">学习</button><button data-go="tutor">Tutor</button><button data-go="settings">更多</button></nav></div>
+          <div class="stack"><div class="card"><h3>响应式规则</h3><ul class="small"><li>≥1200px：知识地图 / 内容 / 会话三栏。</li><li>768–1199px：地图可折叠，内容主栏，Tutor 为抽屉。</li><li>&lt;768px：单栏；底部导航；所有活动全屏。</li><li>不要在窄屏固定侧栏或横向滚动关键内容。</li></ul></div><div class="card"><h3>键盘与焦点</h3><p class="small"><span class="kbd">Tab</span> 顺序符合视觉顺序；模态框内焦点受控；关闭后焦点返回触发按钮。</p><p class="small">所有主要操作都有可见焦点；不依赖悬停；不能只用颜色传达正确与错误。</p></div><div class="card"><h3>目标尺寸</h3><p class="small">规范最低遵循 WCAG 2.2 的 24×24 CSS px；本产品主按钮和常用触控目标默认至少 44×44。</p></div></div>
+        </div></div>
+      </section>
+
+    </div>
+  </main>
+</div>
+<script>
+  const screens=[...document.querySelectorAll('.screen')];
+  const nav=document.getElementById('screenNav');
+  const params=new URLSearchParams(location.search);
+  if(params.get('board')==='1') document.body.classList.add('board-mode');
+  screens.forEach((s,i)=>{
+    const b=document.createElement('button'); b.textContent=s.dataset.title; b.dataset.go=s.id; nav.appendChild(b);
+  });
+  function go(id){
+    if(document.body.classList.contains('board-mode')) return;
+    screens.forEach(s=>{
+      const active=s.id===id;
+      s.classList.toggle('active',active);
+      s.setAttribute('aria-hidden',String(!active));
+    });
+    [...nav.children].forEach(b=>{
+      const active=b.dataset.go===id;
+      b.classList.toggle('active',active);
+      if(active) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current');
+    });
+    history.replaceState(null,'','#'+id);
+    window.scrollTo({top:0,behavior:'auto'});
+    const heading=document.querySelector('#'+CSS.escape(id)+' h2');
+    if(heading){heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true})}
+  }
+  document.addEventListener('click',e=>{const el=e.target.closest('[data-go]');if(el){e.preventDefault();go(el.dataset.go)}});
+  if(!document.body.classList.contains('board-mode')) go(location.hash.slice(1)||'overview');
+</script>
+</body>
+</html>

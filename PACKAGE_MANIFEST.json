@@ -1,0 +1,187 @@
+{
+  "version": "v4-revised-spec-baseline",
+  "scope": "specification_and_prototype_files_before_application_code",
+  "file_count_excluding_manifest": 36,
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "bytes": 2045,
+      "sha256": "6646d1ccc446ada55eb70bf3c9e9dc699b1726f11def1faf408c17cf126650d9"
+    },
+    {
+      "path": "CODEX_BUILD_LOG.md",
+      "bytes": 1096,
+      "sha256": "4891d31a8442ad525c43a4082709b897897dcacc59c2e8a56e7673a265629a12"
+    },
+    {
+      "path": "FILE_MANIFEST_CN.md",
+      "bytes": 3435,
+      "sha256": "c77a8511c5101caf16ca0f7e12c111ced5a2a8b9d0f38beacd76cd4160ae32a6"
+    },
+    {
+      "path": "PACKAGE_VALIDATION_CN.md",
+      "bytes": 3406,
+      "sha256": "8bb8439ee3fe39304dcbe262ac59cc7d2832818c67306738e93fe7829562bf4e"
+    },
+    {
+      "path": "PLANS.md",
+      "bytes": 2866,
+      "sha256": "cc76ff0c4860818ba34ab4a032b6e75303897b608e3cc81e525e6ab4bbec06b0"
+    },
+    {
+      "path": "PROJECT_STATUS.md",
+      "bytes": 887,
+      "sha256": "36e83e63be02745bce2244128bd3181d6e9c127b19d64b802d23982edc96d6d8"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2140,
+      "sha256": "0fd8b2a7af0694382aa6a436db3544ba71454f0ee70e42e6e11a1d49e80ed24a"
+    },
+    {
+      "path": "STARTFRAME_FULL_SPEC_CN.md",
+      "bytes": 6346,
+      "sha256": "0a3f1554399c33477a238f26505d83c8091cb1394012e300b313d9e93fcb0eff"
+    },
+    {
+      "path": "START_HERE_CN.md",
+      "bytes": 2417,
+      "sha256": "98c72debb178154d54ebfe2f986d0524f30e1f334e7ffacdf92038b481d54142"
+    },
+    {
+      "path": "docs/01_PRODUCT_SCOPE_AND_JUDGING_CN.md",
+      "bytes": 1982,
+      "sha256": "1f2e34405720d0c5867b68bfc4245344af0cb05aa46e22934a74a6f9079ca8fe"
+    },
+    {
+      "path": "docs/02_INFORMATION_ARCHITECTURE_CN.md",
+      "bytes": 2016,
+      "sha256": "a3286015a62369662f193757b71fa6dafbfc77456fa1161d5ea7426c82e9b213"
+    },
+    {
+      "path": "docs/03_END_TO_END_USER_FLOW_CN.md",
+      "bytes": 2448,
+      "sha256": "bc57b904dfde15204405dcb8e1d3674356ee5a71526553b1ba1e6d78080f5467"
+    },
+    {
+      "path": "docs/04_LOW_FIDELITY_PROTOTYPE_CN.md",
+      "bytes": 1633,
+      "sha256": "bae37a87420501f5cd95440a9d3a183824ac36a16583e9b3cd19647d7d20863b"
+    },
+    {
+      "path": "docs/05_SCREEN_AND_INTERACTION_SPEC_CN.md",
+      "bytes": 5285,
+      "sha256": "6ca306c91cae62eb6f5f76b93e57ace434b15fd6f333a07c2289a3a96e2f49ca"
+    },
+    {
+      "path": "docs/06_COMPONENTS_AND_STATES_CN.md",
+      "bytes": 2828,
+      "sha256": "06f0a0ed9b956ff64627df5c56300464eaa6ebe0d4be871aa70cc80ecfa67855"
+    },
+    {
+      "path": "docs/07_ADHD_INFORMED_UX_CN.md",
+      "bytes": 2031,
+      "sha256": "c3697bd5775fbfc1c5971fd70562f1db39e79076c6db1f660dfe02a552c1223d"
+    },
+    {
+      "path": "docs/08_GUIDED_MASTERY_LOOP_CN.md",
+      "bytes": 2763,
+      "sha256": "afccdd2fd26a548a3188e75f3426e72560e9d0b262a90c83607f4fa5b74c1f4e"
+    },
+    {
+      "path": "docs/09_ADAPTIVE_AGENT_CN.md",
+      "bytes": 2585,
+      "sha256": "6fbcefeb3fb94455a4a0bacb4beec0ede4795d0b0947777a736258a1695bfaae"
+    },
+    {
+      "path": "docs/10_SOURCE_GROUNDING_AND_SEARCH_CN.md",
+      "bytes": 2358,
+      "sha256": "7a0950d90bef610c5be39f739d4faa06920f11824d3de16e82a432cf69318739"
+    },
+    {
+      "path": "docs/11_PRODUCTION_UX_STANDARDS_CN.md",
+      "bytes": 3273,
+      "sha256": "7c4a17ece73ce865e3dc8568814da6295a3633530cdc7da8499c5370ea6b6909"
+    },
+    {
+      "path": "docs/12_ACCESSIBILITY_RESPONSIVE_CN.md",
+      "bytes": 2268,
+      "sha256": "c24ee3244c957cd6953cc9b35b3a513d393d711c717141bb1a45114030287a31"
+    },
+    {
+      "path": "docs/13_DATA_AI_API_CONTRACTS.md",
+      "bytes": 9824,
+      "sha256": "e387ae11642464ae9d39d0d7b6b36234d79a2c9326a61985c32bc1e9518295b5"
+    },
+    {
+      "path": "docs/14_ACCEPTANCE_AND_EVALS_CN.md",
+      "bytes": 3179,
+      "sha256": "511a4ff4a91edbeab63ea2ee25c96b760194c29a086f2e41a46be98c8095c288"
+    },
+    {
+      "path": "docs/15_CODEX_STEP_BY_STEP_CN.md",
+      "bytes": 3604,
+      "sha256": "95819899fe6d4b32971dcc516de498ac4c39d455287b7d4dc0d7c6b0a6e25b92"
+    },
+    {
+      "path": "docs/16_CODEX_PROMPTS_CN.md",
+      "bytes": 11827,
+      "sha256": "e49565ff0946acb3112a8c2b5d84fdbce811b891a5c2ba20fd5e88f00e492ec4"
+    },
+    {
+      "path": "docs/17_DEMO_AND_SUBMISSION_CN.md",
+      "bytes": 3589,
+      "sha256": "63d5e5e020bdb8a7519ca8aad93ee75782dbd21f6a23004a0ef8e910fa5fa41a"
+    },
+    {
+      "path": "docs/18_DECISIONS_AND_SCOPE_CN.md",
+      "bytes": 6451,
+      "sha256": "e68c7941e4552957bdf3552d11251161e1a0c79b1809a17166f1696ef550a266"
+    },
+    {
+      "path": "evals/CORE_PRODUCT_ACCEPTANCE_CASES.md",
+      "bytes": 3390,
+      "sha256": "41b0e20c12aa77e72bd415fcf37b1f50ecc0b3f5c184866b89683f47be1dadf2"
+    },
+    {
+      "path": "evals/UI_UX_ACCEPTANCE_CASES.md",
+      "bytes": 2798,
+      "sha256": "6d7e8d8906f28ce732c8528953f5654502d4f7dbbc26db134187265271bea96a"
+    },
+    {
+      "path": "prototype/README_CN.md",
+      "bytes": 1529,
+      "sha256": "d1145ca22aacba15c531d7dbee70fb85267a1b3a707905589e819506ff3a62e8"
+    },
+    {
+      "path": "prototype/startframe_lowfi_overview.png",
+      "bytes": 923676,
+      "sha256": "3af10ee8bc282416b5250983dbda0691fd8765fd7fb4af907afa4aff47ece796"
+    },
+    {
+      "path": "prototype/startframe_lowfi_prototype.html",
+      "bytes": 59741,
+      "sha256": "23a02cf1f4e3ae554190db0d29d39e2ec218ba37fd49aaee1410cd50c23c4152"
+    },
+    {
+      "path": "references/DESIGN_STANDARDS_SOURCES.md",
+      "bytes": 1110,
+      "sha256": "68c27c9fdf955cd3bc67342c2fb1c0ef4bcdbd5ae7bdfa65aee4974303eccdef"
+    },
+    {
+      "path": "sample_data/demo_user_scenario.md",
+      "bytes": 1805,
+      "sha256": "8fbb57142100666182b792b5309a214dbe6f77aeeba16832ca07868bf5673c81"
+    },
+    {
+      "path": "sample_data/matrix_prerequisite.md",
+      "bytes": 619,
+      "sha256": "99c57641d9ade269c85db814ffd6c082379f7f23e4b695476f16ce8af5fbae6a"
+    },
+    {
+      "path": "sample_data/transformer_notes.md",
+      "bytes": 1352,
+      "sha256": "6937be1157840c4aca7e7563882dc562f41c2be991e65b77222d6b02880fb7f6"
+    }
+  ]
+}
