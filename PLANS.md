@@ -10,11 +10,13 @@ Create FastAPI, SQLite initialization, static app shell, configuration, Demo/rea
 
 Implement PDF, Markdown, TXT and pasted-text ingestion; real page or line locations; stable source/chunk IDs; persistence; source inventory; preview; partial-success and parse-error states.
 
-**Status:** In progress.
+**Status:** Complete and verified on 2026-07-20. No model or external search is used.
 
 ## Milestone 2 — Learner setup, coverage and knowledge map
 
 Implement session setup, source coverage, named gaps, 2–5 concept dependency map, initial route and one 60–120 second start action. This milestone creates the shared server-side OpenAI gateway and the first real GPT-5.6 Structured Outputs path, while retaining a deterministic Demo path. Use schema validation and grounded source references.
+
+**Status:** In progress. Demo mode can proceed; a real-model smoke test requires a locally configured `OPENAI_API_KEY`.
 
 ## Milestone 3 — Production focus-session shell
 

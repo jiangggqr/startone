@@ -22,6 +22,10 @@ class Settings:
 
     mode: AppMode = "demo"
     database_path: Path = PROJECT_ROOT / "instance" / "startframe.sqlite3"
+    upload_dir: Path = PROJECT_ROOT / "instance" / "uploads"
+    max_file_bytes: int = 20 * 1024 * 1024
+    max_files: int = 5
+    secure_cookies: bool = False
     host: str = "127.0.0.1"
     port: int = 8000
 
@@ -45,10 +49,34 @@ class Settings:
                 str(PROJECT_ROOT / "instance" / "startframe.sqlite3"),
             )
         ).expanduser()
+        upload_dir = Path(
+            os.getenv(
+                "STARTFRAME_UPLOAD_DIR",
+                str(PROJECT_ROOT / "instance" / "uploads"),
+            )
+        ).expanduser()
+
+        try:
+            max_file_mb = int(os.getenv("STARTFRAME_MAX_FILE_MB", "20"))
+            max_files = int(os.getenv("STARTFRAME_MAX_FILES", "5"))
+        except ValueError as exc:
+            raise ValueError("Upload limits must be integers") from exc
+        if not 1 <= max_file_mb <= 100:
+            raise ValueError("STARTFRAME_MAX_FILE_MB must be between 1 and 100")
+        if not 1 <= max_files <= 20:
+            raise ValueError("STARTFRAME_MAX_FILES must be between 1 and 20")
+
+        secure_cookies = os.getenv("STARTFRAME_SECURE_COOKIES", "false").lower()
+        if secure_cookies not in {"true", "false"}:
+            raise ValueError("STARTFRAME_SECURE_COOKIES must be true or false")
 
         return cls(
             mode=raw_mode,  # type: ignore[arg-type]
             database_path=database_path,
+            upload_dir=upload_dir,
+            max_file_bytes=max_file_mb * 1024 * 1024,
+            max_files=max_files,
+            secure_cookies=secure_cookies == "true",
             host=os.getenv("STARTFRAME_HOST", "127.0.0.1"),
             port=port,
         )

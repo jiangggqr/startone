@@ -9,7 +9,8 @@
 - Data, AI and API contracts: complete
 - Acceptance scenarios and Codex prompts: complete
 - Milestone 0 application foundation: complete
-- Milestone 1 source ingestion and grounding: in progress
+- Milestone 1 source ingestion and grounding: complete
+- Milestone 2 learner setup, coverage and knowledge map: in progress
 - Production UI language: English
 
 ## What the prototype is
@@ -23,7 +24,11 @@
 - Visible Demo/live-model mode and `GET /api/health`
 - Empty state, offline health state and honest not-yet-implemented state
 - Automated foundation tests and real desktop/mobile browser inspection
+- Anonymous workspace Cookie isolation and private UUID-based source storage
+- PDF, Markdown, TXT and pasted-text parsing with real source locations
+- Stable source/chunk IDs, checksums, local retrieval, retry and source deletion
+- Source inventory, preview, empty/error/partial-success/offline/recovery UI states
 
 ## Next action
 
-Implement Milestone 1 ingestion for PDF, Markdown, TXT and pasted text, including source locations, partial success and recovery.
+Implement Milestone 2 learner setup, grounded source coverage, knowledge map and a 60–120 second start action in deterministic Demo and real GPT-5.6 modes.

@@ -22,7 +22,7 @@
           <span>StartFrame Agent</span>
         </a>
         <nav aria-label="Main navigation">
-          <a href="#library" aria-current="page">Library</a>
+          <a href="#library" id="library-link" aria-current="page">Library</a>
           <a href="#recent-sessions">Learning history</a>
           <a href="#data-controls">Settings &amp; data</a>
           <a href="#help">Help</a>
@@ -32,6 +32,7 @@
     </header>
 
     <main id="main-content" tabindex="-1">
+      <div id="home-view">
       <section class="hero" id="library" aria-labelledby="hero-title">
         <div class="hero-copy">
           <p class="eyebrow">Learn from your own material</p>
@@ -78,7 +79,7 @@
           </div>
           <span class="status-chip">0 sessions</span>
         </div>
-        <div class="empty-state">
+        <div class="empty-state" id="recent-empty">
           <span class="empty-icon" aria-hidden="true">◇</span>
           <div>
             <h3>No learning sessions yet</h3>
@@ -86,6 +87,7 @@
           </div>
           <button class="button button-secondary" id="empty-start" type="button">Start your first session</button>
         </div>
+        <div class="session-list" id="recent-list" hidden></div>
       </section>
 
       <section class="section two-column" aria-label="Product safeguards">
@@ -93,10 +95,10 @@
           <p class="eyebrow">Your data</p>
           <h2>Storage and controls stay visible</h2>
           <p>
-            This build stores application data in this deployment's private SQLite database. Uploads are not
-            enabled yet, so there is no learning material to delete.
+            Learning material is stored in this deployment's private workspace. Every source can be previewed,
+            retried, or removed from its session.
           </p>
-          <button class="button button-quiet" type="button" disabled>Delete all data (none yet)</button>
+          <button class="button button-quiet" type="button" disabled>Workspace-wide delete opens in Settings</button>
         </article>
         <article class="info-card" id="help">
           <p class="eyebrow">System boundary</p>
@@ -108,22 +110,134 @@
           <a class="text-link" href="/api/docs">View current API status</a>
         </article>
       </section>
+      </div>
+
+      <section class="source-workspace" id="source-view" aria-labelledby="sources-title" hidden>
+        <div class="workflow-heading">
+          <button class="button button-quiet" id="back-home" type="button">← Back to library</button>
+          <p class="eyebrow">Step 1 · Add learning material</p>
+          <h1 id="sources-title" tabindex="-1">Build a grounded source library</h1>
+          <p class="hero-lead">
+            Add the material you want to learn from. Each readable section keeps its real page, heading,
+            line, paragraph, and character location.
+          </p>
+        </div>
+
+        <div class="connection-banner" id="connection-banner" role="status" hidden>
+          You are offline. Existing source previews remain visible; new uploads will wait until you reconnect.
+        </div>
+        <div class="upload-message" id="upload-message" role="status" aria-live="polite" hidden></div>
+
+        <div class="upload-layout">
+          <div class="source-column">
+            <section class="upload-panel" aria-labelledby="upload-title">
+              <div class="upload-panel-copy">
+                <p class="eyebrow">Primary source</p>
+                <h2 id="upload-title">Upload PDF, Markdown, or TXT</h2>
+                <p>Up to 5 files at once, 20 MB each. Scanned PDFs need a selectable text layer.</p>
+              </div>
+              <div class="drop-zone" id="drop-zone">
+                <span class="source-icon" aria-hidden="true">＋</span>
+                <div>
+                  <strong>Drop files here</strong>
+                  <p>or choose files from this device</p>
+                </div>
+                <button class="button button-primary" id="choose-files" type="button">Choose files</button>
+                <input
+                  id="file-input"
+                  type="file"
+                  accept=".pdf,.md,.markdown,.txt,application/pdf,text/markdown,text/plain"
+                  multiple
+                  hidden
+                />
+              </div>
+              <button class="button button-secondary" id="open-paste" type="button">Paste text instead</button>
+            </section>
+
+            <section class="source-inventory" aria-labelledby="inventory-title">
+              <div class="section-heading compact-heading">
+                <div>
+                  <p class="eyebrow">Saved privately</p>
+                  <h2 id="inventory-title">Sources in this session</h2>
+                </div>
+                <span class="status-chip" id="source-count">0 sources</span>
+              </div>
+              <div class="empty-state" id="source-empty">
+                <span class="empty-icon" aria-hidden="true">◇</span>
+                <div>
+                  <h3>No material yet</h3>
+                  <p>Add one file or paste text. Successful sources remain usable if another file fails.</p>
+                </div>
+              </div>
+              <ul class="source-list" id="source-list" aria-live="polite"></ul>
+            </section>
+          </div>
+
+          <aside class="preview-panel" aria-labelledby="preview-title">
+            <p class="eyebrow">Verifiable preview</p>
+            <h2 id="preview-title">Source location</h2>
+            <div id="preview-empty" class="preview-empty">
+              <span class="empty-icon" aria-hidden="true">⌖</span>
+              <p>Select a ready source to inspect its extracted text and real location.</p>
+            </div>
+            <div id="preview-content" hidden>
+              <div class="preview-heading">
+                <div>
+                  <h3 id="preview-filename"></h3>
+                  <p id="preview-location"></p>
+                </div>
+                <span class="origin-badge">Uploaded material</span>
+              </div>
+              <pre id="preview-text"></pre>
+              <div class="chunk-navigation" id="chunk-navigation" aria-label="Source sections"></div>
+            </div>
+          </aside>
+        </div>
+
+        <div class="workflow-actions">
+          <button class="button button-secondary" id="save-for-later" type="button">Save and return later</button>
+          <button class="button button-secondary" type="button" disabled aria-describedby="coverage-note">
+            Review source coverage
+          </button>
+          <p id="coverage-note">Coverage review opens in Milestone 2 after at least one source is ready.</p>
+        </div>
+      </section>
     </main>
 
     <footer>
       <p>StartFrame Agent · <span id="runtime-status" role="status" aria-live="polite">Checking service status…</span></p>
     </footer>
 
-    <dialog id="milestone-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-description">
+    <dialog id="paste-dialog" aria-labelledby="paste-title" aria-describedby="paste-description">
       <div class="dialog-content">
-        <p class="eyebrow">Milestone 0</p>
-        <h2 id="dialog-title">The foundation is up and running</h2>
-        <p id="dialog-description">
-          This build includes the application shell, database, and runtime health check. Material upload opens
-          in the next milestone; unfinished features are never presented as working demo data.
+        <p class="eyebrow">Uploaded material</p>
+        <h2 id="paste-title">Paste learning material</h2>
+        <p id="paste-description">The text stays in this anonymous workspace and keeps paragraph locations.</p>
+        <form id="paste-form">
+          <label for="paste-title-input">Source title</label>
+          <input id="paste-title-input" name="title" maxlength="180" required />
+          <label for="paste-text">Text</label>
+          <textarea id="paste-text" name="text" rows="10" required></textarea>
+          <p class="field-error" id="paste-error" role="alert" tabindex="-1" hidden></p>
+          <div class="dialog-actions">
+            <button class="button button-secondary" id="cancel-paste" type="button">Cancel</button>
+            <button class="button button-primary" id="submit-paste" type="submit">Add pasted text</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
+    <dialog id="delete-dialog" aria-labelledby="delete-title" aria-describedby="delete-description">
+      <div class="dialog-content">
+        <p class="eyebrow">Delete source</p>
+        <h2 id="delete-title">Remove this source?</h2>
+        <p id="delete-description">
+          This removes the source, extracted sections, and its stored file from this session. This cannot be undone.
         </p>
+        <p class="delete-filename" id="delete-filename"></p>
         <div class="dialog-actions">
-          <button class="button button-primary" id="close-dialog" type="button">Got it</button>
+          <button class="button button-secondary" id="cancel-delete" type="button">Keep source</button>
+          <button class="button button-danger" id="confirm-delete" type="button">Delete source</button>
         </div>
       </div>
     </dialog>

@@ -11,6 +11,7 @@ def build_app(tmp_path: Path, mode: AppMode = "demo"):
     settings = Settings(
         mode=mode,
         database_path=tmp_path / "test.sqlite3",
+        upload_dir=tmp_path / "uploads",
     )
     return create_app(settings)
 
@@ -33,8 +34,8 @@ def test_health_initializes_versioned_database(tmp_path: Path) -> None:
         "status": "ok",
         "mode": "demo",
         "database": "ready",
-        "schema_version": 1,
-        "version": "0.1.0",
+        "schema_version": 2,
+        "version": "0.2.0",
     }
     assert (tmp_path / "test.sqlite3").exists()
 

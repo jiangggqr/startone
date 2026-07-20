@@ -48,3 +48,18 @@ Record one section after each verified milestone.
 ### Problems and corrections
 
 ### Remaining limitations
+
+## Milestone 1 — Source ingestion and grounding
+
+- Status: complete
+- Date: 2026-07-20
+- Codex thread/session: current StartFrame Agent task
+- Git commit: pending at time of this log entry
+- Goal: accept PDF, Markdown, TXT and pasted text while preserving real, server-validated locations
+- Codex contribution: added anonymous workspace isolation, version-2 SQLite source schema, UUID/checksum blob storage, structural parsers, stable chunk IDs, local source retrieval, source APIs, retry/cancel/delete behaviors, an English upload inventory and a verifiable preview UI
+- Human product decisions: every user-visible product string is English; the visual system uses flat backgrounds and does not use large-area gradients
+- Files changed: source/config/database/API modules, static app, source tests, environment and dependency declarations, status and decision records
+- Verification: 9 automated tests passed; Markdown heading/line locators, PDF page locators, scanned-PDF failure, pasted paragraph locators, partial multi-file success, stable retry IDs, local retrieval, workspace isolation and blob cleanup were exercised; Python and JavaScript syntax passed; app source contained no Chinese UI strings or gradient declarations
+- Browser verification: real pasted-text creation → parsing → inventory → two-paragraph preview passed; delete-confirmation cancel returned focus to the Remove trigger; 390 px viewport had 390 px document width with no horizontal overflow; browser console reported zero errors
+- Problems and corrections: the in-app browser does not support automated native file selection, so PDF/Markdown/TXT multipart upload is covered by API integration tests while the complete pasted-source UI path is covered in-browser; stale Milestone 0 data copy and an overly prominent disabled future action were corrected
+- Remaining limitations: source coverage and session setup begin in Milestone 2; no OpenAI call exists in Milestone 1; the current environment does not yet contain `OPENAI_API_KEY`
