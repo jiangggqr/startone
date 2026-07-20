@@ -4,9 +4,13 @@
 
 Create FastAPI, SQLite initialization, static app shell, configuration, Demo/real mode indicator, health endpoint, test command and clean README. Do not implement AI or upload processing.
 
+**Status:** Complete and verified on 2026-07-20. The production UI language is English.
+
 ## Milestone 1 — Source ingestion and grounding
 
 Implement PDF, Markdown, TXT and pasted-text ingestion; real page or line locations; stable source/chunk IDs; persistence; source inventory; preview; partial-success and parse-error states.
+
+**Status:** In progress.
 
 ## Milestone 2 — Learner setup, coverage and knowledge map
 

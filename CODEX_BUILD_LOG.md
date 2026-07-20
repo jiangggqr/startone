@@ -13,6 +13,20 @@ Record one section after each verified milestone.
 - Competition verification: OpenAI Build Week homepage and Official Rules reviewed
 - Verification: 18 numbered specs present; 22 prototype screens; navigation targets valid; prototype JavaScript parses; manifest hashes regenerated
 
+## Milestone 0 — Runnable foundation
+
+- Status: complete
+- Date: 2026-07-20
+- Codex thread/session: current StartFrame Agent task
+- Git commit: pending at time of this log entry
+- Goal: create a runnable, testable foundation without uploads or model calls
+- Codex contribution: implemented FastAPI entry point, environment settings, SQLite schema initialization, security headers, health endpoint, static responsive shell and automated tests
+- Human product decision: all user-visible product content must be English; Chinese remains internal specification language only
+- Files changed: `app/`, `tests/`, `requirements.txt`, `.env.example`, `README.md`, project status and decision records
+- Verification: Python 3.13 virtual environment; 2 automated tests passed; Python and JavaScript syntax passed; desktop and 390 px responsive layouts inspected in the in-app browser; primary dialog exercised; browser console reported zero errors; application source scanned for Chinese UI text with no matches
+- Problems and corrections: default Python was 3.9, so the existing Python 3.13 runtime was used; port 8000 was occupied by another local project, so browser verification used port 8010 while the documented/default StartFrame port remains 8000; the first UI draft was Chinese and was corrected immediately to English across UI, runtime states, tests and the governing decision record
+- Remaining limitations: upload and learning workflows intentionally begin in Milestone 1; no OpenAI call exists in this milestone
+
 ## Milestone template
 
 ### Date and milestone

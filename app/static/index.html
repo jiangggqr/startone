@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="StartFrame Agent turns your learning materials into a grounded, manageable study loop."
+    />
+    <title>StartFrame Agent</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href="/" aria-label="StartFrame Agent home">
+          <span class="brand-mark" aria-hidden="true">SF</span>
+          <span>StartFrame Agent</span>
+        </a>
+        <nav aria-label="Main navigation">
+          <a href="#library" aria-current="page">Library</a>
+          <a href="#recent-sessions">Learning history</a>
+          <a href="#data-controls">Settings &amp; data</a>
+          <a href="#help">Help</a>
+        </nav>
+        <span class="mode-badge" id="mode-badge">Demo mode</span>
+      </div>
+    </header>
+
+    <main id="main-content" tabindex="-1">
+      <section class="hero" id="library" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">Learn from your own material</p>
+          <h1 id="hero-title">Turn what you already have into a study session you can start now</h1>
+          <p class="hero-lead">
+            Upload lecture notes, papers, or study notes. StartFrame preserves verifiable source locations,
+            then gives you one 1–2 minute action to get moving.
+          </p>
+          <div class="hero-actions">
+            <button class="button button-primary" id="start-session" type="button">
+              Upload material and start a session
+            </button>
+            <a class="button button-secondary" href="#recent-sessions">View learning history</a>
+          </div>
+          <p class="support-note">
+            <strong>ADHD-informed:</strong> One active concept, one primary action, and no penalty for pausing.
+          </p>
+        </div>
+
+        <div class="source-options" aria-label="Available ways to start learning">
+          <article class="source-card source-card-primary">
+            <span class="source-icon" aria-hidden="true">▣</span>
+            <div>
+              <h2>Upload PDF, Markdown, or TXT</h2>
+              <p>Primary path · Explanations, practice, and citations start with your material.</p>
+            </div>
+            <span class="recommended-label">Recommended</span>
+          </article>
+          <article class="source-card">
+            <span class="source-icon" aria-hidden="true">✎</span>
+            <div>
+              <h2>Enter a topic only</h2>
+              <p>Fallback path · Content is clearly labeled as an AI supplemental explanation.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="recent-sessions" aria-labelledby="recent-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Resume anytime</p>
+            <h2 id="recent-title">Recent sessions</h2>
+          </div>
+          <span class="status-chip">0 sessions</span>
+        </div>
+        <div class="empty-state">
+          <span class="empty-icon" aria-hidden="true">◇</span>
+          <div>
+            <h3>No learning sessions yet</h3>
+            <p>After your first upload, resumable concepts, drafts, and next actions will appear here.</p>
+          </div>
+          <button class="button button-secondary" id="empty-start" type="button">Start your first session</button>
+        </div>
+      </section>
+
+      <section class="section two-column" aria-label="Product safeguards">
+        <article class="info-card" id="data-controls">
+          <p class="eyebrow">Your data</p>
+          <h2>Storage and controls stay visible</h2>
+          <p>
+            This build stores application data in this deployment's private SQLite database. Uploads are not
+            enabled yet, so there is no learning material to delete.
+          </p>
+          <button class="button button-quiet" type="button" disabled>Delete all data (none yet)</button>
+        </article>
+        <article class="info-card" id="help">
+          <p class="eyebrow">System boundary</p>
+          <h2>AI will not expand your study scope on its own</h2>
+          <p>
+            External search runs only after a named source gap is found, the planning Agent requests it, and
+            you confirm that specific search. Every item shows its source type.
+          </p>
+          <a class="text-link" href="/api/docs">View current API status</a>
+        </article>
+      </section>
+    </main>
+
+    <footer>
+      <p>StartFrame Agent · <span id="runtime-status" role="status" aria-live="polite">Checking service status…</span></p>
+    </footer>
+
+    <dialog id="milestone-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-description">
+      <div class="dialog-content">
+        <p class="eyebrow">Milestone 0</p>
+        <h2 id="dialog-title">The foundation is up and running</h2>
+        <p id="dialog-description">
+          This build includes the application shell, database, and runtime health check. Material upload opens
+          in the next milestone; unfinished features are never presented as working demo data.
+        </p>
+        <div class="dialog-actions">
+          <button class="button button-primary" id="close-dialog" type="button">Got it</button>
+        </div>
+      </div>
+    </dialog>
+  </body>
+</html>
