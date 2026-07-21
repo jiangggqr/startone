@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+import json
 from pathlib import Path
 from typing import Any, AsyncIterator, Callable, Literal
 import uuid
@@ -70,6 +71,7 @@ from app.sources import (
     list_sources,
     media_for_filename,
     process_source,
+    report_source_reference,
     retry_source,
     search_chunks,
     store_source,
@@ -86,7 +88,17 @@ from app.search import (
     ignore_search_results,
     select_external_source,
 )
+from app.records import (
+    ai_activity_log,
+    copy_session,
+    delete_session,
+    delete_workspace_data,
+    get_session_summary,
+    workspace_export,
+    workspace_export_markdown,
+)
 from app.tutor import close_tutor, get_tutor, open_tutor, send_tutor_message
+from app.topic import create_topic_source
 
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
@@ -105,6 +117,15 @@ class HealthResponse(BaseModel):
 class PastedSourceRequest(BaseModel):
     title: str = Field(min_length=1, max_length=180)
     text: str = Field(min_length=1, max_length=2_000_000)
+
+
+class TopicSourceRequest(BaseModel):
+    topic: str = Field(min_length=2, max_length=120)
+
+
+class SourceReferenceReportRequest(BaseModel):
+    reason: Literal["location_incorrect", "content_mismatch", "other"]
+    note: str | None = Field(default=None, max_length=500)
 
 
 class SessionSetupRequest(BaseModel):
@@ -288,11 +309,21 @@ def create_app(
     async def add_security_headers(request: Request, call_next):  # type: ignore[no-untyped-def]
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["Referrer-Policy"] = "same-origin"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        response.headers["Permissions-Policy"] = (
+            "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+        )
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; img-src 'self' data:; style-src 'self'; "
-            "script-src 'self'; connect-src 'self'; frame-ancestors 'none'"
+            "script-src 'self'; connect-src 'self'; object-src 'none'; "
+            "base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
         )
+        if request.url.path.startswith("/api/"):
+            response.headers["Cache-Control"] = "no-store"
+        if resolved_settings.secure_cookies:
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         return response
 
     @application.get("/", include_in_schema=False)
@@ -331,6 +362,72 @@ def create_app(
             session_id,
         )
         return {"session": _public_session(session)}
+
+    @application.post("/api/sessions/{session_id}/copy", status_code=201)
+    async def copy_learning_session(session_id: str, request: Request) -> dict:
+        session = copy_session(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            session_id,
+        )
+        return {"session": _public_session(session)}
+
+    @application.delete("/api/sessions/{session_id}")
+    async def delete_learning_session(session_id: str, request: Request) -> dict:
+        return delete_session(
+            resolved_settings.database_path,
+            resolved_settings.upload_dir,
+            _workspace_id(request),
+            session_id,
+        )
+
+    @application.get("/api/sessions/{session_id}/summary")
+    async def session_summary(session_id: str, request: Request) -> dict:
+        return get_session_summary(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            session_id,
+        )
+
+    @application.get("/api/export")
+    async def export_learning_data(
+        request: Request,
+        format: Literal["json", "markdown"] = "json",
+    ) -> Response:
+        exported = workspace_export(resolved_settings.database_path, _workspace_id(request))
+        if format == "markdown":
+            content = workspace_export_markdown(exported)
+            media_type = "text/markdown; charset=utf-8"
+            filename = "startframe-learning-record.md"
+        else:
+            content = json.dumps(exported, ensure_ascii=False, indent=2)
+            media_type = "application/json"
+            filename = "startframe-learning-record.json"
+        return Response(
+            content=content,
+            media_type=media_type,
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Cache-Control": "no-store",
+            },
+        )
+
+    @application.get("/api/ai-activity")
+    async def ai_activity(request: Request) -> dict:
+        return {
+            "activities": ai_activity_log(
+                resolved_settings.database_path,
+                _workspace_id(request),
+            )
+        }
+
+    @application.delete("/api/user-data")
+    async def delete_all_user_data(request: Request) -> dict:
+        return delete_workspace_data(
+            resolved_settings.database_path,
+            resolved_settings.upload_dir,
+            _workspace_id(request),
+        )
 
     @application.patch("/api/sessions/{session_id}")
     async def update_session(
@@ -449,6 +546,22 @@ def create_app(
         )
         return {"status": "processing", "source": _public_source(source)}
 
+    @application.post("/api/sessions/{session_id}/topic-source", status_code=201)
+    async def add_topic_source(
+        session_id: str,
+        payload: TopicSourceRequest,
+        request: Request,
+    ) -> dict:
+        result = create_topic_source(
+            resolved_settings,
+            _workspace_id(request),
+            session_id,
+            payload.topic,
+            client_factory=ai_client_factory,
+        )
+        result["source"] = _public_source(result["source"])
+        return result
+
     @application.get("/api/sessions/{session_id}/sources")
     async def sources(session_id: str, request: Request) -> dict:
         items = list_sources(
@@ -483,6 +596,24 @@ def create_app(
                 saved_state="The original source and your session remain available.",
             )
         return {"source": _public_source(source), "chunk": _public_chunk(chunk)}
+
+    @application.post("/api/sources/{source_id}/chunks/{chunk_id}/reports", status_code=201)
+    async def report_source_location(
+        source_id: str,
+        chunk_id: str,
+        payload: SourceReferenceReportRequest,
+        request: Request,
+    ) -> dict:
+        return {
+            "report": report_source_reference(
+                resolved_settings.database_path,
+                _workspace_id(request),
+                source_id,
+                chunk_id,
+                payload.reason,
+                payload.note,
+            )
+        }
 
     @application.get("/api/sources/{source_id}/progress")
     async def source_progress(source_id: str, request: Request) -> dict:

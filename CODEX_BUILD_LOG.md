@@ -175,3 +175,19 @@ Record one section after each verified milestone.
 - Responsive verification: confirmation and results were checked at 390 px with document width equal to viewport width and exactly one visible primary result action; the new source fixture controls also remained at 390 px without overflow; computed body background image was `none`
 - Problems and corrections: the first Demo path loaded the complete matrix prerequisite and therefore could not naturally exhibit the dot-product gap; a dedicated one-source fixture was exposed in the normal UI and covered by integration and browser tests. A local Python cache location was not writable in the sandbox, so compilation was rerun with an isolated temporary cache
 - Remaining limitations: the live GPT-5.6 search smoke test requires a server-side `OPENAI_API_KEY`; its exact request contract and result filtering are tested with a fake Responses client. Milestone 7 will complete cross-state accessibility, security/privacy, evaluation and deployment hardening
+
+## Milestone 7 — End-to-end production hardening
+
+- Status: implementation and Demo verification complete; one live smoke test remains externally gated
+- Date: 2026-07-21
+- Codex thread/session: current StartFrame Agent task
+- Git commit: Milestone 7 focused commit (this commit)
+- Goal: close cross-milestone product, state, accessibility, responsive, privacy, data-control and evaluation gaps before submission packaging
+- Codex contribution: added safe session copy/delete, full learning-record exports, AI activity visibility, workspace deletion, durable summaries, a structured topic-only AI-supplement fallback, schema-preserving source-origin migration, source-location reports, history search/filter, saved accessibility/new-session preferences and hardened response headers
+- Human product decisions: upload remains the primary and dominant path; topic-only is a visibly weaker fallback; every production string remains English; all major backgrounds remain flat solid colors; keys stay server-only
+- Verification: 43 automated tests passed; Python compilation, dependency integrity, secret scan, diff hygiene, English UI scan and no-gradient scan passed; every C01–C22 and U01–U20 case has evidence in `evals/VERIFICATION_REPORT.md`
+- Browser verification: topic-only source generation preserved `ai_supplement` through preview and coverage; source reporting bound the exact chunk and restored focus; history filtering returned an exact match count; accessibility preferences persisted; data controls and deletion dialogs were exercised; summary recovery displayed completed/remaining concepts and a concrete restart action
+- Responsive verification: at 390 px, normal and large-text modes had document width equal to viewport width, no undersized visible control, no gradients and no Chinese UI; the 640 px zoom-equivalent layout preserved every core operation without overflow
+- Security/privacy verification: API responses use `no-store`; browser headers deny framing and sensitive capabilities; exports exclude keys, server paths, hidden rubrics, internal prompts and response IDs; source/report/session access is workspace-scoped
+- Problems and corrections: the production topic-only card was initially static and is now fully functional; AI fallback provenance initially risked being relabeled downstream and is now derived at every layer; the audit also found missing source reports, history filters and user accessibility preferences, all of which are now implemented rather than deferred
+- Remaining limitation: one real GPT-5.6 smoke flow requires a server-side `OPENAI_API_KEY`; deterministic Demo and all real request contracts are already verified without exposing a secret

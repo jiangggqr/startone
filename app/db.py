@@ -6,7 +6,7 @@ import sqlite3
 from pathlib import Path
 
 
-SCHEMA_VERSION = 9
+SCHEMA_VERSION = 11
 
 SOURCE_SCHEMA = """
 CREATE TABLE IF NOT EXISTS workspaces (
@@ -47,7 +47,8 @@ CREATE TABLE IF NOT EXISTS source_documents (
     filename TEXT NOT NULL,
     media_type TEXT NOT NULL,
     media_kind TEXT NOT NULL CHECK(media_kind IN ('pdf', 'markdown', 'text', 'pasted')),
-    source_origin TEXT NOT NULL DEFAULT 'uploaded' CHECK(source_origin = 'uploaded'),
+    source_origin TEXT NOT NULL DEFAULT 'uploaded'
+        CHECK(source_origin IN ('uploaded', 'ai_supplement')),
     parse_status TEXT NOT NULL,
     page_count INTEGER,
     line_count INTEGER,
@@ -464,6 +465,22 @@ CREATE TABLE concept_external_sources (
 );
 """
 
+SOURCE_REPORT_SCHEMA = """
+CREATE TABLE source_reference_reports (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    session_id TEXT NOT NULL REFERENCES learning_sessions(id) ON DELETE CASCADE,
+    source_id TEXT NOT NULL REFERENCES source_documents(id) ON DELETE CASCADE,
+    chunk_id TEXT NOT NULL REFERENCES source_chunks(id) ON DELETE CASCADE,
+    reason TEXT NOT NULL CHECK(reason IN ('location_incorrect', 'content_mismatch', 'other')),
+    note TEXT,
+    status TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open', 'reviewed', 'resolved')),
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_source_reports_workspace_created
+    ON source_reference_reports(workspace_id, created_at DESC);
+"""
+
 
 def connect(database_path: Path) -> sqlite3.Connection:
     """Open a configured SQLite connection with safety pragmas enabled."""
@@ -518,6 +535,68 @@ def initialize_database(database_path: Path) -> None:
         if 9 not in applied:
             connection.executescript(CONTROLLED_SEARCH_SCHEMA)
             connection.execute("INSERT INTO schema_migrations(version) VALUES (9)")
+        if 10 not in applied:
+            _migrate_source_origin_constraint(connection)
+            connection.execute("INSERT INTO schema_migrations(version) VALUES (10)")
+        if 11 not in applied:
+            connection.executescript(SOURCE_REPORT_SCHEMA)
+            connection.execute("INSERT INTO schema_migrations(version) VALUES (11)")
+
+
+def _migrate_source_origin_constraint(connection: sqlite3.Connection) -> None:
+    """Allow clearly labeled AI topic fixtures without weakening source ownership."""
+
+    row = connection.execute(
+        "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'source_documents'"
+    ).fetchone()
+    if not row or "ai_supplement" in str(row["sql"]):
+        return
+
+    connection.commit()
+    connection.execute("PRAGMA foreign_keys = OFF")
+    try:
+        connection.executescript(
+            """
+            CREATE TABLE source_documents_v10 (
+                id TEXT PRIMARY KEY,
+                workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+                session_id TEXT NOT NULL REFERENCES learning_sessions(id) ON DELETE CASCADE,
+                blob_id TEXT NOT NULL REFERENCES source_blobs(id),
+                filename TEXT NOT NULL,
+                media_type TEXT NOT NULL,
+                media_kind TEXT NOT NULL CHECK(media_kind IN ('pdf', 'markdown', 'text', 'pasted')),
+                source_origin TEXT NOT NULL DEFAULT 'uploaded'
+                    CHECK(source_origin IN ('uploaded', 'ai_supplement')),
+                parse_status TEXT NOT NULL,
+                page_count INTEGER,
+                line_count INTEGER,
+                error_code TEXT,
+                error_message TEXT,
+                version INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            INSERT INTO source_documents_v10(
+                id, workspace_id, session_id, blob_id, filename, media_type,
+                media_kind, source_origin, parse_status, page_count, line_count,
+                error_code, error_message, version, created_at, updated_at
+            )
+            SELECT id, workspace_id, session_id, blob_id, filename, media_type,
+                   media_kind, source_origin, parse_status, page_count, line_count,
+                   error_code, error_message, version, created_at, updated_at
+            FROM source_documents;
+            DROP TABLE source_documents;
+            ALTER TABLE source_documents_v10 RENAME TO source_documents;
+            CREATE INDEX idx_sources_session_created
+                ON source_documents(session_id, created_at);
+            """
+        )
+        violations = connection.execute("PRAGMA foreign_key_check").fetchall()
+        if violations:
+            raise RuntimeError("Source-origin migration produced invalid foreign-key references.")
+        connection.commit()
+    finally:
+        connection.execute("PRAGMA foreign_keys = ON")
 
 
 def ensure_workspace(database_path: Path, workspace_id: str) -> None:

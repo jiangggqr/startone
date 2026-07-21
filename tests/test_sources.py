@@ -235,3 +235,37 @@ def test_delete_last_source_removes_blob_file(tmp_path: Path) -> None:
             assert list((tmp_path / "uploads").rglob("*.bin")) == []
 
     asyncio.run(scenario())
+
+
+def test_source_location_report_is_owned_and_exported(tmp_path: Path) -> None:
+    async def scenario() -> None:
+        app = make_app(tmp_path)
+        async with app.router.lifespan_context(app):
+            transport = httpx.ASGITransport(app=app)
+            async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as owner:
+                session_id = await create_session(owner)
+                uploaded = await owner.post(
+                    f"/api/sessions/{session_id}/sources",
+                    files={"files": ("notes.md", b"# Topic\n\nGrounded text.", "text/markdown")},
+                )
+                source_id = uploaded.json()["accepted"][0]["id"]
+                detail = (await owner.get(f"/api/sources/{source_id}")).json()["source"]
+                chunk_id = detail["chunks"][0]["id"]
+                report = await owner.post(
+                    f"/api/sources/{source_id}/chunks/{chunk_id}/reports",
+                    json={"reason": "location_incorrect", "note": "The heading boundary looks wrong."},
+                )
+                assert report.status_code == 201
+                assert report.json()["report"]["status"] == "open"
+                exported = (await owner.get("/api/export?format=json")).json()
+                assert exported["source_reference_reports"][0]["chunk_id"] == chunk_id
+
+            async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as stranger:
+                denied = await stranger.post(
+                    f"/api/sources/{source_id}/chunks/{chunk_id}/reports",
+                    json={"reason": "other", "note": "Should not be visible."},
+                )
+                assert denied.status_code == 404
+                assert "filename" not in denied.text
+
+    asyncio.run(scenario())

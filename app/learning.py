@@ -158,7 +158,7 @@ def generate_coverage(
                 settings,
                 workspace_id,
                 SourceCoverageOutput,
-                _coverage_instructions(session),
+                _coverage_instructions(session, chunks),
                 _source_context(chunks),
                 client_factory=client_factory,
             )
@@ -232,7 +232,7 @@ def generate_knowledge_map(
                 settings,
                 workspace_id,
                 KnowledgeMapOutput,
-                _map_instructions(session, coverage),
+                _map_instructions(session, coverage, chunks),
                 _source_context(chunks),
                 client_factory=client_factory,
             )
@@ -508,7 +508,17 @@ def _demo_coverage(chunks: list[dict[str, Any]]) -> SourceCoverageOutput:
             source_refs=all_refs,
         )
 
-    selected = chunks[:5]
+    selected = []
+    seen_headings: set[str] = set()
+    for chunk in chunks:
+        heading_path = str(chunk.get("heading_path") or "").strip()
+        heading_key = heading_path.casefold()
+        if heading_key in seen_headings or heading_key.endswith("verification note"):
+            continue
+        seen_headings.add(heading_key)
+        selected.append(chunk)
+        if len(selected) == 5:
+            break
     covered = []
     for index, chunk in enumerate(selected, start=1):
         heading = str(chunk.get("heading_path") or f"Source concept {index}").split(" > ")[-1]
@@ -517,7 +527,7 @@ def _demo_coverage(chunks: list[dict[str, Any]]) -> SourceCoverageOutput:
             CoveredConcept(
                 concept_key=f"{key}_{index}",
                 title=heading[:80],
-                coverage_summary="This section is directly covered by the uploaded material.",
+                coverage_summary="This section is directly covered by the saved learning source.",
                 source_refs=[_ref(chunk)],
             )
         )
@@ -598,7 +608,7 @@ def _demo_map(
             concept_key=item.concept_key,
             title=item.title,
             plain_definition=item.coverage_summary,
-            role_in_map="A grounded step drawn from the uploaded material.",
+            role_in_map="A grounded step drawn from the saved learning source.",
             prerequisite_keys=[] if index == 0 else [selected[index - 1].concept_key],
             estimated_minutes=max(1, min(10, available_minutes // len(selected))),
             source_refs=item.source_refs,
@@ -901,6 +911,7 @@ def _source_context(chunks: list[dict[str, Any]]) -> str:
                     f"source_id: {chunk['source_id']}",
                     f"chunk_id: {chunk['id']}",
                     f"filename: {chunk['filename']}",
+                    f"source_origin: {chunk['source_origin']}",
                     f"heading: {chunk.get('heading_path') or ''}",
                     f"page: {chunk.get('page_number') or ''}",
                     f"lines: {chunk.get('start_line') or ''}-{chunk.get('end_line') or ''}",
@@ -913,9 +924,11 @@ def _source_context(chunks: list[dict[str, Any]]) -> str:
     return "\n\n".join(parts)
 
 
-def _coverage_instructions(session: dict[str, Any]) -> str:
+def _coverage_instructions(session: dict[str, Any], chunks: list[dict[str, Any]]) -> str:
+    source_policy = _generation_source_policy(chunks)
     return (
-        "You generate source coverage for an English learning interface. Uploaded material is the primary source. "
+        "You generate source coverage for an English learning interface. "
+        f"{source_policy} "
         "Identify what is explicitly covered and only concrete candidate gaps. A gap is not a search request. "
         "Use only exact source_id and chunk_id pairs supplied in the excerpts. Never invent a citation, page, line, "
         "fact, or source. Do not browse and do not suggest that browsing already occurred. Keep every user-facing field concise. "
@@ -923,15 +936,29 @@ def _coverage_instructions(session: dict[str, Any]) -> str:
     )
 
 
-def _map_instructions(session: dict[str, Any], coverage: SourceCoverageOutput) -> str:
+def _map_instructions(
+    session: dict[str, Any],
+    coverage: SourceCoverageOutput,
+    chunks: list[dict[str, Any]],
+) -> str:
+    source_policy = _generation_source_policy(chunks)
     return (
         "You generate a grounded English knowledge map with 2 to 5 concepts and a dependency-respecting route. "
-        "Uploaded material is the primary source. Every concept needs at least one exact supplied source reference. "
+        f"{source_policy} Every concept needs at least one exact supplied source reference. "
         "Use only exact source_id and chunk_id pairs supplied in the excerpts. Never browse or invent citations. "
         "Create exactly one start action lasting 60 to 120 seconds with a concrete completion condition. "
         "Candidate gaps remain observations and do not authorize search. "
         f"Goal: {session.get('goal')}. Available minutes: {session.get('available_minutes')}. "
         f"Energy: {session.get('energy_level')}. Coverage: {coverage.model_dump_json()}."
+    )
+
+
+def _generation_source_policy(chunks: list[dict[str, Any]]) -> str:
+    if any(chunk.get("source_origin") == "uploaded" for chunk in chunks):
+        return "Uploaded material is present and is the primary source; other origins remain labeled supplements."
+    return (
+        "No uploaded material is present. The supplied AI-generated topic source must remain labeled as an "
+        "AI supplemental explanation and must never be described as uploaded or externally cited."
     )
 
 

@@ -17,6 +17,7 @@
 - Milestone 4C feedback, remediation and LearningEvidence: complete
 - Milestone 5 Adaptive Planning Agent: complete
 - Milestone 6 controlled external search: complete
+- Milestone 7 production hardening: implementation and Demo verification complete; live GPT-5.6 smoke test pending a server-side key
 - Production UI language: English
 
 ## What the prototype is
@@ -79,7 +80,13 @@
 - Canonical URL, publisher, access time, cited summary, selection reason and `external` origin on every result
 - One-source selection or penalty-free ignore, with uploaded material retained as the primary source
 - Durable search confirmation, running, result, failure, cancel and focus-return recovery states
+- Topic-only fallback with a fixed Demo fixture, a strict real GPT-5.6 output, and durable `ai_supplement` provenance
+- Searchable/filterable learning history, session copy/delete, JSON/Markdown export, AI activity log and full workspace deletion
+- Saved larger-text, reduced-motion, timer-default and search-suggestion preferences
+- Exact source-location issue reporting without learning-progress side effects
+- API no-store policy and hardened CSP, frame, MIME, referrer, permissions and opener headers
+- Schema-preserving migration from uploaded-only source origins and 43 passing automated tests
 
 ## Next action
 
-Implement Milestone 7 end-to-end production hardening: cross-state accessibility and responsive audit, security/privacy review, full judge-path browser runs, model evals, deployment readiness, and a live GPT-5.6 smoke test once a server-side key is configured.
+Prepare Milestone 8 submission artifacts and deployment/judge path. Run the one remaining live GPT-5.6 smoke test when a server-side key is configured.

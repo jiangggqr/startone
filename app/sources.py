@@ -150,8 +150,11 @@ def store_source(
     media_type: str,
     media_kind: str,
     data: bytes,
+    source_origin: str = "uploaded",
 ) -> dict[str, Any]:
     get_session(database_path, workspace_id, session_id)
+    if source_origin not in {"uploaded", "ai_supplement"}:
+        raise SourceError("source_origin_invalid", "This source origin is not supported.")
     checksum = hashlib.sha256(data).hexdigest()
     workspace_dir = upload_dir / workspace_id
     workspace_dir.mkdir(parents=True, exist_ok=True)
@@ -180,10 +183,13 @@ def store_source(
             """
             INSERT INTO source_documents(
                 id, workspace_id, session_id, blob_id, filename, media_type,
-                media_kind, parse_status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')
+                media_kind, source_origin, parse_status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')
             """,
-            (source_id, workspace_id, session_id, blob_id, filename, media_type, media_kind),
+            (
+                source_id, workspace_id, session_id, blob_id, filename,
+                media_type, media_kind, source_origin,
+            ),
         )
         _record_event(connection, workspace_id, session_id, source_id, "source_parse_started")
         connection.execute(
@@ -570,6 +576,55 @@ def search_chunks(
             params,
         ).fetchall()
     return [dict(row) for row in rows]
+
+
+def report_source_reference(
+    database_path: Path,
+    workspace_id: str,
+    source_id: str,
+    chunk_id: str,
+    reason: str,
+    note: str | None,
+) -> dict[str, Any]:
+    if reason not in {"location_incorrect", "content_mismatch", "other"}:
+        raise SourceError("source_report_reason_invalid", "Choose a valid report reason.")
+    cleaned_note = " ".join((note or "").split())[:500] or None
+    with connect(database_path) as connection:
+        row = connection.execute(
+            """
+            SELECT d.session_id
+            FROM source_documents d JOIN source_chunks c ON c.source_id = d.id
+            WHERE d.id = ? AND c.id = ? AND d.workspace_id = ?
+            """,
+            (source_id, chunk_id, workspace_id),
+        ).fetchone()
+        if not row:
+            raise SourceError(
+                "source_reference_not_found",
+                "This source location is not available in your workspace.",
+                status_code=404,
+                saved_state="No report was created.",
+            )
+        report_id = str(uuid.uuid4())
+        connection.execute(
+            """
+            INSERT INTO source_reference_reports(
+                id, workspace_id, session_id, source_id, chunk_id, reason, note
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                report_id, workspace_id, row["session_id"], source_id, chunk_id,
+                reason, cleaned_note,
+            ),
+        )
+        created = connection.execute(
+            """
+            SELECT id, session_id, source_id, chunk_id, reason, note, status, created_at
+            FROM source_reference_reports WHERE id = ?
+            """,
+            (report_id,),
+        ).fetchone()
+    return dict(created)
 
 
 def _make_chunk(

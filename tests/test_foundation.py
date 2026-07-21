@@ -34,9 +34,10 @@ def test_health_initializes_versioned_database(tmp_path: Path) -> None:
         "status": "ok",
         "mode": "demo",
         "database": "ready",
-        "schema_version": 9,
+        "schema_version": 11,
         "version": "0.9.0",
     }
+    assert response.headers["cache-control"] == "no-store"
     assert (tmp_path / "test.sqlite3").exists()
 
 
@@ -49,4 +50,9 @@ def test_homepage_serves_accessible_app_shell(tmp_path: Path) -> None:
     assert "Demo mode" in response.text
     assert "Upload material and start a session" in response.text
     assert response.headers["x-content-type-options"] == "nosniff"
+    assert response.headers["x-frame-options"] == "DENY"
+    assert response.headers["referrer-policy"] == "no-referrer"
+    assert response.headers["permissions-policy"].startswith("camera=()")
+    assert response.headers["cross-origin-opener-policy"] == "same-origin"
     assert "frame-ancestors 'none'" in response.headers["content-security-policy"]
+    assert "object-src 'none'" in response.headers["content-security-policy"]

@@ -33,7 +33,7 @@ The Chinese files are internal product and implementation specifications. All pr
 
 The prototype is a behavior and layout reference, not production application code.
 
-## Implemented through Milestone 6
+## Implemented through Milestone 7 hardening
 
 - Python 3.11+ FastAPI/Uvicorn service and versioned SQLite schema
 - Anonymous workspace Cookie isolation and private UUID-based upload storage
@@ -68,6 +68,11 @@ The prototype is a behavior and layout reference, not production application cod
 - A small cited result set with canonical URL, publisher, access time, excerpt, selection reason, and explicit `external` origin
 - Source selection or penalty-free ignore, while uploaded material remains the primary learning source
 - A deterministic controlled-search Demo fixture that loads only the Transformer notes and needs no key or internet
+- A secondary topic-only fallback that stays labeled as AI supplemental from source preview through practice
+- Searchable/filterable history, safe session copy/delete, data exports, AI activity, and full workspace deletion
+- Saved larger-text, reduced-motion, timer-default, and search-suggestion preferences
+- Exact source-location issue reporting tied to the owned source chunk
+- No-store API responses and hardened browser security headers
 
 Quiz, recall, Tutor checks, immediate feedback, encouragement, remediation, and normalized `LearningEvidence` form a complete Guided Mastery boundary. The separate Adaptive Planning Agent selects one global next action without teaching or scoring. Controlled external search is now complete and cannot execute until all four gates are revalidated at the execution boundary.
 
@@ -120,3 +125,4 @@ evals/                  Core product and UI/UX evaluation cases
 ```
 
 See `PLANS.md` for the development sequence, `PROJECT_STATUS.md` for current progress, `CODEX_BUILD_LOG.md` for verified milestones, and `docs/18_DECISIONS_AND_SCOPE_CN.md` for binding product decisions.
+The detailed case-by-case result is in `evals/VERIFICATION_REPORT.md`.

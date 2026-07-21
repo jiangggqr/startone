@@ -29,7 +29,7 @@ search_running
 search_results
 → learning_concept (selected or ignored)
 
-session_summary → session_ended
+session_summary (terminal saved summary; a copied session starts with fresh learning progress)
 ```
 
 Pause is an overlay, not a terminal point in the linear state machine. A pause stores the current primary state in `resume_state`, sets `is_paused = true`, and blocks learning mutations until resume restores it. Drafts and timer state are persisted separately.
@@ -101,8 +101,8 @@ session_id
 blob_id
 filename
 media_type
-media_kind: pdf | markdown | text | pasted | web
-source_origin: uploaded | external
+media_kind: pdf | markdown | text | pasted
+source_origin: uploaded | ai_supplement
 parse_status
 page_count
 line_count
@@ -143,10 +143,10 @@ Locations must come from parsing or verified retrieval, never model generation.
 ```text
 id
 session_id
-concept_id
+concept_key
 description
 why_needed
-evidence_json
+evidence
 current_source_refs
 suggested_query_scope
 status: candidate | validated | resolved | dismissed
@@ -290,7 +290,7 @@ id
 workspace_id
 session_id
 concept_id
-gap_id
+source_gap_id
 agent_decision_id
 query_scope
 reason_for_user
@@ -353,6 +353,17 @@ confusion_signal
 prerequisite_gap_signal
 ```
 
+### TopicSourceOutput
+
+```text
+title
+overview
+sections[] {heading, explanation}
+verification_note
+```
+
+This output is available only for the secondary topic-only fallback. It uses no search tool, is persisted with `source_origin=ai_supplement`, and never claims uploaded or externally cited provenance.
+
 ### QuizActivityOutput
 
 ```text
@@ -408,7 +419,7 @@ confidence
 
 ## 4. API semantics
 
-Suggested endpoints; Codex may refine names while preserving behavior.
+Implemented endpoint groups. FastAPI's generated schema at `/api/docs` is authoritative for request and response fields.
 
 ### Session and setup
 
@@ -419,47 +430,59 @@ Suggested endpoints; Codex may refine names while preserving behavior.
 - `POST /api/sessions/{id}/resume`
 - `DELETE /api/sessions/{id}`
 - `POST /api/sessions/{id}/copy`
-- `GET /api/workspace/settings`
-- `PATCH /api/workspace/settings`
 
 ### Sources
 
 - `POST /api/sessions/{id}/sources`
 - `POST /api/sessions/{id}/pasted-sources`
+- `POST /api/sessions/{id}/topic-source`
 - `GET /api/sessions/{id}/sources`
 - `GET /api/sources/{source_id}`
 - `GET /api/sources/{source_id}/chunks/{chunk_id}`
 - `GET /api/sources/{source_id}/progress`
 - `POST /api/sources/{source_id}/cancel`
 - `POST /api/sources/{source_id}/retry`
-- `POST /api/source-refs/{source_ref_id}/reports`
+- `POST /api/sources/{source_id}/chunks/{chunk_id}/reports`
 - `DELETE /api/sources/{source_id}`
 - `POST /api/sessions/{id}/coverage`
+- `GET /api/sessions/{id}/coverage`
 - `GET /api/sessions/{id}/source-gaps`
 
 ### Path and focus
 
 - `POST /api/sessions/{id}/path`
 - `PATCH /api/sessions/{id}/path`
+- `GET /api/sessions/{id}/path`
+- `POST /api/sessions/{id}/path/confirm`
 - `POST /api/sessions/{id}/start-action/complete`
 - `GET /api/sessions/{id}/focus`
 - `PUT /api/sessions/{id}/drafts/{draft_type}` with optimistic `version`
 - `GET /api/sessions/{id}/drafts`
-- `POST /api/sessions/{id}/draft-conflicts/{id}/resolve`
+- `POST /api/sessions/{id}/draft-conflicts/{draft_type}/resolve`
 
 ### Tutor and activities
 
 - `POST /api/sessions/{id}/tutor/messages`
 - `GET /api/sessions/{id}/tutor/messages`
+- `POST /api/sessions/{id}/tutor/open`
+- `POST /api/sessions/{id}/tutor/close`
 - `POST /api/sessions/{id}/activities`
+- `GET /api/activities/{activity_id}`
+- `POST /api/activities/{activity_id}/hints/next`
 - `POST /api/activities/{activity_id}/attempts`
+- `POST /api/attempts/{attempt_id}/feedback`
 - `GET /api/attempts/{attempt_id}/feedback`
-- `POST /api/sessions/{id}/remedial-activities`
+- `GET /api/feedback/{feedback_id}`
+- `POST /api/feedback/{feedback_id}/complete`
+- `POST /api/feedback/{feedback_id}/remedial-activity`
+- `POST /api/activities/{activity_id}/close`
 
 ### Evidence and Agent
 
 - `GET /api/sessions/{id}/evidence`
 - `POST /api/sessions/{id}/agent-decisions`
+- `GET /api/sessions/{id}/agent-decisions/latest`
+- `GET /api/agent-decisions/{decision_id}`
 - `POST /api/agent-decisions/{decision_id}/accept`
 - `POST /api/agent-decisions/{decision_id}/override`
 
@@ -478,7 +501,6 @@ Suggested endpoints; Codex may refine names while preserving behavior.
 ### Summary and records
 
 - `GET /api/sessions/{id}/summary`
-- `POST /api/sessions/{id}/end`
 - `GET /api/sessions`
 - `GET /api/export?format=json|markdown`
 - `GET /api/ai-activity`
@@ -509,13 +531,13 @@ request_id
 - stable judge path
 - a normal fixture containing `transformer_notes.md` and `matrix_prerequisite.md`
 - a controlled-search fixture containing only `transformer_notes.md`
+- one fixed topic-only `Self-attention` AI-supplement fixture
 
 ### Real mode
 
 - server-side OpenAI key
 - Responses API
 - schema validation
-- streaming where appropriate
 - real web search only after gates
 - default model alias `gpt-5.6`, configurable on the server
 

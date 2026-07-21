@@ -108,9 +108,8 @@ label {
   position: sticky;
   top: 0;
   z-index: 20;
-  border-bottom: 1px solid rgba(217, 222, 234, 0.8);
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+  background: #fff;
 }
 
 .header-inner {
@@ -346,6 +345,10 @@ h3 {
   font-size: 0.92rem;
 }
 
+.topic-entry-button {
+  margin-top: 1rem;
+}
+
 .source-icon,
 .empty-icon {
   display: grid;
@@ -424,6 +427,17 @@ h3 {
   gap: 0.8rem;
 }
 
+.history-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(12rem, 0.35fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.history-filters label {
+  margin-top: 0;
+}
+
 .session-item {
   display: flex;
   align-items: center;
@@ -436,6 +450,56 @@ h3 {
 
 .session-item > div {
   flex: 1;
+}
+
+.session-actions,
+.data-control-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.session-actions {
+  justify-content: flex-end;
+}
+
+.data-control-actions {
+  margin-top: 1.2rem;
+}
+
+.preference-panel {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--surface-alt);
+}
+
+.preference-panel summary {
+  min-height: 44px;
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.preference-grid {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.8rem;
+}
+
+html.large-interface-text {
+  font-size: 112.5%;
+}
+
+html.reduce-interface-motion {
+  scroll-behavior: auto;
+}
+
+html.reduce-interface-motion *,
+html.reduce-interface-motion *::before,
+html.reduce-interface-motion *::after {
+  scroll-behavior: auto !important;
+  transition-duration: 0.01ms !important;
 }
 
 .session-item h3,
@@ -687,6 +751,19 @@ h3 {
   background: #f8f9fc;
   font: 0.9rem/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
   white-space: pre-wrap;
+}
+
+.preview-purpose {
+  margin: 1rem 0;
+  padding: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--surface-alt);
+}
+
+.preview-purpose p {
+  margin: 0.3rem 0 0;
+  color: var(--muted);
 }
 
 .chunk-navigation {
@@ -1191,6 +1268,33 @@ dialog::backdrop {
 
 .dialog-content p:not(.eyebrow) {
   color: var(--muted);
+}
+
+.activity-log-dialog {
+  width: min(46rem, calc(100vw - 2rem));
+}
+
+.ai-activity-list {
+  display: grid;
+  max-height: min(28rem, 55vh);
+  gap: 0.7rem;
+  margin-top: 1rem;
+  overflow: auto;
+}
+
+.ai-activity-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.45rem 1rem;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 0.7rem;
+  background: var(--surface-alt);
+}
+
+.ai-activity-item p {
+  grid-column: 1 / -1;
+  margin: 0;
 }
 
 .save-state {
@@ -2264,6 +2368,10 @@ dialog::backdrop {
 }
 
 @media (max-width: 767px) {
+  .history-filters {
+    grid-template-columns: 1fr;
+  }
+
   main {
     width: min(100% - 1.25rem, 38rem);
   }
@@ -2312,7 +2420,16 @@ dialog::backdrop {
     grid-template-columns: 1fr;
   }
 
+  .session-item {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .session-item .button,
+  .session-actions,
+  .session-actions .button,
+  .data-control-actions,
+  .data-control-actions .button,
   .drop-zone .button {
     width: 100%;
   }

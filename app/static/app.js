@@ -9,6 +9,9 @@ const state = {
   selectedSource: null,
   selectedChunkIndex: 0,
   deleteTarget: null,
+  sessionDeleteTarget: null,
+  sessionDeleteTrigger: null,
+  topicSessionId: null,
   sourceReturn: null,
   sourceReturnTrigger: null,
   pollTimer: null,
@@ -26,6 +29,7 @@ const state = {
   tutorReturnTrigger: null,
   conflict: null,
   runtimeMode: "demo",
+  sessions: [],
 };
 
 const views = {
@@ -48,12 +52,28 @@ const views = {
 const modeBadge = document.querySelector("#mode-badge");
 const runtimeStatus = document.querySelector("#runtime-status");
 const startButtons = document.querySelectorAll("#start-session, #empty-start");
+const openTopicButton = document.querySelector("#open-topic");
 const libraryLink = document.querySelector("#library-link");
 const sourceTitle = document.querySelector("#sources-title");
 const backHomeButton = document.querySelector("#back-home");
 const saveForLaterButton = document.querySelector("#save-for-later");
 const recentEmpty = document.querySelector("#recent-empty");
 const recentList = document.querySelector("#recent-list");
+const recentMessage = document.querySelector("#recent-message");
+const sessionSearch = document.querySelector("#session-search");
+const sessionFilter = document.querySelector("#session-filter");
+const recentEmptyTitle = document.querySelector("#recent-empty-title");
+const recentEmptyCopy = document.querySelector("#recent-empty-copy");
+const emptyStartButton = document.querySelector("#empty-start");
+const exportJsonButton = document.querySelector("#export-json");
+const exportMarkdownButton = document.querySelector("#export-markdown");
+const openAiActivityButton = document.querySelector("#open-ai-activity");
+const openDeleteWorkspaceButton = document.querySelector("#open-delete-workspace");
+const dataControlMessage = document.querySelector("#data-control-message");
+const preferenceLargeText = document.querySelector("#preference-large-text");
+const preferenceReducedMotion = document.querySelector("#preference-reduced-motion");
+const preferenceShowTimer = document.querySelector("#preference-show-timer");
+const preferenceSearchSuggestions = document.querySelector("#preference-search-suggestions");
 const sourceCount = document.querySelector("#source-count");
 const sourceEmpty = document.querySelector("#source-empty");
 const sourceList = document.querySelector("#source-list");
@@ -67,12 +87,22 @@ const previewContent = document.querySelector("#preview-content");
 const previewFilename = document.querySelector("#preview-filename");
 const previewLocation = document.querySelector("#preview-location");
 const previewText = document.querySelector("#preview-text");
+const previewOrigin = document.querySelector("#preview-origin");
+const previewPurpose = document.querySelector("#preview-purpose");
+const openSourceReportButton = document.querySelector("#open-source-report");
 const chunkNavigation = document.querySelector("#chunk-navigation");
 const reviewCoverageButton = document.querySelector("#review-coverage");
 const coverageNote = document.querySelector("#coverage-note");
 const loadDemoButton = document.querySelector("#load-demo-materials");
 const loadSearchDemoButton = document.querySelector("#load-search-demo-material");
 const demoMaterialNote = document.querySelector("#demo-material-note");
+
+const topicDialog = document.querySelector("#topic-dialog");
+const topicForm = document.querySelector("#topic-form");
+const topicInput = document.querySelector("#topic-input");
+const topicError = document.querySelector("#topic-error");
+const cancelTopicButton = document.querySelector("#cancel-topic");
+const submitTopicButton = document.querySelector("#submit-topic");
 
 const pasteDialog = document.querySelector("#paste-dialog");
 const pasteForm = document.querySelector("#paste-form");
@@ -87,6 +117,14 @@ const deleteFilename = document.querySelector("#delete-filename");
 const cancelDeleteButton = document.querySelector("#cancel-delete");
 const confirmDeleteButton = document.querySelector("#confirm-delete");
 
+const sourceReportDialog = document.querySelector("#source-report-dialog");
+const sourceReportForm = document.querySelector("#source-report-form");
+const sourceReportReason = document.querySelector("#source-report-reason");
+const sourceReportNote = document.querySelector("#source-report-note");
+const sourceReportError = document.querySelector("#source-report-error");
+const cancelSourceReportButton = document.querySelector("#cancel-source-report");
+const submitSourceReportButton = document.querySelector("#submit-source-report");
+
 const setupForm = document.querySelector("#setup-form");
 const setupTitle = document.querySelector("#setup-title");
 const setupMessage = document.querySelector("#setup-message");
@@ -99,6 +137,9 @@ const coverageMessage = document.querySelector("#coverage-message");
 const coveredList = document.querySelector("#covered-list");
 const gapList = document.querySelector("#gap-list");
 const coveredCount = document.querySelector("#covered-count");
+const coverageSourceOriginHeading = document.querySelector("#coverage-source-origin-heading");
+const uploadedPolicyText = document.querySelector("#uploaded-policy-text");
+const aiPolicyText = document.querySelector("#ai-policy-text");
 const gapCount = document.querySelector("#gap-count");
 const coverageGenerationLabel = document.querySelector("#coverage-generation-label");
 const regenerateCoverageButton = document.querySelector("#regenerate-coverage");
@@ -168,8 +209,26 @@ const keepServerDraftButton = document.querySelector("#keep-server-draft");
 const summaryRestartAction = document.querySelector("#summary-restart-action");
 const summaryConcept = document.querySelector("#summary-concept");
 const summaryNote = document.querySelector("#summary-note");
+const summaryCompleted = document.querySelector("#summary-completed");
+const summaryReview = document.querySelector("#summary-review");
+const summaryStats = document.querySelector("#summary-stats");
 const summaryLibraryButton = document.querySelector("#summary-library");
+const summaryExportButton = document.querySelector("#summary-export");
 const summaryResumeButton = document.querySelector("#summary-resume");
+
+const sessionDeleteDialog = document.querySelector("#session-delete-dialog");
+const sessionDeleteName = document.querySelector("#session-delete-name");
+const sessionDeleteMessage = document.querySelector("#session-delete-message");
+const cancelSessionDeleteButton = document.querySelector("#cancel-session-delete");
+const confirmSessionDeleteButton = document.querySelector("#confirm-session-delete");
+const workspaceDeleteDialog = document.querySelector("#workspace-delete-dialog");
+const workspaceDeleteMessage = document.querySelector("#workspace-delete-message");
+const cancelWorkspaceDeleteButton = document.querySelector("#cancel-workspace-delete");
+const confirmWorkspaceDeleteButton = document.querySelector("#confirm-workspace-delete");
+const aiActivityDialog = document.querySelector("#ai-activity-dialog");
+const aiActivityList = document.querySelector("#ai-activity-list");
+const aiActivityMessage = document.querySelector("#ai-activity-message");
+const closeAiActivityButton = document.querySelector("#close-ai-activity");
 
 const tutorTitle = document.querySelector("#tutor-title");
 const tutorBreadcrumb = document.querySelector("#tutor-breadcrumb");
@@ -381,31 +440,124 @@ async function beginSession() {
 async function loadSessions() {
   try {
     const body = await api("/api/sessions");
-    renderSessions(body.sessions);
+    state.sessions = body.sessions;
+    renderSessions();
   } catch (error) {
     recentEmpty.hidden = false;
     recentList.hidden = true;
   }
 }
 
-function renderSessions(sessions) {
+function renderSessions() {
+  const query = sessionSearch.value.trim().toLowerCase();
+  const filter = sessionFilter.value;
+  const sessions = state.sessions.filter((session) => {
+    const matchesQuery = !query || `${session.name} ${session.goal || ""}`.toLowerCase().includes(query);
+    const matchesFilter = filter === "all"
+      || (filter === "paused" && session.is_paused)
+      || (filter === "completed" && session.state === "session_summary")
+      || (filter === "active" && !session.is_paused && session.state !== "session_summary");
+    return matchesQuery && matchesFilter;
+  });
   recentList.replaceChildren();
   recentEmpty.hidden = sessions.length > 0;
   recentList.hidden = sessions.length === 0;
-  document.querySelector("#recent-sessions .status-chip").textContent = `${sessions.length} ${sessions.length === 1 ? "session" : "sessions"}`;
+  const total = state.sessions.length;
+  document.querySelector("#recent-sessions .status-chip").textContent = sessions.length === total
+    ? `${total} ${total === 1 ? "session" : "sessions"}`
+    : `${sessions.length} of ${total}`;
+  const hasSessions = total > 0;
+  recentEmptyTitle.textContent = hasSessions ? "No sessions match these filters" : "No learning sessions yet";
+  recentEmptyCopy.textContent = hasSessions
+    ? "Change the search text or status filter to see other saved sessions."
+    : "After your first upload, resumable concepts, drafts, and next actions will appear here.";
+  emptyStartButton.hidden = hasSessions;
   sessions.forEach((session) => {
     const item = element("article", "session-item");
-    const copy = element("div");
-    copy.append(element("h3", "", session.name));
+    const details = element("div");
+    details.append(element("h3", "", session.name));
     const ready = Number(session.ready_source_count || 0);
     const total = Number(session.source_count || 0);
-    copy.append(element("p", "", `${ready}/${total} sources ready · ${session.state.replaceAll("_", " ")}`));
+    details.append(element("p", "", `${ready}/${total} sources ready · ${session.state.replaceAll("_", " ")}`));
+    const actions = element("div", "session-actions");
     const resume = element("button", "button button-secondary", resumeLabel(session));
     resume.type = "button";
     resume.addEventListener("click", () => resumeSession(session.id));
-    item.append(copy, resume);
+    const copyButton = element("button", "button button-quiet", "Copy");
+    copyButton.type = "button";
+    copyButton.setAttribute("aria-label", `Copy ${session.name} as a new session`);
+    copyButton.addEventListener("click", () => copyLearningSession(session, copyButton));
+    const deleteButton = element("button", "button button-quiet", "Delete");
+    deleteButton.type = "button";
+    deleteButton.setAttribute("aria-label", `Delete ${session.name}`);
+    deleteButton.addEventListener("click", () => openSessionDelete(session, deleteButton));
+    actions.append(resume, copyButton, deleteButton);
+    item.append(details, actions);
     recentList.append(item);
   });
+}
+
+async function copyLearningSession(session, button) {
+  setMessage(recentMessage, `Copying ${session.name} with its source files…`);
+  setButtonBusy(button, true, "Copying…", "Copy");
+  try {
+    const body = await api(`/api/sessions/${session.id}/copy`, { method: "POST" });
+    await loadSessions();
+    setMessage(recentMessage, `${body.session.name} is ready. It shares immutable file storage but starts with fresh learning progress.`, "success");
+  } catch (error) {
+    setMessage(recentMessage, `${error.message} The original session is unchanged.`, "error");
+    setButtonBusy(button, false, "", "Copy");
+  }
+}
+
+function openSessionDelete(session, trigger) {
+  state.sessionDeleteTarget = session;
+  state.sessionDeleteTrigger = trigger;
+  sessionDeleteName.textContent = session.name;
+  setMessage(sessionDeleteMessage, "");
+  setButtonBusy(confirmSessionDeleteButton, false, "", "Delete session permanently");
+  sessionDeleteDialog.showModal();
+}
+
+function closeSessionDelete() {
+  sessionDeleteDialog.close();
+  const trigger = state.sessionDeleteTrigger;
+  state.sessionDeleteTarget = null;
+  state.sessionDeleteTrigger = null;
+  if (trigger?.isConnected) trigger.focus({ preventScroll: true });
+}
+
+async function confirmSessionDelete() {
+  const session = state.sessionDeleteTarget;
+  if (!session) return;
+  setButtonBusy(confirmSessionDeleteButton, true, "Deleting permanently…", "Delete session permanently");
+  cancelSessionDeleteButton.disabled = true;
+  try {
+    const body = await api(`/api/sessions/${session.id}`, { method: "DELETE" });
+    if (state.sessionId === session.id) {
+      state.sessionId = null;
+      state.session = null;
+      window.localStorage.removeItem("startframe_session_id");
+    }
+    sessionDeleteDialog.close();
+    state.sessionDeleteTarget = null;
+    state.sessionDeleteTrigger = null;
+    await loadSessions();
+    setMessage(
+      recentMessage,
+      body.file_cleanup_complete
+        ? body.removed_unreferenced_blobs
+          ? `${body.deleted_session_name} was permanently deleted with ${body.removed_unreferenced_blobs} unshared source ${body.removed_unreferenced_blobs === 1 ? "file" : "files"}.`
+          : `${body.deleted_session_name} was permanently deleted. Source files still used by another session were preserved.`
+        : `${body.deleted_session_name} was deleted, but one stored file could not be cleaned up. Contact the deployment owner.`,
+      body.file_cleanup_complete ? "success" : "error",
+    );
+  } catch (error) {
+    setMessage(sessionDeleteMessage, `${error.message} The session and files remain available.`, "error");
+    setButtonBusy(confirmSessionDeleteButton, false, "", "Delete session permanently");
+  } finally {
+    cancelSessionDeleteButton.disabled = false;
+  }
 }
 
 function resumeLabel(session) {
@@ -446,10 +598,8 @@ async function resumeSession(sessionId) {
       await showControlledSearch();
       if (session.is_paused) pauseDialog.showModal();
     } else if (session.state === "session_summary") {
-      showFinishedSummary({
-        title: "Session complete",
-        restart_action: "Start a new session from the saved LearningEvidence when you are ready.",
-      });
+      const summary = await api(`/api/sessions/${sessionId}/summary`);
+      showFinishedSummary(summary.summary);
     } else if (session.state === "learning_concept") {
       if (session.tutor_open) await showTutor();
       else await showFocus();
@@ -507,6 +657,131 @@ async function showHome(event) {
   await loadSessions();
 }
 
+function savedPreference(name) {
+  return window.localStorage.getItem(`startframe_preference_${name}`) === "true";
+}
+
+function loadPreferences() {
+  preferenceLargeText.checked = savedPreference("large_text");
+  preferenceReducedMotion.checked = savedPreference("reduced_motion");
+  preferenceShowTimer.checked = savedPreference("show_timer");
+  preferenceSearchSuggestions.checked = savedPreference("search_suggestions");
+  document.documentElement.classList.toggle("large-interface-text", preferenceLargeText.checked);
+  document.documentElement.classList.toggle("reduce-interface-motion", preferenceReducedMotion.checked);
+}
+
+function savePreferences() {
+  const values = {
+    large_text: preferenceLargeText.checked,
+    reduced_motion: preferenceReducedMotion.checked,
+    show_timer: preferenceShowTimer.checked,
+    search_suggestions: preferenceSearchSuggestions.checked,
+  };
+  Object.entries(values).forEach(([name, value]) => {
+    window.localStorage.setItem(`startframe_preference_${name}`, String(value));
+  });
+  loadPreferences();
+  setMessage(dataControlMessage, "Preferences were saved on this device.", "success");
+}
+
+function downloadWorkspaceExport(format) {
+  const label = format === "markdown" ? "Markdown summary" : "JSON record";
+  setMessage(dataControlMessage, `Preparing the ${label}. Your saved data will not be changed.`);
+  const link = document.createElement("a");
+  link.href = `/api/export?format=${format}`;
+  link.download = format === "markdown" ? "startframe-learning-record.md" : "startframe-learning-record.json";
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setMessage(dataControlMessage, `${label} download started.`, "success");
+}
+
+async function openAiActivity() {
+  aiActivityList.replaceChildren(loadingCard("Loading the workspace AI audit record…"));
+  setMessage(aiActivityMessage, "");
+  aiActivityDialog.showModal();
+  try {
+    const body = await api("/api/ai-activity");
+    aiActivityList.replaceChildren();
+    if (!body.activities.length) {
+      aiActivityList.append(emptyCard("No AI operation has run in this workspace yet."));
+      return;
+    }
+    body.activities.forEach((activity) => {
+      const item = element("article", "ai-activity-item");
+      item.append(
+        element("strong", "", activity.operation.replaceAll("_", " ")),
+        element("span", "status-chip", activity.status),
+        element(
+          "p",
+          "micro-copy",
+          `${activity.session_name} · ${activity.generation_mode === "demo" ? "Demo" : "Live"} · ${activity.model || "No model"} · ${formatAccessedAt(activity.created_at)}`,
+        ),
+      );
+      if (activity.error_code) item.append(element("p", "field-error", `Recoverable error: ${activity.error_code}`));
+      aiActivityList.append(item);
+    });
+  } catch (error) {
+    aiActivityList.replaceChildren();
+    setMessage(aiActivityMessage, `${error.message} No learning data was changed.`, "error");
+  }
+}
+
+function closeAiActivity() {
+  aiActivityDialog.close();
+  openAiActivityButton.focus({ preventScroll: true });
+}
+
+function openWorkspaceDelete() {
+  setMessage(workspaceDeleteMessage, "");
+  setButtonBusy(confirmWorkspaceDeleteButton, false, "", "Delete everything permanently");
+  workspaceDeleteDialog.showModal();
+}
+
+function closeWorkspaceDelete() {
+  workspaceDeleteDialog.close();
+  openDeleteWorkspaceButton.focus({ preventScroll: true });
+}
+
+async function confirmWorkspaceDelete() {
+  setButtonBusy(confirmWorkspaceDeleteButton, true, "Deleting everything…", "Delete everything permanently");
+  cancelWorkspaceDeleteButton.disabled = true;
+  try {
+    const body = await api("/api/user-data", { method: "DELETE" });
+    Object.keys(window.localStorage)
+      .filter((key) => key.startsWith("startframe_"))
+      .forEach((key) => window.localStorage.removeItem(key));
+    loadPreferences();
+    window.clearTimeout(state.pollTimer);
+    window.clearInterval(state.focusTimer);
+    state.sessionId = null;
+    state.session = null;
+    state.sources = [];
+    state.drafts = {};
+    state.focus = null;
+    state.tutor = null;
+    state.activity = null;
+    state.feedback = null;
+    state.evidence = null;
+    state.agent = null;
+    state.search = null;
+    workspaceDeleteDialog.close();
+    await showHome();
+    setMessage(
+      dataControlMessage,
+      body.file_cleanup_complete
+        ? "All workspace learning data and uploaded files were permanently deleted."
+        : "All database records were deleted, but one stored file needs deployment-owner cleanup.",
+      body.file_cleanup_complete ? "success" : "error",
+    );
+  } catch (error) {
+    setMessage(workspaceDeleteMessage, `${error.message} Your workspace data remains available.`, "error");
+    setButtonBusy(confirmWorkspaceDeleteButton, false, "", "Delete everything permanently");
+  } finally {
+    cancelWorkspaceDeleteButton.disabled = false;
+  }
+}
+
 function sourceStatus(source) {
   const labels = {
     pending: "Waiting to parse",
@@ -519,6 +794,18 @@ function sourceStatus(source) {
   return labels[source.parse_status] || source.parse_status;
 }
 
+function sourceOriginLabel(origin) {
+  if (origin === "ai_supplement") return "AI supplemental explanation";
+  if (origin === "external") return "External supplement";
+  return "Uploaded material";
+}
+
+function sourceOriginClass(origin) {
+  if (origin === "ai_supplement") return "origin-badge origin-ai";
+  if (origin === "external") return "origin-badge origin-external";
+  return "origin-badge";
+}
+
 function sourceMetadata(source) {
   const size = source.byte_size >= 1024 * 1024
     ? `${(source.byte_size / (1024 * 1024)).toFixed(1)} MB`
@@ -528,7 +815,7 @@ function sourceMetadata(source) {
     : source.line_count
       ? `${source.line_count} lines`
       : "Location pending";
-  return `${sourceStatus(source)} · ${locationCount} · ${size}`;
+  return `${sourceOriginLabel(source.source_origin)} · ${sourceStatus(source)} · ${locationCount} · ${size}`;
 }
 
 async function loadSources() {
@@ -682,7 +969,19 @@ function renderPreview() {
   previewContent.hidden = false;
   previewFilename.textContent = source.filename;
   previewLocation.textContent = chunkLocation(source, chunk);
+  previewOrigin.textContent = sourceOriginLabel(source.source_origin);
+  previewOrigin.className = sourceOriginClass(source.source_origin);
   previewText.textContent = chunk.text;
+  const purposeByView = {
+    coverage: "Used as grounding evidence for the source-coverage review.",
+    path: "Used as grounding evidence for the learning map.",
+    focus: "Used to explain the current concept.",
+    tutor: "Used to ground the current Tutor conversation.",
+    activity: "Used to ground the current practice activity.",
+    feedback: "Used to ground the current feedback.",
+  };
+  previewPurpose.textContent = purposeByView[state.sourceReturn]
+    || "Available to ground the learning map, Tutor, and practice.";
   chunkNavigation.replaceChildren();
   source.chunks.forEach((item, index) => {
     const button = element("button", "small-button", String(index + 1));
@@ -695,6 +994,54 @@ function renderPreview() {
     });
     chunkNavigation.append(button);
   });
+}
+
+function openSourceReport() {
+  if (!state.selectedSource?.chunks?.length) return;
+  sourceReportForm.reset();
+  sourceReportError.hidden = true;
+  sourceReportDialog.showModal();
+  sourceReportReason.focus();
+}
+
+function closeSourceReport() {
+  sourceReportDialog.close();
+  openSourceReportButton.focus({ preventScroll: true });
+}
+
+async function submitSourceReport(event) {
+  event.preventDefault();
+  const source = state.selectedSource;
+  const chunk = source?.chunks?.[state.selectedChunkIndex];
+  if (!source || !chunk) {
+    sourceReportError.textContent = "This source location is no longer selected. Close the dialog and select it again.";
+    sourceReportError.hidden = false;
+    sourceReportError.focus();
+    return;
+  }
+  sourceReportError.hidden = true;
+  setButtonBusy(submitSourceReportButton, true, "Sending report…", "Send source report");
+  cancelSourceReportButton.disabled = true;
+  try {
+    await api(`/api/sources/${source.id}/chunks/${chunk.id}/reports`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        reason: sourceReportReason.value,
+        note: sourceReportNote.value.trim() || null,
+      }),
+    });
+    sourceReportDialog.close();
+    setUploadMessage("The exact source location was reported. Your learning progress is unchanged.", "success");
+    openSourceReportButton.focus({ preventScroll: true });
+  } catch (error) {
+    sourceReportError.textContent = `${error.message} No report was created; your session is unchanged.`;
+    sourceReportError.hidden = false;
+    sourceReportError.focus();
+  } finally {
+    cancelSourceReportButton.disabled = false;
+    setButtonBusy(submitSourceReportButton, false, "", "Send source report");
+  }
 }
 
 async function openSourceReference(reference, trigger) {
@@ -797,6 +1144,80 @@ async function submitPastedSource(event) {
   }
 }
 
+function openTopicFallback() {
+  state.topicSessionId = null;
+  topicForm.reset();
+  topicInput.value = state.runtimeMode === "demo" ? "Self-attention" : "";
+  topicError.hidden = true;
+  topicDialog.showModal();
+  topicInput.focus();
+}
+
+async function cancelTopicFallback() {
+  topicDialog.close();
+  const emptySessionId = state.topicSessionId;
+  state.topicSessionId = null;
+  if (emptySessionId) {
+    try {
+      await api(`/api/sessions/${emptySessionId}`, { method: "DELETE" });
+      if (state.sessionId === emptySessionId) {
+        state.sessionId = null;
+        state.session = null;
+        window.localStorage.removeItem("startframe_session_id");
+      }
+      await loadSessions();
+    } catch (error) {
+      setMessage(recentMessage, `${error.message} The empty session remains available in learning history.`, "error");
+    }
+  }
+  openTopicButton.focus({ preventScroll: true });
+}
+
+async function submitTopicFallback(event) {
+  event.preventDefault();
+  topicError.hidden = true;
+  if (!topicForm.reportValidity()) return;
+  const topic = topicInput.value.trim();
+  if (state.runtimeMode === "demo" && !["self attention", "self-attention", "selfattention"].includes(topic.toLowerCase())) {
+    topicError.textContent = "Demo mode includes one fixed topic-only fixture: Self-attention.";
+    topicError.hidden = false;
+    topicError.focus();
+    return;
+  }
+  setButtonBusy(submitTopicButton, true, "Generating supplemental source…", "Generate supplemental source");
+  cancelTopicButton.disabled = true;
+  try {
+    if (!state.topicSessionId) {
+      const created = await api("/api/sessions", { method: "POST" });
+      state.topicSessionId = created.session.id;
+      state.sessionId = created.session.id;
+      state.session = created.session;
+      window.localStorage.setItem("startframe_session_id", state.sessionId);
+    }
+    const body = await api(`/api/sessions/${state.topicSessionId}/topic-source`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topic }),
+    });
+    state.topicSessionId = null;
+    topicDialog.close();
+    topicForm.reset();
+    await showSources();
+    setUploadMessage(
+      `${body.source.filename} is ready and labeled as an ${sourceOriginLabel(body.source.source_origin)}. No internet search ran.`,
+      "success",
+    );
+    await selectSource(body.source.id);
+  } catch (error) {
+    topicError.textContent = `${error.message} ${error.body?.saved_state || "Your topic remains in this form."}`;
+    topicError.hidden = false;
+    topicError.focus();
+  } finally {
+    cancelTopicButton.disabled = false;
+    setButtonBusy(submitTopicButton, false, "", "Generate supplemental source");
+  }
+}
+
 function setupDraftKey() {
   return `startframe_setup_${state.sessionId}`;
 }
@@ -839,15 +1260,25 @@ async function showSetup() {
   const session = await getCurrentSession();
   const localDraft = JSON.parse(window.localStorage.getItem(setupDraftKey()) || "null");
   const serverValues = session.setup_completed ? session : null;
+  const firstSource = state.sources[0];
+  const sourceTopic = firstSource?.filename
+    ?.replace(/^AI supplemental - /, "")
+    .replace(/\.(md|markdown|txt|pdf)$/i, "")
+    || "my learning material";
+  const isTransformerDemo = state.sources.some((source) => source.filename === "transformer_notes.md");
   fillSetup(localDraft || serverValues || {
-    goal: "Understand self-attention and explain its basic flow",
-    prior_knowledge: "Basic machine learning, but no detailed Transformer knowledge",
+    goal: isTransformerDemo
+      ? "Understand self-attention and explain its basic flow"
+      : `Understand and explain the main ideas in ${sourceTopic}`,
+    prior_knowledge: isTransformerDemo
+      ? "Basic machine learning, but no detailed Transformer knowledge"
+      : "I know some basic context, but have not studied this material in depth",
     available_minutes: 25,
     energy_level: "medium",
-    current_question: "How do relevance scores become a new token representation?",
+    current_question: isTransformerDemo ? "How do relevance scores become a new token representation?" : "",
     support_preferences: ["direct_explanation", "define_terms", "short_steps"],
-    show_timer: false,
-    search_permission: false,
+    show_timer: savedPreference("show_timer"),
+    search_permission: savedPreference("search_suggestions"),
   });
   setMessage(setupMessage, "");
   showView("setup", `setup/${state.sessionId}`, setupTitle);
@@ -957,6 +1388,18 @@ function referenceButton(reference, details) {
 
 function renderCoverage(body) {
   const coverage = body.coverage;
+  const origins = new Set(body.source_ref_details.map((item) => item.source_origin));
+  coverageSourceOriginHeading.textContent = origins.has("uploaded")
+    ? "Uploaded material"
+    : origins.has("ai_supplement")
+      ? "AI supplemental explanation"
+      : "Saved learning source";
+  uploadedPolicyText.textContent = origins.has("uploaded")
+    ? "Primary source for this map and later learning activities."
+    : "No uploaded material is present in this topic-only session.";
+  aiPolicyText.textContent = origins.has("ai_supplement")
+    ? "Current fallback source; it stays labeled and does not claim uploaded or external provenance."
+    : "Must stay labeled and cannot invent source locations.";
   coveredList.replaceChildren();
   gapList.replaceChildren();
   coveredCount.textContent = `${coverage.covered_concepts.length} covered`;
@@ -1267,7 +1710,11 @@ function renderFocus(body) {
   focusSources.replaceChildren();
   concept.source_refs.forEach((reference) => {
     const button = referenceButton(reference, concept.source_ref_details);
-    const origin = element("span", "origin-badge", "Uploaded material");
+    const detail = concept.source_ref_details.find(
+      (item) => item.source_id === reference.source_id && item.chunk_id === reference.chunk_id,
+    );
+    const detailOrigin = detail?.source_origin || body.source_policy.primary_origin;
+    const origin = element("span", sourceOriginClass(detailOrigin), sourceOriginLabel(detailOrigin));
     const row = element("div", "focus-source-row");
     row.append(origin, button);
     focusSources.append(row);
@@ -1284,8 +1731,13 @@ function renderFocus(body) {
     focusSources.append(row);
   });
   focusSourceBoundary.replaceChildren();
-  focusSourceBoundary.append(element("span", "origin-badge", "Uploaded material"));
-  focusSourceBoundary.append(document.createTextNode(" remains the primary learning source. "));
+  const primaryOrigin = body.source_policy.primary_origin;
+  focusSourceBoundary.append(element("span", sourceOriginClass(primaryOrigin), sourceOriginLabel(primaryOrigin)));
+  focusSourceBoundary.append(document.createTextNode(
+    primaryOrigin === "uploaded"
+      ? " remains the primary learning source. "
+      : " is the current fallback source because no uploaded material is present. ",
+  ));
   focusSourceBoundary.append(document.createTextNode(
     body.external_supplements?.length
       ? `${body.external_supplements.length} selected external supplement ${body.external_supplements.length === 1 ? "is" : "are"} clearly labeled above.`
@@ -1356,14 +1808,21 @@ function renderTutor(body) {
   const level = body.thread.last_guidance_level || 1;
   tutorGuidanceLevel.textContent = `${level} · ${body.guidance_ladder[level - 1]}`;
   tutorSaveStatus.textContent = "Conversation saved";
+  const tutorPrimaryOrigin = concept.source_ref_details.some((item) => item.source_origin === "uploaded")
+    ? "uploaded"
+    : "ai_supplement";
   tutorModeLabel.textContent = body.generation?.mode === "real"
-    ? `${body.generation.model} · uploaded material first`
-    : "Uploaded material first";
+    ? `${body.generation.model} · ${sourceOriginLabel(tutorPrimaryOrigin)}`
+    : sourceOriginLabel(tutorPrimaryOrigin);
 
   tutorContextSources.replaceChildren();
   concept.source_refs.forEach((reference) => {
     const row = element("div", "focus-source-row");
-    row.append(element("span", "origin-badge", "Uploaded material"));
+    const detail = concept.source_ref_details.find(
+      (item) => item.source_id === reference.source_id && item.chunk_id === reference.chunk_id,
+    );
+    const detailOrigin = detail?.source_origin || tutorPrimaryOrigin;
+    row.append(element("span", sourceOriginClass(detailOrigin), sourceOriginLabel(detailOrigin)));
     row.append(referenceButton(reference, concept.source_ref_details));
     tutorContextSources.append(row);
   });
@@ -2071,7 +2530,8 @@ async function handleAgentExecution(body) {
     return;
   }
   if (execution.destination === "session_summary") {
-    showFinishedSummary(execution.summary);
+    const summary = await api(`/api/sessions/${state.sessionId}/summary`);
+    showFinishedSummary(summary.summary);
   }
 }
 
@@ -2295,8 +2755,11 @@ async function ignoreControlledSearchResults() {
 function showFinishedSummary(summary) {
   document.querySelector("#summary-title").textContent = summary.title || "Session complete";
   summaryRestartAction.textContent = summary.restart_action;
-  summaryConcept.textContent = state.agent?.evidence_summary?.concept_title || "Saved learning session";
-  summaryNote.textContent = "Your LearningEvidence and planning choice are saved. Stopping has no penalty.";
+  summaryConcept.textContent = summary.current_concept || state.agent?.evidence_summary?.concept_title || "Saved learning session";
+  summaryNote.textContent = summary.saved_focus_note || "Your LearningEvidence and planning choice are saved. Stopping has no penalty.";
+  summaryCompleted.textContent = summary.completed_concepts?.length ? summary.completed_concepts.join(" · ") : "No concept has been marked complete yet.";
+  summaryReview.textContent = summary.still_to_review?.length ? summary.still_to_review.join(" · ") : "No remaining route concept.";
+  summaryStats.textContent = `${summary.evidence_count || 0} evidence records${summary.latest_outcome ? ` · latest outcome: ${summary.latest_outcome.replaceAll("_", " ")}` : ""} · stopping has no penalty`;
   summaryResumeButton.hidden = true;
   showView("summary", `summary/${state.sessionId}`, document.querySelector("#summary-title"));
 }
@@ -2416,10 +2879,10 @@ async function resumeActiveSession() {
     else if (state.session.state === "evidence_ready") await showEvidenceReady();
     else if (state.session.state === "agent_decision") await showAgentDecision();
     else if (["search_confirmation", "search_running", "search_results"].includes(state.session.state)) await showControlledSearch();
-    else if (state.session.state === "session_summary") showFinishedSummary({
-      title: "Session complete",
-      restart_action: "Start a new session from the saved LearningEvidence when you are ready.",
-    });
+    else if (state.session.state === "session_summary") {
+      const summary = await api(`/api/sessions/${state.sessionId}/summary`);
+      showFinishedSummary(summary.summary);
+    }
     else if (state.session.state === "learning_concept" && state.session.tutor_open) await showTutor();
     else if (state.session.state === "learning_concept") await showFocus();
     else await showStartAction();
@@ -2452,6 +2915,11 @@ function showSummary() {
   summaryRestartAction.textContent = focus.restart_action;
   summaryConcept.textContent = focus.active_concept.title;
   summaryNote.textContent = focusNote.value.trim() || "No focus note yet. Resume at the concise explanation.";
+  const completed = focus.route.filter((concept) => concept.status === "completed").map((concept) => concept.title);
+  const remaining = focus.route.filter((concept) => concept.status !== "completed").map((concept) => concept.title);
+  summaryCompleted.textContent = completed.length ? completed.join(" · ") : "No concept has been marked complete yet.";
+  summaryReview.textContent = remaining.length ? remaining.join(" · ") : "No remaining route concept.";
+  summaryStats.textContent = "Checkpoint saved · session paused · stopping has no penalty";
   showView("summary", `summary/${state.sessionId}`, document.querySelector("#summary-title"));
 }
 
@@ -2504,9 +2972,25 @@ async function chooseConflictVersion(choice) {
 
 startButtons.forEach((button) => button.addEventListener("click", beginSession));
 libraryLink.addEventListener("click", showHome);
+exportJsonButton.addEventListener("click", () => downloadWorkspaceExport("json"));
+exportMarkdownButton.addEventListener("click", () => downloadWorkspaceExport("markdown"));
+openAiActivityButton.addEventListener("click", openAiActivity);
+closeAiActivityButton.addEventListener("click", closeAiActivity);
+openDeleteWorkspaceButton.addEventListener("click", openWorkspaceDelete);
+cancelWorkspaceDeleteButton.addEventListener("click", closeWorkspaceDelete);
+confirmWorkspaceDeleteButton.addEventListener("click", confirmWorkspaceDelete);
+cancelSessionDeleteButton.addEventListener("click", closeSessionDelete);
+confirmSessionDeleteButton.addEventListener("click", confirmSessionDelete);
 backHomeButton.addEventListener("click", leaveSourceView);
 saveForLaterButton.addEventListener("click", showHome);
 chooseFilesButton.addEventListener("click", () => fileInput.click());
+openTopicButton.addEventListener("click", openTopicFallback);
+topicForm.addEventListener("submit", submitTopicFallback);
+cancelTopicButton.addEventListener("click", cancelTopicFallback);
+topicDialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  cancelTopicFallback();
+});
 fileInput.addEventListener("change", () => uploadFiles(fileInput.files));
 loadDemoButton.addEventListener("click", () => loadDemoMaterials("standard"));
 loadSearchDemoButton.addEventListener("click", () => loadDemoMaterials("controlled_search"));
@@ -2516,6 +3000,17 @@ cancelPasteButton.addEventListener("click", () => pasteDialog.close());
 pasteForm.addEventListener("submit", submitPastedSource);
 cancelDeleteButton.addEventListener("click", () => deleteDialog.close());
 confirmDeleteButton.addEventListener("click", deleteSelectedSource);
+openSourceReportButton.addEventListener("click", openSourceReport);
+cancelSourceReportButton.addEventListener("click", closeSourceReport);
+sourceReportForm.addEventListener("submit", submitSourceReport);
+sourceReportDialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  closeSourceReport();
+});
+sessionSearch.addEventListener("input", renderSessions);
+sessionFilter.addEventListener("change", renderSessions);
+[preferenceLargeText, preferenceReducedMotion, preferenceShowTimer, preferenceSearchSuggestions]
+  .forEach((control) => control.addEventListener("change", savePreferences));
 
 setupForm.addEventListener("input", saveSetupDraft);
 setupForm.addEventListener("change", saveSetupDraft);
@@ -2550,6 +3045,7 @@ keepLocalDraftButton.addEventListener("click", () => chooseConflictVersion("loca
 keepServerDraftButton.addEventListener("click", () => chooseConflictVersion("server"));
 saveExitButton.addEventListener("click", saveAndExit);
 summaryLibraryButton.addEventListener("click", showHome);
+summaryExportButton.addEventListener("click", () => downloadWorkspaceExport("markdown"));
 summaryResumeButton.addEventListener("click", resumeActiveSession);
 reviewFullMapButton.addEventListener("click", () => {
   focusRoute.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -2660,6 +3156,7 @@ window.addEventListener("online", () => {
 });
 
 async function initialize() {
+  loadPreferences();
   connectionBanner.hidden = navigator.onLine;
   await Promise.all([checkRuntime(), loadSessions()]);
   if (!state.sessionId) return;
@@ -2677,8 +3174,14 @@ async function initialize() {
     else if (hash.startsWith("#search/")) await showControlledSearch();
     else if (hash.startsWith("#focus/")) await showFocus();
     else if (hash.startsWith("#summary/")) {
-      await showFocus();
-      showSummary();
+      const session = await getCurrentSession();
+      if (session.state === "session_summary") {
+        const summary = await api(`/api/sessions/${state.sessionId}/summary`);
+        showFinishedSummary(summary.summary);
+      } else {
+        await showFocus();
+        showSummary();
+      }
     }
     else if (hash.startsWith("#sources/")) await showSources();
   } catch (error) {

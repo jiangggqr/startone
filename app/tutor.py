@@ -382,6 +382,8 @@ def _demo_tutor_response(
 ) -> TutorResponseOutput:
     active_refs = [SourceReference.model_validate(item) for item in context["context"]["concept"]["source_refs"]]
     primary_ref = active_refs[0]
+    primary_origin = str(context["chunks"][0]["source_origin"])
+    source_label = "AI supplemental source" if primary_origin == "ai_supplement" else "uploaded material"
     lowered = user_message.lower()
     prior = context["context"].get("previous_concept_title") or "the previous concept"
     has_matrix_source = "matrix_prerequisite.md" in context["available_filenames"]
@@ -391,7 +393,7 @@ def _demo_tutor_response(
             message="Self-attention does two jobs: it compares the current position with other positions, then combines information from them according to those relevance scores.",
             guidance_level=6,
             checking_question="Which of those two jobs changes the current position's representation?",
-            source_origin="uploaded",
+            source_origin=primary_origin,
             source_refs=[primary_ref],
             confusion_signal=None,
             prerequisite_gap_signal=None,
@@ -401,7 +403,7 @@ def _demo_tutor_response(
             message="A relevance score is a number that represents how strongly one position should use information from another. A value representation is the information that can be combined after those scores become weights.",
             guidance_level=4,
             checking_question="What controls how much each value contributes?",
-            source_origin="uploaded",
+            source_origin=primary_origin,
             source_refs=[primary_ref],
             confusion_signal=None,
             prerequisite_gap_signal=None,
@@ -421,7 +423,7 @@ def _demo_tutor_response(
             message=f"{prior} established why tokens need information from other positions. Self-attention is the mechanism that compares those positions and combines the useful information.",
             guidance_level=3,
             checking_question="Which part of self-attention addresses the need for cross-token context?",
-            source_origin="uploaded",
+            source_origin=primary_origin,
             source_refs=[primary_ref],
             confusion_signal=None,
             prerequisite_gap_signal=None,
@@ -431,7 +433,7 @@ def _demo_tutor_response(
             message="Use two verbs and keep them in order: first compare, then ____.",
             guidance_level=2,
             checking_question="What second verb completes the process?",
-            source_origin="uploaded",
+            source_origin=primary_origin,
             source_refs=[primary_ref],
             confusion_signal=None,
             prerequisite_gap_signal=None,
@@ -441,24 +443,24 @@ def _demo_tutor_response(
             message="Try this without reopening the explanation: describe the two jobs of self-attention in one sentence.",
             guidance_level=7,
             checking_question="What happens after relevance has been compared?",
-            source_origin="uploaded",
+            source_origin=primary_origin,
             source_refs=[primary_ref],
             confusion_signal=None,
             prerequisite_gap_signal=None,
         )
     if any(term in lowered for term in ("dot product", "matrix", "vector")):
-        signal = None if has_matrix_source else "The uploaded material does not define the named dot-product prerequisite."
+        signal = None if has_matrix_source else f"The {source_label} does not define the named dot-product prerequisite."
         message = (
-            "The uploaded prerequisite note defines a dot product as multiplying matching vector components and adding them to produce one score. For this concept, that score is used only to decide relevance before values are combined."
+            f"The {source_label} defines a dot product as multiplying matching vector components and adding them to produce one score. For this concept, that score is used only to decide relevance before values are combined."
             if has_matrix_source
-            else "That question points to the dot-product prerequisite, which the current uploaded material does not define. I can keep the gap visible, but I cannot change the route or search."
+            else f"That question points to the dot-product prerequisite, which the current {source_label} does not define. I can keep the gap visible, but I cannot change the route or search."
         )
         ref = _find_chunk_ref(context["chunks"], "dot product") if has_matrix_source else primary_ref
         return TutorResponseOutput(
             message=message,
             guidance_level=4,
             checking_question="For self-attention, what is the score used for after it is computed?",
-            source_origin="uploaded",
+            source_origin=primary_origin,
             source_refs=[ref],
             confusion_signal="User asked for a mathematical prerequisite while learning self-attention.",
             prerequisite_gap_signal=signal,
@@ -468,7 +470,7 @@ def _demo_tutor_response(
             message="Let's narrow it down. Self-attention first decides which other positions matter, then uses that decision to combine their information. Which part is unclear: deciding relevance or combining information?",
             guidance_level=1,
             checking_question="Is the comparison step or the combination step the unclear part?",
-            source_origin="uploaded",
+            source_origin=primary_origin,
             source_refs=[primary_ref],
             confusion_signal="User explicitly reported that part of the active concept remains unclear.",
             prerequisite_gap_signal=None,
@@ -478,7 +480,7 @@ def _demo_tutor_response(
             message="You identified the combination step. The precise detail is that relevance scores act as weights, so more relevant value information contributes more to the new representation.",
             guidance_level=3,
             checking_question="What would happen to a value with a larger relevance weight?",
-            source_origin="uploaded",
+            source_origin=primary_origin,
             source_refs=[primary_ref],
             confusion_signal=None,
             prerequisite_gap_signal=None,
@@ -487,7 +489,7 @@ def _demo_tutor_response(
         message="Let's start with one smaller question: why might the current position need information from another position in the same sequence?",
         guidance_level=1,
         checking_question="What can context reveal that the current position alone cannot?",
-        source_origin="uploaded",
+        source_origin=primary_origin,
         source_refs=[primary_ref],
         confusion_signal=None,
         prerequisite_gap_signal=None,
@@ -505,9 +507,15 @@ def _find_chunk_ref(chunks: list[dict[str, Any]], term: str) -> SourceReference:
 def _tutor_instructions(context: dict[str, Any], quick_action: str | None) -> str:
     concept = context["context"]["concept"]
     session = context["session_record"]
+    has_uploaded = any(chunk.get("source_origin") == "uploaded" for chunk in context["chunks"])
+    origin_rule = (
+        "Uploaded material is the primary source."
+        if has_uploaded
+        else "The only source is an AI supplemental explanation; preserve that label and never describe it as uploaded."
+    )
     return (
         "You are the Contextual Tutor inside an English learning app. Stay strictly inside the active concept. "
-        "Uploaded material is the primary source. Use the least sufficient guidance by default, following levels 1 through 7. "
+        f"{origin_rule} Use the least sufficient guidance by default, following levels 1 through 7. "
         "You may explain, clarify, give a labeled AI supplemental example, or ask a checking question. "
         "You must not change the route, choose a next concept, score mastery, create a recommendation, end the session, "
         "offer or perform internet search, or make medical claims. Never reveal hidden reasoning. "
@@ -535,6 +543,7 @@ def _tutor_source_context(context: dict[str, Any], user_message: str) -> str:
                     f"source_id: {chunk['source_id']}",
                     f"chunk_id: {chunk['id']}",
                     f"filename: {chunk['filename']}",
+                    f"source_origin: {chunk['source_origin']}",
                     f"heading: {chunk.get('heading_path') or ''}",
                     f"lines: {chunk.get('start_line') or ''}-{chunk.get('end_line') or ''}",
                     "content:",

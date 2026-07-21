@@ -314,6 +314,12 @@ def get_focus_workspace(database_path: Path, workspace_id: str, session_id: str)
     concept_by_key = {item["concept_key"]: item for item in concepts}
     active = dict(concept)
     refs = json.loads(str(active["source_refs_json"]))
+    source_ref_details = _source_details(database_path, workspace_id, session_id, refs)
+    primary_origin = (
+        "uploaded"
+        if any(item["source_origin"] == "uploaded" for item in source_ref_details)
+        else "ai_supplement"
+    )
     elapsed, remaining = _timer_values(session)
     route_items = [concept_by_key[key] for key in route if key in concept_by_key]
     active_route_index = next(
@@ -337,7 +343,7 @@ def get_focus_workspace(database_path: Path, workspace_id: str, session_id: str)
             "role_in_map": active["role_in_map"],
             "estimated_minutes": active["estimated_minutes"],
             "source_refs": refs,
-            "source_ref_details": _source_details(database_path, workspace_id, session_id, refs),
+            "source_ref_details": source_ref_details,
         },
         "route": [
             {
@@ -358,7 +364,7 @@ def get_focus_workspace(database_path: Path, workspace_id: str, session_id: str)
         "drafts": {"start_action": start_draft, "focus_note": focus_draft},
         "external_supplements": external_supplements,
         "source_policy": {
-            "primary_origin": "uploaded",
+            "primary_origin": primary_origin,
             "internet_search_performed": bool(external_supplements),
         },
         "restart_action": f"Resume {active['title']} and read the saved focus note before continuing.",

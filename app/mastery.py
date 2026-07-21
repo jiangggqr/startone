@@ -682,7 +682,7 @@ def _remedial_context(database_path: Path, workspace_id: str, feedback_id: str) 
         for ref in refs:
             chunk = connection.execute(
                 """
-                SELECT c.id, c.source_id, c.text, d.filename
+                SELECT c.id, c.source_id, c.text, d.filename, d.source_origin
                 FROM source_chunks c JOIN source_documents d ON d.id = c.source_id
                 WHERE c.id = ? AND d.id = ? AND d.workspace_id = ? AND d.session_id = ?
                 """,
@@ -811,12 +811,13 @@ def _persist_remedial_activity(
 
 
 def _feedback_instructions(context: dict[str, Any]) -> str:
+    origin_rule = _origin_rule(context["source_chunks"])
     return (
         "Evaluate only the submitted answer for the active concept. Return the fixed feedback fields: mastered points, "
         "missing or unclear points, misconceptions, one compact correction, one specific encouragement, and one next micro-action. "
         "The next micro-action must stay inside the current concept and may only suggest a hint, another practice, or remediation. "
         "It must not change the route, end the session, request search, or make an Agent decision. Meaningful paraphrases count. "
-        "Use only verified source IDs and chunk IDs provided below. Do not reveal hidden reasoning."
+        f"Use only verified source IDs and chunk IDs provided below. {origin_rule} Do not reveal hidden reasoning."
     )
 
 
@@ -830,16 +831,20 @@ def _feedback_source_context(context: dict[str, Any]) -> str:
         f"Server-side evaluation key: {json.dumps(activity['output'])}",
     ]
     for chunk in context["source_chunks"]:
-        lines.append(f"SOURCE_ID={chunk['source_id']} CHUNK_ID={chunk['id']} FILE={chunk['filename']}\n{chunk['text']}")
+        lines.append(
+            f"SOURCE_ID={chunk['source_id']} CHUNK_ID={chunk['id']} ORIGIN={chunk['source_origin']} "
+            f"FILE={chunk['filename']}\n{chunk['text']}"
+        )
     return "\n\n".join(lines)
 
 
 def _remedial_instructions(context: dict[str, Any], strategy: str) -> str:
+    origin_rule = _origin_rule(context["chunks"])
     return (
         f"Create exactly one short remedial activity using the strategy {strategy}. The strategy field must equal that value. "
         "Target only the latest specific missing or unclear point for the active concept. Include exactly three progressive hints. "
         "Do not repeat the full original task, change the learning route, request search, make an Agent decision, or mention hidden reasoning. "
-        "Use only the supplied verified source IDs and chunk IDs."
+        f"Use only the supplied verified source IDs and chunk IDs. {origin_rule}"
     )
 
 
@@ -851,8 +856,17 @@ def _remedial_source_context(context: dict[str, Any]) -> str:
         f"Latest feedback: {json.dumps(context['feedback']['output'])}",
     ]
     for chunk in context["chunks"]:
-        lines.append(f"SOURCE_ID={chunk['source_id']} CHUNK_ID={chunk['id']} FILE={chunk['filename']}\n{chunk['text']}")
+        lines.append(
+            f"SOURCE_ID={chunk['source_id']} CHUNK_ID={chunk['id']} ORIGIN={chunk['source_origin']} "
+            f"FILE={chunk['filename']}\n{chunk['text']}"
+        )
     return "\n\n".join(lines)
+
+
+def _origin_rule(chunks: list[dict[str, Any]]) -> str:
+    if any(chunk.get("source_origin") == "uploaded" for chunk in chunks):
+        return "Uploaded material is primary; keep every supplemental origin explicit."
+    return "The source is AI supplemental; never describe it as uploaded or externally cited."
 
 
 def _validate_source_refs(

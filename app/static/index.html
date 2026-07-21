@@ -66,6 +66,9 @@
             <div>
               <h2>Enter a topic only</h2>
               <p>Fallback path · Content is clearly labeled as an AI supplemental explanation.</p>
+              <button class="button button-quiet topic-entry-button" id="open-topic" type="button">
+                Use topic-only fallback
+              </button>
             </div>
           </article>
         </div>
@@ -79,15 +82,31 @@
           </div>
           <span class="status-chip">0 sessions</span>
         </div>
+        <div class="history-filters" role="search" aria-label="Filter learning history">
+          <div>
+            <label for="session-search">Search sessions</label>
+            <input id="session-search" type="search" placeholder="Search by session name or goal" />
+          </div>
+          <div>
+            <label for="session-filter">Session status</label>
+            <select id="session-filter">
+              <option value="all">All sessions</option>
+              <option value="active">Active</option>
+              <option value="paused">Paused</option>
+              <option value="completed">Summary ready</option>
+            </select>
+          </div>
+        </div>
         <div class="empty-state" id="recent-empty">
           <span class="empty-icon" aria-hidden="true">◇</span>
           <div>
-            <h3>No learning sessions yet</h3>
-            <p>After your first upload, resumable concepts, drafts, and next actions will appear here.</p>
+            <h3 id="recent-empty-title">No learning sessions yet</h3>
+            <p id="recent-empty-copy">After your first upload, resumable concepts, drafts, and next actions will appear here.</p>
           </div>
           <button class="button button-secondary" id="empty-start" type="button">Start your first session</button>
         </div>
         <div class="session-list" id="recent-list" hidden></div>
+        <p class="form-message" id="recent-message" role="status" aria-live="polite" hidden></p>
       </section>
 
       <section class="section two-column" aria-label="Product safeguards">
@@ -96,9 +115,25 @@
           <h2>Storage and controls stay visible</h2>
           <p>
             Learning material is stored in this deployment's private workspace. Every source can be previewed,
-            retried, or removed from its session.
+            retried, copied, exported, or removed. Exports never contain API keys, hidden answer keys, internal prompts, or server file paths.
           </p>
-          <button class="button button-quiet" type="button" disabled>Workspace-wide delete opens in Settings</button>
+          <details class="preference-panel">
+            <summary>Learning and accessibility preferences</summary>
+            <div class="preference-grid">
+              <label class="check-row"><input type="checkbox" id="preference-large-text" /> Use larger interface text</label>
+              <label class="check-row"><input type="checkbox" id="preference-reduced-motion" /> Reduce interface motion</label>
+              <label class="check-row"><input type="checkbox" id="preference-show-timer" /> Show the timer by default in new sessions</label>
+              <label class="check-row"><input type="checkbox" id="preference-search-suggestions" /> Allow search suggestions by default in new sessions</label>
+            </div>
+            <p class="micro-copy">External search still requires a named gap, an Agent request, and a separate confirmation every time.</p>
+          </details>
+          <div class="data-control-actions">
+            <button class="button button-secondary" id="export-json" type="button">Download JSON record</button>
+            <button class="button button-secondary" id="export-markdown" type="button">Download Markdown summary</button>
+            <button class="button button-quiet" id="open-ai-activity" type="button">View AI activity</button>
+            <button class="button button-danger" id="open-delete-workspace" type="button">Delete all workspace data</button>
+          </div>
+          <p class="form-message" id="data-control-message" role="status" aria-live="polite" hidden></p>
         </article>
         <article class="info-card" id="help">
           <p class="eyebrow">System boundary</p>
@@ -197,10 +232,15 @@
                   <h3 id="preview-filename"></h3>
                   <p id="preview-location"></p>
                 </div>
-                <span class="origin-badge">Uploaded material</span>
+                <span class="origin-badge" id="preview-origin">Uploaded material</span>
               </div>
               <pre id="preview-text"></pre>
+              <div class="preview-purpose">
+                <strong>How this excerpt is used</strong>
+                <p id="preview-purpose">Available to ground the learning map, Tutor, and practice.</p>
+              </div>
               <div class="chunk-navigation" id="chunk-navigation" aria-label="Source sections"></div>
+              <button class="button button-quiet" id="open-source-report" type="button">Report a source-location issue</button>
             </div>
           </aside>
         </div>
@@ -285,7 +325,7 @@
           <button class="button button-quiet" id="back-to-setup" type="button">← Back to setup</button>
           <p class="eyebrow">Step 3 · Verify source coverage</p>
           <h1 id="coverage-title" tabindex="-1">See what your material covers before planning</h1>
-          <p class="hero-lead">Covered concepts and candidate gaps stay tied to real uploaded source locations.</p>
+          <p class="hero-lead">Covered concepts and candidate gaps stay tied to real saved source locations.</p>
         </div>
 
         <div class="trust-banner" role="status">
@@ -296,7 +336,7 @@
         <div class="coverage-grid">
           <section class="result-panel" aria-labelledby="covered-title">
             <div class="result-heading">
-              <div><p class="eyebrow">Uploaded material</p><h2 id="covered-title">Covered concepts</h2></div>
+              <div><p class="eyebrow" id="coverage-source-origin-heading">Saved learning source</p><h2 id="covered-title">Covered concepts</h2></div>
               <span class="status-chip" id="covered-count">0 covered</span>
             </div>
             <div class="result-list" id="covered-list"></div>
@@ -310,9 +350,9 @@
           </section>
         </div>
         <section class="source-policy" aria-label="Source origin policy">
-          <div><span class="origin-badge">Uploaded material</span><p>Primary source for this map and later learning activities.</p></div>
+          <div><span class="origin-badge">Uploaded material</span><p id="uploaded-policy-text">Primary source for this map and later learning activities.</p></div>
           <div><span class="origin-badge origin-external">External supplement</span><p>Unavailable until all four search gates pass.</p></div>
-          <div><span class="origin-badge origin-ai">AI supplemental explanation</span><p>Must stay labeled and cannot invent source locations.</p></div>
+          <div><span class="origin-badge origin-ai">AI supplemental explanation</span><p id="ai-policy-text">Must stay labeled and cannot invent source locations.</p></div>
         </section>
         <div class="workflow-actions">
           <button class="button button-secondary" id="regenerate-coverage" type="button">Regenerate coverage</button>
@@ -812,9 +852,13 @@
           <div class="summary-grid">
             <div><strong>Current concept</strong><p id="summary-concept"></p></div>
             <div><strong>Saved focus note</strong><p id="summary-note"></p></div>
+            <div><strong>Completed concepts</strong><p id="summary-completed"></p></div>
+            <div><strong>Still to review</strong><p id="summary-review"></p></div>
           </div>
+          <p class="micro-copy" id="summary-stats"></p>
           <div class="dialog-actions">
             <button class="button button-secondary" id="summary-library" type="button">Return to library</button>
+            <button class="button button-secondary" id="summary-export" type="button">Download learning summary</button>
             <button class="button button-primary" id="summary-resume" type="button">Resume this concept</button>
           </div>
         </div>
@@ -824,6 +868,26 @@
     <footer>
       <p>StartFrame Agent · <span id="runtime-status" role="status" aria-live="polite">Checking service status…</span></p>
     </footer>
+
+    <dialog id="topic-dialog" aria-labelledby="topic-dialog-title" aria-describedby="topic-dialog-description">
+      <div class="dialog-content">
+        <p class="eyebrow">Topic-only fallback</p>
+        <h2 id="topic-dialog-title">Generate an AI supplemental explanation</h2>
+        <p id="topic-dialog-description">
+          This path does not pretend that AI content was uploaded or externally cited. No internet search runs here.
+          In Demo mode, the fixed supported topic is Self-attention.
+        </p>
+        <form id="topic-form">
+          <label for="topic-input">Learning topic</label>
+          <input id="topic-input" name="topic" minlength="2" maxlength="120" placeholder="Self-attention" required />
+          <p class="field-error" id="topic-error" role="alert" tabindex="-1" hidden></p>
+          <div class="dialog-actions">
+            <button class="button button-secondary" id="cancel-topic" type="button">Cancel</button>
+            <button class="button button-primary" id="submit-topic" type="submit">Generate supplemental source</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
 
     <dialog id="paste-dialog" aria-labelledby="paste-title" aria-describedby="paste-description">
       <div class="dialog-content">
@@ -855,6 +919,69 @@
         <div class="dialog-actions">
           <button class="button button-secondary" id="cancel-delete" type="button">Keep source</button>
           <button class="button button-danger" id="confirm-delete" type="button">Delete source</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="source-report-dialog" aria-labelledby="source-report-title" aria-describedby="source-report-description">
+      <div class="dialog-content">
+        <p class="eyebrow">Source quality</p>
+        <h2 id="source-report-title">Report a source-location issue</h2>
+        <p id="source-report-description">This records the exact saved source and excerpt for the deployment owner. It does not change your learning progress.</p>
+        <form id="source-report-form">
+          <label for="source-report-reason">What looks wrong?</label>
+          <select id="source-report-reason" name="reason">
+            <option value="location_incorrect">Page, heading, or line location is incorrect</option>
+            <option value="content_mismatch">Excerpt does not support the displayed claim</option>
+            <option value="other">Another source issue</option>
+          </select>
+          <label for="source-report-note">Optional detail</label>
+          <textarea id="source-report-note" name="note" rows="4" maxlength="500"></textarea>
+          <p class="field-error" id="source-report-error" role="alert" tabindex="-1" hidden></p>
+          <div class="dialog-actions">
+            <button class="button button-secondary" id="cancel-source-report" type="button">Cancel</button>
+            <button class="button button-primary" id="submit-source-report" type="submit">Send source report</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
+    <dialog id="session-delete-dialog" aria-labelledby="session-delete-title" aria-describedby="session-delete-description">
+      <div class="dialog-content">
+        <p class="eyebrow">Delete one session</p>
+        <h2 id="session-delete-title">Delete this learning session?</h2>
+        <p id="session-delete-description">This permanently deletes its drafts, learning evidence, decisions, and search records. A stored source file is removed only when no copied session still uses it.</p>
+        <p class="delete-filename" id="session-delete-name"></p>
+        <p class="form-message" id="session-delete-message" role="alert" hidden></p>
+        <div class="dialog-actions">
+          <button class="button button-secondary" id="cancel-session-delete" type="button">Keep session</button>
+          <button class="button button-danger" id="confirm-session-delete" type="button">Delete session permanently</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="workspace-delete-dialog" aria-labelledby="workspace-delete-title" aria-describedby="workspace-delete-description">
+      <div class="dialog-content">
+        <p class="eyebrow">Delete all data</p>
+        <h2 id="workspace-delete-title">Delete this entire anonymous workspace?</h2>
+        <p id="workspace-delete-description">This permanently deletes every session, uploaded file, draft, Tutor message, practice attempt, LearningEvidence record, Agent decision, and search record in this browser workspace. It cannot be undone.</p>
+        <p class="form-message" id="workspace-delete-message" role="alert" hidden></p>
+        <div class="dialog-actions">
+          <button class="button button-secondary" id="cancel-workspace-delete" type="button">Keep all data</button>
+          <button class="button button-danger" id="confirm-workspace-delete" type="button">Delete everything permanently</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="ai-activity-dialog" aria-labelledby="ai-activity-title" aria-describedby="ai-activity-description">
+      <div class="dialog-content activity-log-dialog">
+        <p class="eyebrow">AI transparency</p>
+        <h2 id="ai-activity-title">AI activity in this workspace</h2>
+        <p id="ai-activity-description">This audit view shows the operation, Demo or live mode, model, status, and time. It never exposes hidden reasoning or API keys.</p>
+        <div class="ai-activity-list" id="ai-activity-list" aria-live="polite"></div>
+        <p class="form-message" id="ai-activity-message" role="status" aria-live="polite" hidden></p>
+        <div class="dialog-actions">
+          <button class="button button-primary" id="close-ai-activity" type="button">Close activity log</button>
         </div>
       </div>
     </dialog>
