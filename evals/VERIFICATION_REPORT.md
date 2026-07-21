@@ -4,7 +4,7 @@ Date: 2026-07-21
 Application mode: deterministic Demo  
 Automated result: `45 passed`
 Browser widths exercised: 390 px, 640 px zoom-equivalent, and desktop  
-Live GPT-5.6 status: contract-tested; one live smoke test remains pending a server-side key
+Live GPT-5.6 status: passed an isolated real-mode core flow on 2026-07-21
 
 ## Core product cases
 
@@ -69,6 +69,6 @@ Live GPT-5.6 status: contract-tested; one live smoke test remains pending a serv
 - The 1.0.0 release browser check loaded the standard two-source judge fixture; at 390 px the document width equaled the viewport, no visible control was below 24×24 CSS px, no Chinese UI was present, and the computed body background image was `none`.
 - Secret scan, Python compilation, dependency integrity, diff hygiene, English UI scan, no-gradient scan, and deployment YAML parsing pass.
 
-## Remaining external verification
+## Live GPT-5.6 verification
 
-Configure `OPENAI_API_KEY` only as a server/deployment secret, set `STARTFRAME_MODE=real`, and run one live GPT-5.6 smoke flow before final submission. Demo judging does not require a key and never silently impersonates live mode.
+With `OPENAI_API_KEY` configured only in the ignored local `.env`, `scripts/live_smoke.py` passed an isolated temporary-database flow using the configured `gpt-5.6` model for source coverage, knowledge-map generation, Tutor guidance, Quiz generation, structured feedback and one bounded Agent decision. The flow also rechecked recommendation-free `LearningEvidence` and the Agent's exactly-one-action boundary. No credential or generated learning content was printed or persisted to the normal application database. Real web-search request shape and citation filtering remain contract-tested with a fake Responses client; the public judge deployment remains deterministic no-key Demo mode.

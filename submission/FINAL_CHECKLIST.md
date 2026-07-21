@@ -17,7 +17,7 @@ Official deadline: July 21, 2026 at 5:00 PM Pacific Time.
 - [x] English README includes setup, sample data, Demo/real modes, Codex collaboration, human decisions, and GPT-5.6 responsibilities.
 - [x] No-key deterministic Demo path and controlled-search path are documented.
 - [x] Automated tests, dependency check, secret scan, responsive browser flow, and security headers are verified.
-- [ ] Complete and record one live GPT-5.6 smoke flow with a server-side key.
+- [x] Complete and record one live GPT-5.6 core-flow smoke test with a server-side key; real web-search request shape remains contract-tested.
 
 ## Public Demo
 

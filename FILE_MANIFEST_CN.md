@@ -29,6 +29,10 @@
 
 - 覆盖基础服务、来源、学习路径、专注会话、Tutor、练习、反馈、Evidence、Agent、搜索、主题备用路径与数据控制的自动化测试。
 
+## `scripts/`
+
+- `live_smoke.py`：显式授权后使用临时数据库运行真实 GPT-5.6 核心流程，不输出 Key 或生成内容。
+
 ## `.github/`
 
 - `workflows/tests.yml`：Python 3.13 自动测试与依赖完整性检查。

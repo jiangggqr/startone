@@ -40,6 +40,8 @@ The app uses Python 3.11+, FastAPI, Uvicorn, SQLite, and dependency-free static 
 
 Real mode uses GPT-5.6 through the Responses API for source coverage, the knowledge map and start action, Tutor guidance, Quiz and recall generation, structured feedback, remediation, and the final bounded planning decision. Fixed UI-facing model results use schema-validated Pydantic Structured Outputs. The Agent uses one forced strict function call with parallel calls disabled. The search execution endpoint exposes only `web_search`, requires it for that call, and persists only cited public HTTPS results after all four gates are revalidated.
 
+An isolated release smoke test completed a real GPT-5.6 flow across source coverage, knowledge-map generation, Tutor, Quiz, structured feedback, and the bounded Agent. The public judge deployment intentionally stays in no-key Demo mode so anonymous visitors cannot spend model credits.
+
 Deterministic Demo mode is a separate, visibly labeled judge path. It does not require a key or internet access and never presents fixture output as a live model response.
 
 ## How we used Codex

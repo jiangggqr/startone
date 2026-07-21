@@ -16,7 +16,7 @@ Implement PDF, Markdown, TXT and pasted-text ingestion; real page or line locati
 
 Implement session setup, source coverage, named gaps, 2–5 concept dependency map, initial route and one 60–120 second start action. This milestone creates the shared server-side OpenAI gateway and the first real GPT-5.6 Structured Outputs path, while retaining a deterministic Demo path. Use schema validation and grounded source references.
 
-**Status:** Complete and verified on 2026-07-21. The deterministic Demo path is fully runnable; the real GPT-5.6 path is implemented and contract-tested, while a live smoke test remains pending until a local `OPENAI_API_KEY` is configured.
+**Status:** Complete and verified on 2026-07-21. The deterministic Demo path is fully runnable and the real GPT-5.6 path is implemented and contract-tested. The deferred live gate was subsequently completed by the Milestone 8 release smoke flow.
 
 ## Milestone 3 — Production focus-session shell
 
@@ -58,10 +58,10 @@ Implement session permission, runtime confirmation, named gap, Agent request, Re
 
 Audit and close gaps in loading, empty, error, partial-success, offline and recovery states already implemented with their owning milestones; complete accessibility checks, responsive checks, security/privacy review, browser flow tests, model evals, no-key Demo and real GPT-5.6 smoke test.
 
-**Status:** Implementation and deterministic verification complete on 2026-07-21. The full 43-test suite, cross-milestone browser runs, 390 px/zoom-equivalent audits, security/privacy review and all acceptance-case records pass. Topic-only fallback, data controls, history filters, accessibility preferences and source-location reporting were closed during the audit. The only remaining Milestone 7 gate is one live GPT-5.6 smoke test after a server-side key is configured.
+**Status:** Complete and verified on 2026-07-21. The 43-test Milestone 7 suite, cross-milestone browser runs, 390 px/zoom-equivalent audits, security/privacy review and all acceptance-case records passed. The later 1.0.0 release suite reached 45 tests, and an isolated real GPT-5.6 smoke flow passed source coverage, knowledge map, Tutor, Quiz, structured feedback and bounded Agent decisions.
 
 ## Milestone 8 — Submission readiness
 
 Finalize README, license, setup, deployment or judge path, sample data, under-three-minute video, Devpost copy, Codex build log and `/feedback` Session ID.
 
-**Status:** Local release and submission package complete on 2026-07-21. Version 1.0.0 includes public workspace quotas, Docker/Render deployment files, CI, MIT license, English README, judge instructions, Devpost copy, a timed 2:50 video script, final checklist and verified `/feedback` Session ID. Remaining external gates are one live GPT-5.6 smoke flow, a public repository and Demo deployment, video recording/upload, and the user-confirmed final Devpost action.
+**Status:** Local release and submission package complete on 2026-07-21. Version 1.0.0 includes public workspace quotas, Docker/Render deployment files, CI, MIT license, English README, judge instructions, Devpost copy, a timed 2:50 video script, final checklist, verified `/feedback` Session ID and a passing isolated live GPT-5.6 core-flow smoke test. Remaining external gates are a public repository and Demo deployment, video recording/upload, and the user-confirmed final Devpost action.

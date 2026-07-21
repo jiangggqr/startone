@@ -66,6 +66,8 @@ UI-facing model outputs use strict Pydantic Structured Outputs. Every model-prov
 
 Demo and real modes are deliberately separate. Demo output is deterministic and visibly labeled. Real-mode failures never silently fall back to fixtures.
 
+The 1.0.0 release passed an isolated live GPT-5.6 smoke flow covering source coverage, knowledge-map generation, Tutor, Quiz, structured feedback, and a bounded Agent decision. The runner uses a temporary database and prints neither credentials nor generated learning content.
+
 ## How Codex was used
 
 The repository began with a Chinese product specification, a 22-screen clickable low-fidelity prototype, sample materials, and 42 acceptance cases—no application code. In one primary Codex task, the project was implemented milestone by milestone with a focused commit after each verified stage.
@@ -82,6 +84,12 @@ Python 3.11 or newer is required. Python 3.13 is used by CI and the deployment i
 source .venv/bin/activate
 python -m pytest -q
 python -m pip check
+```
+
+After configuring a private server-side key, explicitly opt in to the isolated live smoke runner:
+
+```bash
+STARTFRAME_RUN_LIVE_SMOKE=1 python scripts/live_smoke.py
 ```
 
 The no-key Demo uses the files in `sample_data/`. The current verification record maps every core and UI acceptance case in [`evals/VERIFICATION_REPORT.md`](evals/VERIFICATION_REPORT.md).
@@ -128,7 +136,7 @@ submission/   English Devpost copy, judge guide, video script, checklist
 
 ## Known release limitations
 
-- The public no-key Demo is deterministic; a private server-side key is required for live GPT-5.6 verification.
+- The public no-key Demo is deterministic by design; live GPT-5.6 has been verified separately and is not exposed to anonymous visitors.
 - Anonymous workspaces are browser-specific and do not sync across devices.
 - SQLite and local file storage are appropriate for the hackathon release, not horizontal scaling.
 - Render's free filesystem is ephemeral, so judge Demo data can reset after a restart.
