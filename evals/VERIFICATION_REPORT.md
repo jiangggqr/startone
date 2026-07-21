@@ -1,10 +1,10 @@
 # StartOne verification report
 
 Date: 2026-07-22
-Application verification: deterministic fixtures plus isolated real GPT-5.6 smoke flow
+Application verification: deterministic fixtures, isolated real GPT-5.6 smoke flow, and public deployment smoke flow
 Automated result: `52 passed`
 Browser widths exercised: 390 px, 640 px zoom-equivalent, and desktop  
-Live GPT-5.6 status: passed an isolated real-mode core flow on 2026-07-21
+Live GPT-5.6 status: passed locally on 2026-07-21 and at https://startone-learning.onrender.com on 2026-07-22
 
 ## Core product cases
 
@@ -71,6 +71,7 @@ Live GPT-5.6 status: passed an isolated real-mode core flow on 2026-07-21
 - Export excludes API keys, server paths, hidden answer keys, internal prompts, and model response IDs.
 - The browser check loaded the standard two-source fixture; at 390 px the document width equaled the viewport, no visible control was below 24×24 CSS px, no Chinese UI was present, and the computed body background image was `none`.
 - The 2026-07-22 desktop browser pass completed a real three-question Quiz, reviewed the score and per-question explanations, selected Keep going, and automatically opened concept 2 of 4 without an Agent decision page. Width matched the 1280 px viewport; no Chinese text or gradient was present.
+- The public Render deployment repeated paste → four-node real GPT-5.6 map → explanation → three-question Quiz → 3/3 feedback → automatic concept 2 of 4 without a sign-in or learner-supplied API key.
 - Secret scan, Python compilation, dependency integrity, diff hygiene, English UI scan, no-gradient scan, and deployment YAML parsing pass.
 
 ## Live GPT-5.6 verification

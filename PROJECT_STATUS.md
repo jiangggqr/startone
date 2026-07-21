@@ -18,7 +18,7 @@
 - Milestone 5 Adaptive Planning Agent: complete
 - Milestone 6 controlled external search: complete
 - Milestone 7 production hardening: complete, including isolated live GPT-5.6 core-flow verification
-- Milestone 8 submission readiness: local 1.0.0 release package and live smoke test complete; external publication steps pending
+- Milestone 8 submission readiness: public repository and public GPT-5.6 deployment live; video upload and Devpost submission remain
 - Production UI language: English
 - Product positioning: focus-first learning; AI and technical learning are the launch focus, but the source-grounded MVP is not restricted to one subject
 - Product mechanism: the StartOne Momentum Loop — start one clear step, see the whole framework, focus on one concept, retrieve once, receive truthful feedback, and continue automatically
@@ -111,7 +111,8 @@
 - Browser verification created a fresh real-model session from pasted material, generated a four-node connected framework, opened the explanation, completed a real three-question Quiz, displayed a 3/3 score with one explanation per question, and automatically opened concept 2 of 4 after Keep going
 - Every knowledge-framework node was exercised as a selectable explanation target without bypassing the current route
 - Desktop document width matches the 1280 px viewport; there is no horizontal overflow, Chinese learner copy, gradient background, learner coverage page, Session status rail or Agent alternative-path form
+- Public verification on https://startone-learning.onrender.com completed upload/paste → four-node GPT-5.6 map → explanation → three-question Quiz → 3/3 feedback → automatic concept 2 of 4; no login or learner API key was required
 
 ## Next action
 
-Publish the repository and server-keyed GPT-5.6 app, record/upload the under-three-minute English video, replace the three pending URLs in `submission/DEVPOST_SUBMISSION.md`, and obtain user confirmation before the final Devpost submission action.
+Upload the verified under-three-minute English video, add its YouTube URL, complete the Devpost form and confirm the submitted (not draft) state before the deadline.

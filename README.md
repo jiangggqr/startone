@@ -17,10 +17,10 @@ cp .env.example .env
 python -m uvicorn app.main:app --reload --port 8000
 ```
 
-Open `http://127.0.0.1:8000`, select **Upload material and start learning**, then choose **Try sample material** or upload a file from `sample_data/`. Select **Build my map and start**. There is no goal, prior-knowledge, time, or energy form. A complete walkthrough is in [`submission/JUDGE_TESTING_GUIDE.md`](submission/JUDGE_TESTING_GUIDE.md).
+Open the [public StartOne app](https://startone-learning.onrender.com), select **Upload material and start learning**, then upload a file from `sample_data/` or paste your own notes. Select **Build my map and start**. There is no goal, prior-knowledge, time, or energy form. A complete walkthrough is in [`submission/JUDGE_TESTING_GUIDE.md`](submission/JUDGE_TESTING_GUIDE.md).
 
-- Public app: pending final deployment
-- API health: `/api/health`
+- Public app: https://startone-learning.onrender.com
+- API health: https://startone-learning.onrender.com/api/health
 - Interactive API schema: `/api/docs`
 - Codex `/feedback` Session ID: `019f7ff7-6b6a-74d1-98b2-2f895e28bbce`
 

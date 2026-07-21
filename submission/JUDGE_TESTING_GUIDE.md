@@ -4,9 +4,9 @@
 
 The public deployment needs no learner account. GPT-5.6 credentials stay on the server and never appear in the browser.
 
-1. Open the public app URL.
+1. Open https://startone-learning.onrender.com.
 2. Select **Upload material and start learning**.
-3. Select **Try sample material** to load the included Transformer notes and matrix prerequisite instantly. Alternatively, upload your own readable PDF, Markdown, or TXT file.
+3. Upload `sample_data/transformer_notes.md` from the public repository, paste your own notes, or upload any readable PDF, Markdown, or TXT file.
 4. Confirm that both file status and the next action appear inside the upload panel, then select **Build my map and start**.
 5. Review the AI-selected focus and connected visual knowledge framework. No goal, level, time, energy, route-adjustment form, or pre-test is required.
 6. Select **Start one focused step**. Confirm that the first concept explanation appears immediately with its prerequisite → current → next relationship, concrete example, memory anchor, and lightweight source disclosure.
