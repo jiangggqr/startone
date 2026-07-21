@@ -40,6 +40,7 @@ from app.focus import (
     resolve_draft_conflict,
     resume_session,
     save_draft,
+    start_learning,
 )
 from app.learning import (
     adjust_knowledge_map,
@@ -825,6 +826,19 @@ def create_app(
         request: Request,
     ) -> dict:
         return complete_start_action(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            session_id,
+            payload.version,
+        )
+
+    @application.post("/api/sessions/{session_id}/learn/start")
+    async def start_first_concept(
+        session_id: str,
+        payload: SessionVersionRequest,
+        request: Request,
+    ) -> dict:
+        return start_learning(
             resolved_settings.database_path,
             _workspace_id(request),
             session_id,

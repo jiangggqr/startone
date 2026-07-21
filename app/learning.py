@@ -1,4 +1,4 @@
-"""Automatic learning-path preparation, grounding, maps, and start actions."""
+"""Automatic learning-path preparation, grounding, maps, and concept lessons."""
 
 from __future__ import annotations
 
@@ -48,7 +48,7 @@ def initialize_learning_context(
             saved_state="Your uploaded material is unchanged.",
         )
     goal = "Identify and learn the material's core concepts in a dependency-aware order."
-    prior_knowledge = "Not assessed yet. Calibrate support from the learner's starting response and later learning evidence."
+    prior_knowledge = "Not assessed. Begin with a beginner-friendly explanation and calibrate only from later validated learning evidence."
     with connect(database_path) as connection:
         cursor = connection.execute(
             """
@@ -555,11 +555,11 @@ def _demo_map(
         scaled = _find_chunk(chunks, "scaled dot-product", "square root")
         positional = _find_chunk(chunks, "positional information", "token order")
         concepts = [
-            ConceptOutput(concept_key="transformer_goal", title="Transformer goal", plain_definition="Represent relationships across a sequence without processing every dependency one step at a time.", role_in_map="Frames why attention is useful.", prerequisite_keys=[], estimated_minutes=2, source_refs=[_ref(transformer)]),
-            ConceptOutput(concept_key="self_attention", title="Self-attention", plain_definition="Each position compares relevance to other positions, then combines their value information using those weights.", role_in_map="Core mechanism for contextualizing each position.", prerequisite_keys=["transformer_goal"], estimated_minutes=7, source_refs=[_ref(self_attention)]),
-            ConceptOutput(concept_key="qkv", title="Query, Key, and Value", plain_definition="Queries compare with keys to produce scores, while values carry the information that will be combined.", role_in_map="Names the three representations used by self-attention.", prerequisite_keys=["self_attention"], estimated_minutes=6, source_refs=[_ref(qkv)]),
-            ConceptOutput(concept_key="scaled_dot_product", title="Scaled dot-product attention", plain_definition="Query-key dot products are scaled before softmax so attention scores remain stable.", role_in_map="Turns comparisons into usable attention weights.", prerequisite_keys=["qkv"], estimated_minutes=6, source_refs=[_ref(scaled)]),
-            ConceptOutput(concept_key="positional_information", title="Positional information", plain_definition="Position signals let the model distinguish token order, which self-attention alone does not encode.", role_in_map="Adds sequence order to attention-based representations.", prerequisite_keys=["transformer_goal"], estimated_minutes=4, source_refs=[_ref(positional)]),
+            ConceptOutput(concept_key="transformer_goal", title="Transformer goal", plain_definition="A Transformer builds useful relationships across all positions in a sequence without processing every dependency one step at a time.", key_points=["Represent every position in the sequence.", "Let positions exchange relevant information directly.", "Produce context-aware representations that later layers can use."], concrete_example="In a sentence, the meaning of a pronoun can depend on a noun several words earlier. A Transformer can connect those positions directly instead of carrying the information through every word in between.", role_in_map="Frames why attention is useful.", prerequisite_keys=[], estimated_minutes=2, source_refs=[_ref(transformer)]),
+            ConceptOutput(concept_key="self_attention", title="Self-attention", plain_definition="Self-attention lets each position compare itself with other positions, then combine the most relevant value information into a new contextual representation.", key_points=["Compare the current position with the other positions.", "Turn the comparison scores into relevance weights.", "Use those weights to combine value information."], concrete_example="For the word 'it' in a sentence, self-attention can place more weight on the earlier noun that 'it' refers to and bring that noun's information into the current representation.", role_in_map="Core mechanism for contextualizing each position.", prerequisite_keys=["transformer_goal"], estimated_minutes=7, source_refs=[_ref(self_attention)]),
+            ConceptOutput(concept_key="qkv", title="Query, Key, and Value", plain_definition="Queries describe what a position is looking for, keys describe what each position can be matched on, and values carry the information that will be combined.", key_points=["Compare each query with candidate keys.", "Convert those matches into attention weights.", "Combine the corresponding values with those weights."], concrete_example="A pronoun's query can match strongly with a noun's key; the noun's value then contributes more information to the pronoun's updated representation.", role_in_map="Names the three representations used by self-attention.", prerequisite_keys=["self_attention"], estimated_minutes=6, source_refs=[_ref(qkv)]),
+            ConceptOutput(concept_key="scaled_dot_product", title="Scaled dot-product attention", plain_definition="Scaled dot-product attention compares queries and keys with dot products, scales the scores, and applies softmax before combining values.", key_points=["Compute query-key dot products.", "Scale large scores for numerical stability.", "Use softmax weights to combine values."], concrete_example="If one key is much more relevant to a query than the others, its value receives a larger softmax weight and contributes more to the output.", role_in_map="Turns comparisons into usable attention weights.", prerequisite_keys=["qkv"], estimated_minutes=6, source_refs=[_ref(scaled)]),
+            ConceptOutput(concept_key="positional_information", title="Positional information", plain_definition="Positional information gives the model a signal about token order because self-attention alone does not distinguish where a token appears.", key_points=["Attach an order signal to each position.", "Combine it with token representations.", "Let attention use both content and order."], concrete_example="The same words in 'dog bites person' and 'person bites dog' require position signals so the model can tell who did what.", role_in_map="Adds sequence order to attention-based representations.", prerequisite_keys=["transformer_goal"], estimated_minutes=4, source_refs=[_ref(positional)]),
         ]
         return KnowledgeMapOutput(
             map_title="Transformer attention foundations",
@@ -611,6 +611,11 @@ def _demo_map(
             concept_key=item.concept_key,
             title=item.title,
             plain_definition=item.coverage_summary,
+            key_points=[
+                f"Identify the central idea in {item.title}.",
+                "Connect that idea to the next concept in the framework.",
+            ],
+            concrete_example=f"Use one concrete case from the uploaded material to explain how {item.title} works.",
             role_in_map="A grounded step drawn from the saved learning source.",
             prerequisite_keys=[] if index == 0 else [selected[index - 1].concept_key],
             estimated_minutes=max(1, min(10, available_minutes // len(selected))),
@@ -1046,9 +1051,11 @@ def _map_instructions(
         "You generate a grounded English knowledge map with 2 to 5 concepts and a dependency-respecting route. "
         f"{source_policy} Every concept needs at least one exact supplied source reference. "
         "Use only exact source_id and chunk_id pairs supplied in the excerpts. Never browse or invent citations. "
-        "Create exactly one start action lasting 60 to 120 seconds with a concrete completion condition. "
+        "For each concept, write a plain-language definition, two to four short teaching key points, and one concrete example. "
+        "The explanation must teach a beginner before asking them to retrieve or apply anything. "
+        "Create the legacy start_action field for schema compatibility only; it is not a learner-facing prerequisite or assessment. "
         "Candidate gaps remain observations and do not authorize search. Choose a concise map title that states the learning focus. "
-        "Do not infer prior mastery; the start action will collect the first learner signal. "
+        "Do not infer prior mastery. Later practice inside the Guided Mastery Loop supplies learning evidence. "
         f"Use a compact default session length of about {session.get('available_minutes')} minutes. Coverage: {coverage.model_dump_json()}."
     )
 

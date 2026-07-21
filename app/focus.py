@@ -143,6 +143,102 @@ def resolve_draft_conflict(
     )
 
 
+def start_learning(
+    database_path: Path,
+    workspace_id: str,
+    session_id: str,
+    expected_session_version: int,
+) -> dict[str, Any]:
+    """Open the first concept directly; learning is never gated by a pre-test."""
+
+    session = get_session(database_path, workspace_id, session_id)
+    _require_session_version(session, expected_session_version)
+    if session["state"] == "learning_concept":
+        return get_focus_workspace(database_path, workspace_id, session_id)
+    if session["state"] not in {"path_drafting", "path_confirmed", "start_action"}:
+        raise SourceError(
+            "invalid_session_transition",
+            "This learning session is not ready to open its first concept.",
+            status_code=409,
+            saved_state="Your material and learning map are unchanged.",
+        )
+
+    with connect(database_path) as connection:
+        map_row = connection.execute(
+            """
+            SELECT output_json FROM knowledge_maps
+            WHERE session_id = ? AND workspace_id = ?
+            """,
+            (session_id, workspace_id),
+        ).fetchone()
+        if not map_row:
+            raise SourceError(
+                "learning_map_missing",
+                "Build the knowledge framework before starting the first concept.",
+                status_code=409,
+                saved_state="Your uploaded material is unchanged.",
+            )
+        output = json.loads(str(map_row["output_json"]))
+        route = list(output.get("recommended_route") or [])
+        if not route:
+            raise SourceError(
+                "learning_route_missing",
+                "The knowledge framework does not contain a usable learning order. Regenerate it and try again.",
+                status_code=409,
+                saved_state="Your uploaded material is unchanged.",
+            )
+        active_key = str(route[0])
+        concept = connection.execute(
+            """
+            SELECT * FROM concepts
+            WHERE session_id = ? AND workspace_id = ? AND concept_key = ?
+            """,
+            (session_id, workspace_id, active_key),
+        ).fetchone()
+        if not concept:
+            raise SourceError(
+                "active_concept_missing",
+                "The first concept is unavailable. Regenerate the knowledge framework.",
+                status_code=409,
+            )
+        connection.execute(
+            """
+            UPDATE knowledge_maps
+            SET confirmed_at = COALESCE(confirmed_at, CURRENT_TIMESTAMP),
+                version = version + 1, updated_at = CURRENT_TIMESTAMP
+            WHERE session_id = ? AND workspace_id = ?
+            """,
+            (session_id, workspace_id),
+        )
+        connection.execute(
+            "UPDATE concepts SET status = 'planned' WHERE session_id = ? AND workspace_id = ?",
+            (session_id, workspace_id),
+        )
+        connection.execute("UPDATE concepts SET status = 'active' WHERE id = ?", (concept["id"],))
+        connection.execute(
+            """
+            UPDATE learning_sessions
+            SET state = 'learning_concept', resume_state = NULL, is_paused = 0,
+                active_concept_id = ?, active_activity_id = NULL,
+                timer_started_at = CURRENT_TIMESTAMP, elapsed_seconds = 0,
+                remaining_seconds = available_minutes * 60,
+                started_at = COALESCE(started_at, CURRENT_TIMESTAMP),
+                last_saved_at = CURRENT_TIMESTAMP, version = version + 1,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ? AND workspace_id = ?
+            """,
+            (concept["id"], session_id, workspace_id),
+        )
+        _record_event(
+            connection,
+            workspace_id,
+            session_id,
+            "learning_started",
+            {"concept_id": concept["id"], "pretest_required": False},
+        )
+    return get_focus_workspace(database_path, workspace_id, session_id)
+
+
 def complete_start_action(
     database_path: Path,
     workspace_id: str,
@@ -289,7 +385,7 @@ def get_focus_workspace(database_path: Path, workspace_id: str, session_id: str)
     if session["state"] != "learning_concept":
         raise SourceError(
             "focus_not_started",
-            "Complete the start action before opening the focus workspace.",
+            "Start the first concept from your knowledge framework before opening the learning workspace.",
             status_code=409,
             saved_state="Your map and drafts are saved.",
         )
@@ -309,12 +405,30 @@ def get_focus_workspace(database_path: Path, workspace_id: str, session_id: str)
     if not map_row or not concept:
         raise SourceError("focus_state_invalid", "The saved focus state is incomplete. Review the learning map.", status_code=409)
     output = json.loads(str(map_row["output_json"]))
-    route = list(output["recommended_route"])
-    concepts = [dict(row) for row in rows]
-    concept_by_key = {item["concept_key"]: item for item in concepts}
     active = dict(concept)
     refs = json.loads(str(active["source_refs_json"]))
     source_ref_details = _source_details(database_path, workspace_id, session_id, refs)
+    lesson = next(
+        (
+            item
+            for item in output.get("concepts", [])
+            if item.get("concept_key") == active["concept_key"]
+        ),
+        {},
+    )
+    key_points = list(lesson.get("key_points") or [])
+    if not key_points:
+        key_points = [
+            f"Core idea: {str(active['plain_definition'])}",
+            f"Connection: {str(active['role_in_map'])}",
+        ]
+    source_case = " ".join(str(source_ref_details[0]["excerpt"]).split()).lstrip("# ")
+    concrete_example = lesson.get("concrete_example") or (
+        "Grounded case from your material: " + source_case[:520]
+    )
+    route = list(output["recommended_route"])
+    concepts = [dict(row) for row in rows]
+    concept_by_key = {item["concept_key"]: item for item in concepts}
     primary_origin = (
         "uploaded"
         if any(item["source_origin"] == "uploaded" for item in source_ref_details)
@@ -340,6 +454,8 @@ def get_focus_workspace(database_path: Path, workspace_id: str, session_id: str)
             "concept_key": active["concept_key"],
             "title": active["title"],
             "plain_definition": active["plain_definition"],
+            "key_points": key_points,
+            "concrete_example": concrete_example,
             "role_in_map": active["role_in_map"],
             "estimated_minutes": active["estimated_minutes"],
             "source_refs": refs,
@@ -384,7 +500,8 @@ def _source_details(
                 """
                 SELECT d.id AS source_id, d.filename, d.source_origin, d.media_kind,
                        c.id AS chunk_id, c.heading_path, c.page_number, c.page_chunk_index,
-                       c.paragraph_number, c.start_line, c.end_line, c.start_char, c.end_char
+                       c.paragraph_number, c.start_line, c.end_line, c.start_char, c.end_char,
+                       c.text
                 FROM source_chunks c JOIN source_documents d ON d.id = c.source_id
                 WHERE d.id = ? AND c.id = ? AND d.workspace_id = ? AND d.session_id = ?
                 """,
@@ -405,6 +522,7 @@ def _source_details(
                 "filename": item["filename"],
                 "source_origin": item["source_origin"],
                 "location": location,
+                "excerpt": str(item["text"])[:900],
             })
     if len(details) != len(refs):
         raise SourceError(

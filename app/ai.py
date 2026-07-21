@@ -53,6 +53,8 @@ class ConceptOutput(StrictModel):
     concept_key: str
     title: str
     plain_definition: str
+    key_points: list[str] = Field(default_factory=list, min_length=0, max_length=4)
+    concrete_example: str | None = Field(default=None, max_length=1200)
     role_in_map: str
     prerequisite_keys: list[str] = Field(max_length=4)
     estimated_minutes: int = Field(ge=1, le=45)

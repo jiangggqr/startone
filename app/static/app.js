@@ -36,7 +36,6 @@ const views = {
   sources: document.querySelector("#source-view"),
   coverage: document.querySelector("#coverage-view"),
   path: document.querySelector("#path-view"),
-  start: document.querySelector("#start-action-view"),
   focus: document.querySelector("#focus-view"),
   tutor: document.querySelector("#tutor-view"),
   activity: document.querySelector("#activity-view"),
@@ -89,15 +88,6 @@ const fileInput = document.querySelector("#file-input");
 const dropZone = document.querySelector("#drop-zone");
 const dropZoneTitle = document.querySelector("#drop-zone-title");
 const dropZoneCopy = document.querySelector("#drop-zone-copy");
-const previewEmpty = document.querySelector("#preview-empty");
-const previewContent = document.querySelector("#preview-content");
-const previewFilename = document.querySelector("#preview-filename");
-const previewLocation = document.querySelector("#preview-location");
-const previewText = document.querySelector("#preview-text");
-const previewOrigin = document.querySelector("#preview-origin");
-const previewPurpose = document.querySelector("#preview-purpose");
-const openSourceReportButton = document.querySelector("#open-source-report");
-const chunkNavigation = document.querySelector("#chunk-navigation");
 const reviewCoverageButton = document.querySelector("#review-coverage");
 const coverageNote = document.querySelector("#coverage-note");
 const loadDemoButton = document.querySelector("#load-demo-materials");
@@ -116,13 +106,6 @@ const deleteFilename = document.querySelector("#delete-filename");
 const cancelDeleteButton = document.querySelector("#cancel-delete");
 const confirmDeleteButton = document.querySelector("#confirm-delete");
 
-const sourceReportDialog = document.querySelector("#source-report-dialog");
-const sourceReportForm = document.querySelector("#source-report-form");
-const sourceReportReason = document.querySelector("#source-report-reason");
-const sourceReportNote = document.querySelector("#source-report-note");
-const sourceReportError = document.querySelector("#source-report-error");
-const cancelSourceReportButton = document.querySelector("#cancel-source-report");
-const submitSourceReportButton = document.querySelector("#submit-source-report");
 
 const coverageTitle = document.querySelector("#coverage-title");
 const coverageMessage = document.querySelector("#coverage-message");
@@ -142,41 +125,22 @@ const pathTitle = document.querySelector("#path-title");
 const pathMessage = document.querySelector("#path-message");
 const mapCount = document.querySelector("#map-count");
 const conceptMap = document.querySelector("#concept-map");
-const suggestedOutcome = document.querySelector("#suggested-outcome");
-const routeList = document.querySelector("#route-list");
-const routeTotal = document.querySelector("#route-total");
 const pathGenerationLabel = document.querySelector("#path-generation-label");
-const startActionHeading = document.querySelector("#start-action-heading");
-const startActionInstruction = document.querySelector("#start-action-instruction");
-const startActionCondition = document.querySelector("#start-action-condition");
-const startActionReason = document.querySelector("#start-action-reason");
-const shortenRouteButton = document.querySelector("#shorten-route");
-const restoreRouteButton = document.querySelector("#restore-route");
 const confirmPathButton = document.querySelector("#confirm-path");
 const backToCoverageButton = document.querySelector("#back-to-coverage");
-
-const startPageTitle = document.querySelector("#start-page-title");
-const startPageInstruction = document.querySelector("#start-page-instruction");
-const startPageCondition = document.querySelector("#start-page-condition");
-const startDuration = document.querySelector("#start-duration");
-const startAnswer = document.querySelector("#start-answer");
-const startMessage = document.querySelector("#start-message");
-const startSaveStatus = document.querySelector("#start-save-status");
-const saveStartAnswerButton = document.querySelector("#save-start-answer");
-const startSaveLaterButton = document.querySelector("#start-save-later");
-const startBackMapButton = document.querySelector("#start-back-map");
 
 const focusTitle = document.querySelector("#focus-title");
 const focusBreadcrumb = document.querySelector("#focus-breadcrumb");
 const focusRole = document.querySelector("#focus-role");
 const focusDefinition = document.querySelector("#focus-definition");
+const focusKeyPoints = document.querySelector("#focus-key-points");
+const focusExample = document.querySelector("#focus-example");
 const focusSources = document.querySelector("#focus-sources");
 const focusRoute = document.querySelector("#focus-route");
 const focusProgressCount = document.querySelector("#focus-progress-count");
 const activeConceptCount = document.querySelector("#active-concept-count");
 const focusProgressBar = document.querySelector("#focus-progress-bar");
 const focusProgressCopy = document.querySelector("#focus-progress-copy");
-const startingPoint = document.querySelector("#starting-point");
 const elapsedTime = document.querySelector("#elapsed-time");
 const remainingTime = document.querySelector("#remaining-time");
 const timerContent = document.querySelector("#timer-content");
@@ -559,7 +523,7 @@ function resumeLabel(session) {
   if (session.state === "feedback_shown") return "Resume saved feedback";
   if (session.state === "evidence_ready") return "Review learning evidence";
   if (session.state === "learning_concept") return "Resume current concept";
-  if (session.state === "start_action") return "Open start action";
+  if (session.state === "start_action") return "Start learning";
   if (session.state === "path_drafting") return "Review learning path";
   if (session.setup_completed) return "Continue with this material";
   return "Continue session";
@@ -593,8 +557,7 @@ async function resumeSession(sessionId) {
       else await showFocus();
       if (session.is_paused) pauseDialog.showModal();
     } else if (session.state === "start_action") {
-      await showStartAction();
-      if (session.is_paused) pauseDialog.showModal();
+      await startFirstConcept();
     } else if (session.state === "path_drafting") {
       try {
         await showPath();
@@ -862,20 +825,17 @@ function renderSources() {
   reviewCoverageButton.disabled = readySources.length === 0;
   learningReady.hidden = readySources.length === 0;
   coverageNote.textContent = readySources.length
-    ? `${readySources.length} readable ${readySources.length === 1 ? "source is" : "sources are"} ready. StartFrame will identify the core concepts, organize a short route, and use your first response to begin learning your starting level.`
-    : "StartFrame will identify the core concepts, organize a short route, and use your first response to begin learning your starting level.";
+    ? `${readySources.length} readable ${readySources.length === 1 ? "source is" : "sources are"} ready. StartFrame will identify the core concepts, organize the knowledge framework, and open the first explanation.`
+    : "StartFrame will identify the core concepts, organize the knowledge framework, and open the first explanation.";
 
   state.sources.forEach((source) => {
     const item = element("li", "source-item");
     item.dataset.state = source.parse_status;
-    const select = element("button", "source-select");
-    select.type = "button";
+    const select = element("div", "source-select");
     const marker = ["success", "partial_success"].includes(source.parse_status) ? "✓ " : source.parse_status === "error" ? "! " : "… ";
     select.append(element("span", "source-name", `${marker}${source.filename}`));
     select.append(element("span", "source-meta", sourceMetadata(source)));
     if (source.error_message) select.append(element("span", "source-error", source.error_message));
-    select.disabled = !["success", "partial_success"].includes(source.parse_status);
-    if (!select.disabled) select.addEventListener("click", () => selectSource(source.id));
 
     const actions = element("div", "source-actions");
     if (["error", "cancelled"].includes(source.parse_status)) {
@@ -896,8 +856,11 @@ function renderSources() {
 function revealReadyMaterial() {
   if (sourceInventory.hidden) return;
   sourceInventory.scrollIntoView({ behavior: "smooth", block: "start" });
-  const firstReadyControl = sourceList.querySelector(".source-select:not(:disabled)");
-  if (firstReadyControl) firstReadyControl.focus({ preventScroll: true });
+  const heading = sourceInventory.querySelector("h2");
+  if (heading) {
+    heading.setAttribute("tabindex", "-1");
+    heading.focus({ preventScroll: true });
+  }
 }
 
 async function uploadFiles(fileList) {
@@ -916,11 +879,7 @@ async function uploadFiles(fileList) {
       setUploadMessage(`${body.accepted.length} ${body.accepted.length === 1 ? "source" : "sources"} saved and parsed.`, "success");
     }
     await loadSources();
-    const firstReady = state.sources.find((source) => ["success", "partial_success"].includes(source.parse_status));
-    if (firstReady) {
-      await selectSource(firstReady.id);
-      revealReadyMaterial();
-    }
+    if (state.sources.some((source) => ["success", "partial_success"].includes(source.parse_status))) revealReadyMaterial();
   } catch (error) {
     const rejected = error.body?.rejected;
     if (Array.isArray(rejected) && rejected.length) {
@@ -947,143 +906,12 @@ async function loadSampleMaterials() {
       "success",
     );
     await loadSources();
-    const firstReady = state.sources.find((source) => ["success", "partial_success"].includes(source.parse_status));
-    if (firstReady) {
-      await selectSource(firstReady.id);
-      revealReadyMaterial();
-    }
+    if (state.sources.some((source) => ["success", "partial_success"].includes(source.parse_status))) revealReadyMaterial();
   } catch (error) {
     setUploadMessage(`${error.message} Existing sources are unchanged.`, "error");
   } finally {
     setButtonBusy(loadDemoButton, false, "", idleLabel);
   }
-}
-
-async function selectSource(sourceId, chunkId = null) {
-  try {
-    const body = await api(`/api/sources/${sourceId}`);
-    state.selectedSourceId = sourceId;
-    state.selectedSource = body.source;
-    state.selectedChunkIndex = chunkId
-      ? Math.max(0, body.source.chunks.findIndex((chunk) => chunk.id === chunkId))
-      : 0;
-    renderPreview();
-  } catch (error) {
-    setUploadMessage(`${error.message} Select another source or retry this one.`, "error");
-  }
-}
-
-function chunkLocation(source, chunk) {
-  if (source.media_kind === "pdf") return `Page ${chunk.page_number} · excerpt ${chunk.page_chunk_index}`;
-  if (source.media_kind === "pasted") return `Paragraph ${chunk.paragraph_number} · characters ${chunk.start_char}–${chunk.end_char}`;
-  const heading = chunk.heading_path || "Document";
-  return `${heading} · lines ${chunk.start_line}–${chunk.end_line}`;
-}
-
-function renderPreview() {
-  const source = state.selectedSource;
-  if (!source || !source.chunks?.length) {
-    previewEmpty.hidden = false;
-    previewContent.hidden = true;
-    return;
-  }
-  const chunk = source.chunks[state.selectedChunkIndex];
-  previewEmpty.hidden = true;
-  previewContent.hidden = false;
-  previewFilename.textContent = source.filename;
-  previewLocation.textContent = chunkLocation(source, chunk);
-  previewOrigin.textContent = sourceOriginLabel(source.source_origin);
-  previewOrigin.className = sourceOriginClass(source.source_origin);
-  previewText.textContent = chunk.text;
-  const purposeByView = {
-    coverage: "Used as grounding evidence for the source-coverage review.",
-    path: "Used as grounding evidence for the learning map.",
-    focus: "Used to explain the current concept.",
-    tutor: "Used to ground the current Tutor conversation.",
-    activity: "Used to ground the current practice activity.",
-    feedback: "Used to ground the current feedback.",
-  };
-  previewPurpose.textContent = purposeByView[state.sourceReturn]
-    || "Available to ground the learning map, Tutor, and practice.";
-  chunkNavigation.replaceChildren();
-  source.chunks.forEach((item, index) => {
-    const button = element("button", "small-button", String(index + 1));
-    button.type = "button";
-    button.setAttribute("aria-label", `Show ${chunkLocation(source, item)}`);
-    button.setAttribute("aria-current", String(index === state.selectedChunkIndex));
-    button.addEventListener("click", () => {
-      state.selectedChunkIndex = index;
-      renderPreview();
-    });
-    chunkNavigation.append(button);
-  });
-}
-
-function openSourceReport() {
-  if (!state.selectedSource?.chunks?.length) return;
-  sourceReportForm.reset();
-  sourceReportError.hidden = true;
-  sourceReportDialog.showModal();
-  sourceReportReason.focus();
-}
-
-function closeSourceReport() {
-  sourceReportDialog.close();
-  openSourceReportButton.focus({ preventScroll: true });
-}
-
-async function submitSourceReport(event) {
-  event.preventDefault();
-  const source = state.selectedSource;
-  const chunk = source?.chunks?.[state.selectedChunkIndex];
-  if (!source || !chunk) {
-    sourceReportError.textContent = "This source location is no longer selected. Close the dialog and select it again.";
-    sourceReportError.hidden = false;
-    sourceReportError.focus();
-    return;
-  }
-  sourceReportError.hidden = true;
-  setButtonBusy(submitSourceReportButton, true, "Sending report…", "Send source report");
-  cancelSourceReportButton.disabled = true;
-  try {
-    await api(`/api/sources/${source.id}/chunks/${chunk.id}/reports`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        reason: sourceReportReason.value,
-        note: sourceReportNote.value.trim() || null,
-      }),
-    });
-    sourceReportDialog.close();
-    setUploadMessage("The exact source location was reported. Your learning progress is unchanged.", "success");
-    openSourceReportButton.focus({ preventScroll: true });
-  } catch (error) {
-    sourceReportError.textContent = `${error.message} No report was created; your session is unchanged.`;
-    sourceReportError.hidden = false;
-    sourceReportError.focus();
-  } finally {
-    cancelSourceReportButton.disabled = false;
-    setButtonBusy(submitSourceReportButton, false, "", "Send source report");
-  }
-}
-
-async function openSourceReference(reference, trigger) {
-  const returnTo = window.location.hash.startsWith("#activity/")
-    ? "activity"
-    : window.location.hash.startsWith("#feedback/")
-    ? "feedback"
-    : window.location.hash.startsWith("#tutor/")
-    ? "tutor"
-    : window.location.hash.startsWith("#focus/")
-    ? "focus"
-    : window.location.hash.startsWith("#path/")
-      ? "path"
-      : "coverage";
-  state.sourceReturnTrigger = trigger;
-  await showSources(returnTo);
-  await selectSource(reference.source_id, reference.chunk_id);
-  document.querySelector("#preview-title").focus({ preventScroll: true });
-  document.querySelector("#preview-title").scrollIntoView({ block: "start" });
 }
 
 async function leaveSourceView() {
@@ -1125,11 +953,6 @@ async function deleteSelectedSource() {
   setButtonBusy(confirmDeleteButton, true, "Deleting…", "Delete source");
   try {
     await api(`/api/sources/${state.deleteTarget.id}`, { method: "DELETE" });
-    if (state.selectedSourceId === state.deleteTarget.id) {
-      state.selectedSourceId = null;
-      state.selectedSource = null;
-      renderPreview();
-    }
     deleteDialog.close();
     setUploadMessage(`${state.deleteTarget.filename} was deleted from this session.`, "success");
     await loadSources();
@@ -1157,7 +980,6 @@ async function submitPastedSource(event) {
     pasteForm.reset();
     setUploadMessage("Pasted text was saved and parsed with paragraph locations.", "success");
     await loadSources();
-    await selectSource(body.source.id);
     revealReadyMaterial();
   } catch (error) {
     pasteError.textContent = `${error.message} Your pasted text remains in this form.`;
@@ -1166,10 +988,6 @@ async function submitPastedSource(event) {
   } finally {
     setButtonBusy(submitPasteButton, false, "", "Add pasted text");
   }
-}
-
-function startDraftKey() {
-  return `startframe_start_answer_${state.sessionId}`;
 }
 
 async function prepareLearningPath() {
@@ -1226,7 +1044,7 @@ async function prepareLearningPath() {
     showView("path", `path/${state.sessionId}`, pathTitle);
     renderPath(path);
     confirmPathButton.disabled = false;
-    setMessage(pathMessage, "Your learning path is ready. StartFrame will learn your starting level from the first short response and later practice evidence.", "success");
+    setMessage(pathMessage, "Your knowledge framework is ready. Start with the first explanation when you are ready.", "success");
   } catch (error) {
     readyLabel = "Retry learning path";
     setUploadMessage(error.message, "error");
@@ -1298,11 +1116,11 @@ function errorCard(text, actionLabel) {
 
 function referenceButton(reference, details) {
   const detail = details.find((item) => item.source_id === reference.source_id && item.chunk_id === reference.chunk_id);
-  const button = element("button", "source-reference");
-  button.type = "button";
-  button.textContent = detail ? `${detail.filename} · ${detail.location}` : "Open verified source location";
-  button.addEventListener("click", () => openSourceReference(reference, button));
-  return button;
+  return element(
+    "span",
+    "source-reference",
+    detail ? `${sourceOriginLabel(detail.source_origin)} · ${detail.filename} · ${detail.location}` : "Verified source location",
+  );
 }
 
 function renderCoverage(body) {
@@ -1352,8 +1170,7 @@ function renderCoverage(body) {
 async function createMap() {
   showView("path", `path/${state.sessionId}`, pathTitle);
   conceptMap.replaceChildren(loadingCard("Building 2–5 grounded concepts and dependency links…"));
-  routeList.replaceChildren();
-  setMessage(pathMessage, "Generating one route and one 60–120 second start action.");
+  setMessage(pathMessage, "Organizing the knowledge framework from foundation to application.");
   setButtonBusy(generateMapButton, true, "Generating map…", "Generate the learning map");
   confirmPathButton.disabled = true;
   try {
@@ -1361,7 +1178,7 @@ async function createMap() {
     state.knowledgeMap = body;
     state.fullRoute = body.knowledge_map.concepts.map((concept) => concept.concept_key);
     renderPath(body);
-    setMessage(pathMessage, "The map is ready. Review or shorten the route before confirming it.", "success");
+    setMessage(pathMessage, "Your knowledge framework is ready. Start with the first explanation when you are ready.", "success");
     confirmPathButton.disabled = false;
   } catch (error) {
     conceptMap.replaceChildren(errorCard(error.message, "Return to coverage or retry map generation"));
@@ -1384,8 +1201,6 @@ function renderPath(body) {
   const map = body.knowledge_map;
   const conceptsByKey = new Map(map.concepts.map((concept) => [concept.concept_key, concept]));
   conceptMap.replaceChildren();
-  routeList.replaceChildren();
-  suggestedOutcome.textContent = map.map_title;
   mapCount.textContent = `${map.concepts.length} concepts`;
   map.concepts.forEach((concept, index) => {
     const item = element("li", "concept-node");
@@ -1400,115 +1215,34 @@ function renderPath(body) {
       copy.append(element("p", "prerequisite-line", "Starting foundation"));
     }
     const refs = element("div", "reference-list");
-    concept.source_refs.forEach((reference) => refs.append(referenceButton(reference, body.source_ref_details)));
+    concept.source_refs.slice(0, 2).forEach((reference) => refs.append(referenceButton(reference, body.source_ref_details)));
     copy.append(refs);
     item.append(number, copy);
     conceptMap.append(item);
   });
-  let minutes = 0;
-  map.recommended_route.forEach((key) => {
-    const concept = conceptsByKey.get(key);
-    if (!concept) return;
-    minutes += concept.estimated_minutes;
-    const item = element("li", "route-item");
-    item.append(element("strong", "", concept.title), element("span", "", `${concept.estimated_minutes} min`));
-    routeList.append(item);
-  });
-  routeTotal.textContent = `${map.recommended_route.length} concepts · about ${minutes} minutes before the closing summary`;
-  shortenRouteButton.disabled = map.recommended_route.length <= 2;
-  restoreRouteButton.disabled = map.recommended_route.length === state.fullRoute.length;
-  startActionHeading.textContent = map.start_action.title;
-  startActionInstruction.textContent = map.start_action.instruction;
-  startActionCondition.textContent = map.start_action.completion_condition;
-  startActionReason.textContent = `${map.start_action.why_this_first} · About ${map.start_action.estimated_seconds} seconds.`;
-  pathGenerationLabel.textContent = "Built from this session's material · Source references verified";
-}
-
-async function adjustRoute(route) {
-  setButtonBusy(shortenRouteButton, true, "Updating route…", "Shorten by one concept");
-  try {
-    const body = await api(`/api/sessions/${state.sessionId}/path`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ route_concept_keys: route }),
-    });
-    state.knowledgeMap = body;
-    renderPath(body);
-    setMessage(pathMessage, "The session route was updated. The full dependency map is still visible.", "success");
-  } catch (error) {
-    setMessage(pathMessage, `${error.message} The previous route is unchanged.`, "error");
-  } finally {
-    setButtonBusy(shortenRouteButton, false, "", "Shorten by one concept");
-  }
+  pathGenerationLabel.textContent = "Built from your material · Ready to learn";
 }
 
 async function confirmPath() {
-  setButtonBusy(confirmPathButton, true, "Starting your path…", "Start with this learning path");
+  setButtonBusy(confirmPathButton, true, "Opening the first explanation…", "Start learning the first concept");
   try {
-    const body = await api(`/api/sessions/${state.sessionId}/path/confirm`, { method: "POST" });
-    state.knowledgeMap = body;
-    await showStartAction(body);
+    await startFirstConcept();
   } catch (error) {
     setMessage(pathMessage, `${error.message} Your map is still saved.`, "error");
   } finally {
-    setButtonBusy(confirmPathButton, false, "", "Start with this learning path");
+    setButtonBusy(confirmPathButton, false, "", "Start learning the first concept");
   }
 }
 
-async function showStartAction(existing = null) {
-  const [body, draftsBody] = await Promise.all([
-    existing ? Promise.resolve(existing) : api(`/api/sessions/${state.sessionId}/path`),
-    api(`/api/sessions/${state.sessionId}/drafts`),
-    getCurrentSession(),
-  ]);
-  state.knowledgeMap = body;
-  state.drafts = Object.fromEntries(draftsBody.drafts.map((draft) => [draft.draft_type, draft]));
-  const action = body.knowledge_map.start_action;
-  startPageTitle.textContent = action.title;
-  startPageInstruction.textContent = action.instruction;
-  startPageCondition.textContent = action.completion_condition;
-  startDuration.textContent = `About ${action.estimated_seconds} seconds`;
-  const serverDraft = state.drafts.start_action?.content || "";
-  const localDraft = window.localStorage.getItem(startDraftKey());
-  startAnswer.value = localDraft === null ? serverDraft : localDraft;
-  startSaveStatus.textContent = serverDraft && startAnswer.value === serverDraft
-    ? "Saved on server"
-    : startAnswer.value
-      ? "Saved on this device · waiting to sync"
-      : "Not saved yet";
-  setMessage(startMessage, startAnswer.value ? "Your unfinished answer was restored." : "");
-  showView("start", `start/${state.sessionId}`, startPageTitle);
-}
-
-function saveStartDraft() {
-  window.localStorage.setItem(startDraftKey(), startAnswer.value);
-  queueDraftSave("start_action", startAnswer.value, startSaveStatus);
-}
-
-async function saveStartPoint() {
-  const answer = startAnswer.value.trim();
-  if (!answer) {
-    setMessage(startMessage, "Write one checkable sentence before entering the first concept.", "error");
-    startAnswer.focus();
-    return;
-  }
-  setButtonBusy(saveStartAnswerButton, true, "Saving starting point…", "Complete and enter focus mode");
-  try {
-    const draft = await saveDraftNow("start_action", startAnswer.value, startSaveStatus);
-    if (!draft) return;
-    const body = await api(`/api/sessions/${state.sessionId}/start-action/complete`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ version: state.session.version }),
-    });
-    state.session = body.session;
-    renderFocus(body);
-    showView("focus", `focus/${state.sessionId}`, focusTitle);
-  } catch (error) {
-    setMessage(startMessage, `${error.message} Your starting-point draft is still saved.`, "error");
-  } finally {
-    setButtonBusy(saveStartAnswerButton, false, "", "Complete and enter focus mode");
-  }
+async function startFirstConcept() {
+  const session = await getCurrentSession();
+  const body = await api(`/api/sessions/${state.sessionId}/learn/start`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ version: session.version }),
+  });
+  renderFocus(body);
+  showView("focus", `focus/${state.sessionId}`, focusTitle);
 }
 
 function focusDraftKey() {
@@ -1516,7 +1250,6 @@ function focusDraftKey() {
 }
 
 function draftLocalKey(draftType) {
-  if (draftType === "start_action") return startDraftKey();
   if (draftType === "tutor") return `startframe_tutor_draft_${state.sessionId}`;
   if (draftType === "quiz" || draftType === "recall") return `startframe_${draftType}_draft_${state.sessionId}`;
   return focusDraftKey();
@@ -1606,12 +1339,13 @@ function renderFocus(body) {
   focusBreadcrumb.textContent = `${state.session.name} › ${concept.title}`;
   focusRole.textContent = concept.role_in_map;
   focusDefinition.textContent = concept.plain_definition;
+  focusKeyPoints.replaceChildren();
+  (concept.key_points || []).forEach((point) => focusKeyPoints.append(element("li", "", point)));
+  focusExample.textContent = concept.concrete_example;
   activeConceptCount.textContent = `Current concept ${body.progress.current} of ${body.progress.total}`;
   focusProgressCount.textContent = `${body.progress.current} of ${body.progress.total}`;
   focusProgressCopy.textContent = `${body.progress.completed} completed · current concept is ${concept.title}`;
   focusProgressBar.style.width = `${Math.max(4, (body.progress.completed / body.progress.total) * 100)}%`;
-  startingPoint.textContent = body.drafts.start_action?.content || "No starting point was saved.";
-
   focusRoute.replaceChildren();
   body.route.forEach((item, index) => {
     const row = element("li", "focus-route-item");
@@ -1624,15 +1358,19 @@ function renderFocus(body) {
 
   focusSources.replaceChildren();
   concept.source_refs.forEach((reference) => {
-    const button = referenceButton(reference, concept.source_ref_details);
     const detail = concept.source_ref_details.find(
       (item) => item.source_id === reference.source_id && item.chunk_id === reference.chunk_id,
     );
     const detailOrigin = detail?.source_origin || body.source_policy.primary_origin;
-    const origin = element("span", sourceOriginClass(detailOrigin), sourceOriginLabel(detailOrigin));
-    const row = element("div", "focus-source-row");
-    row.append(origin, button);
-    focusSources.append(row);
+    const disclosure = element("details", "inline-source");
+    const summary = element(
+      "summary",
+      "",
+      detail ? `${sourceOriginLabel(detailOrigin)} · ${detail.filename} · ${detail.location}` : sourceOriginLabel(detailOrigin),
+    );
+    const excerpt = element("p", "source-excerpt", detail?.excerpt || "The verified source location is saved with this concept.");
+    disclosure.append(summary, excerpt);
+    focusSources.append(disclosure);
   });
   (body.external_supplements || []).forEach((source) => {
     const row = element("div", "focus-source-row");
@@ -2746,19 +2484,15 @@ async function saveFocusNoteNow() {
 
 async function pauseActiveSession({ showDialog = true } = {}) {
   const isActivityState = ["practicing", "remedial_practice"].includes(state.session?.state);
-  const draftType = state.session?.state === "start_action"
-    ? "start_action"
-    : isActivityState
+  const draftType = isActivityState
       ? state.activity?.activity?.type
       : window.location.hash.startsWith("#tutor/")
         ? "tutor"
         : state.session?.state === "learning_concept" ? "focus_note" : null;
   if (draftType) {
     const isActivityDraft = ["quiz", "recall", "remedial"].includes(draftType);
-    const input = draftType === "start_action" ? startAnswer : draftType === "tutor" ? tutorInput : focusNote;
-    const status = draftType === "start_action"
-      ? startSaveStatus
-      : draftType === "tutor" ? tutorDraftStatus : isActivityDraft ? activityDraftStatus : focusNoteStatus;
+    const input = draftType === "tutor" ? tutorInput : focusNote;
+    const status = draftType === "tutor" ? tutorDraftStatus : isActivityDraft ? activityDraftStatus : focusNoteStatus;
     const content = isActivityDraft ? currentActivityContent() : input.value;
     const hintDepth = isActivityDraft ? state.activity?.hints?.depth || 0 : 0;
     if (content || state.drafts[draftType]) {
@@ -2798,7 +2532,8 @@ async function resumeActiveSession() {
     }
     else if (state.session.state === "learning_concept" && state.session.tutor_open) await showTutor();
     else if (state.session.state === "learning_concept") await showFocus();
-    else await showStartAction();
+    else if (state.session.state === "start_action") await startFirstConcept();
+    else await showPath();
   } catch (error) {
     pauseDialog.querySelector("#pause-description").textContent = `${error.message} Your saved work is unchanged.`;
   } finally {
@@ -2863,9 +2598,7 @@ async function chooseConflictVersion(choice) {
       }),
     });
     state.drafts[conflict.draftType] = body.draft;
-    const target = conflict.draftType === "start_action"
-      ? startAnswer
-      : conflict.draftType === "tutor"
+    const target = conflict.draftType === "tutor"
         ? tutorInput
         : ["quiz", "recall", "remedial"].includes(conflict.draftType)
           ? null
@@ -2923,13 +2656,6 @@ cancelPasteButton.addEventListener("click", () => pasteDialog.close());
 pasteForm.addEventListener("submit", submitPastedSource);
 cancelDeleteButton.addEventListener("click", () => deleteDialog.close());
 confirmDeleteButton.addEventListener("click", deleteSelectedSource);
-openSourceReportButton.addEventListener("click", openSourceReport);
-cancelSourceReportButton.addEventListener("click", closeSourceReport);
-sourceReportForm.addEventListener("submit", submitSourceReport);
-sourceReportDialog.addEventListener("cancel", (event) => {
-  event.preventDefault();
-  closeSourceReport();
-});
 sessionSearch.addEventListener("input", renderSessions);
 sessionFilter.addEventListener("change", renderSessions);
 [preferenceLargeText, preferenceReducedMotion, preferenceShowTimer, preferenceSearchSuggestions]
@@ -2939,16 +2665,7 @@ backToSourcesFromCoverageButton.addEventListener("click", () => showSources());
 regenerateCoverageButton.addEventListener("click", createCoverage);
 generateMapButton.addEventListener("click", createMap);
 backToCoverageButton.addEventListener("click", showCoverage);
-shortenRouteButton.addEventListener("click", () => {
-  const route = state.knowledgeMap.knowledge_map.recommended_route;
-  if (route.length > 2) adjustRoute(route.slice(0, -1));
-});
-restoreRouteButton.addEventListener("click", () => adjustRoute(state.fullRoute));
 confirmPathButton.addEventListener("click", confirmPath);
-startAnswer.addEventListener("input", saveStartDraft);
-saveStartAnswerButton.addEventListener("click", saveStartPoint);
-startSaveLaterButton.addEventListener("click", () => pauseActiveSession());
-startBackMapButton.addEventListener("click", showPath);
 focusNote.addEventListener("input", () => queueDraftSave("focus_note", focusNote.value, focusNoteStatus));
 saveFocusNoteButton.addEventListener("click", saveFocusNoteNow);
 openTutorButton.addEventListener("click", () => openTutor(openTutorButton));
@@ -3044,7 +2761,6 @@ dropZone.addEventListener("drop", (event) => uploadFiles(event.dataTransfer.file
 
 window.addEventListener("offline", () => {
   connectionBanner.hidden = false;
-  if (state.session?.state === "start_action") startSaveStatus.textContent = "Offline · local copy kept";
   if (state.session?.state === "learning_concept") {
     if (window.location.hash.startsWith("#tutor/")) tutorDraftStatus.textContent = "Offline · local copy kept";
     else focusNoteStatus.textContent = "Offline · local copy kept";
@@ -3059,7 +2775,6 @@ window.addEventListener("offline", () => {
 window.addEventListener("online", () => {
   connectionBanner.hidden = true;
   setUploadMessage("Connection restored. You can upload or retry now.", "success");
-  if (state.session?.state === "start_action") saveDraftNow("start_action", startAnswer.value, startSaveStatus);
   if (state.session?.state === "learning_concept" && window.location.hash.startsWith("#tutor/")) {
     saveDraftNow("tutor", tutorInput.value, tutorDraftStatus);
   } else if (state.session?.state === "learning_concept") {
@@ -3083,7 +2798,7 @@ async function initialize() {
   try {
     if (hash.startsWith("#coverage/")) await showCoverage();
     else if (hash.startsWith("#path/")) await showPath();
-    else if (hash.startsWith("#start/")) await showStartAction();
+    else if (hash.startsWith("#start/")) await startFirstConcept();
     else if (hash.startsWith("#tutor/")) await showTutor();
     else if (hash.startsWith("#activity/")) await showActivity();
     else if (hash.startsWith("#feedback/")) await showFeedback();

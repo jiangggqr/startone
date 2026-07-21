@@ -25,21 +25,21 @@ StartFrame Agent was designed around that initiation-to-mastery gap. It is ADHD-
 ## What it does
 
 - Treats uploaded material as the primary learning source and preserves real page, heading, line, paragraph, and character locations.
-- Uses GPT-5.6 to select a learning focus from the material and build source coverage, named gaps, a compact dependency map, a 2–5 concept route, and one 60–120 second start action.
-- Removes the goal, prior-knowledge, time, and energy setup form; the first response and later practice evidence calibrate support instead.
+- Uses GPT-5.6 to select a learning focus from the material and build source coverage, named gaps, a compact 2–5 concept dependency map, and beginner-friendly explanations with key steps and examples.
+- Removes the goal, prior-knowledge, time, and energy setup form as well as the pre-test; later validated practice evidence calibrates support.
 - Keeps one active concept and one visually dominant recommended action in a responsive focus workspace.
 - Uses a contextual Tutor for explanation, questions, and guided checks inside the current concept.
 - Runs Quiz, free recall, three-level hints, immediate feedback, specific encouragement, and targeted remediation as one Guided Mastery Loop.
 - Stores `LearningEvidence` as factual observations only, with no recommendation fields.
 - Lets a bounded Adaptive Planning Agent select exactly one of eight server-validated global actions from that evidence.
 - Requires four gates before external search: session permission, a validated named source gap, an accepted Agent `request_search` action, and explicit confirmation of the exact scope.
-- Supports autosave, optimistic conflict resolution, pause/resume, precise restart actions, exports, AI activity history, source reports, and deletion controls.
+- Supports autosave, optimistic conflict resolution, pause/resume, precise restart actions, exports, AI activity history, lightweight inline citations, and deletion controls.
 
 ## How we built it
 
 The app uses Python 3.11+, FastAPI, Uvicorn, SQLite, and dependency-free static HTML/CSS/JavaScript. OpenAI calls stay on the server.
 
-Real mode uses GPT-5.6 through the Responses API for source coverage, the knowledge map and start action, Tutor guidance, Quiz and recall generation, structured feedback, remediation, and the final bounded planning decision. Fixed UI-facing model results use schema-validated Pydantic Structured Outputs. The Agent uses one forced strict function call with parallel calls disabled. The search execution endpoint exposes only `web_search`, requires it for that call, and persists only cited public HTTPS results after all four gates are revalidated.
+Real mode uses GPT-5.6 through the Responses API for source coverage, the knowledge map and concept explanations, Tutor guidance, Quiz and recall generation, structured feedback, remediation, and the final bounded planning decision. Fixed UI-facing model results use schema-validated Pydantic Structured Outputs. The Agent uses one forced strict function call with parallel calls disabled. The search execution endpoint exposes only `web_search`, requires it for that call, and persists only cited public HTTPS results after all four gates are revalidated.
 
 An isolated release smoke test completed a real GPT-5.6 flow across source coverage, knowledge-map generation, Tutor, Quiz, structured feedback, and the bounded Agent. The public app uses the same server-side real-model path with workspace quotas and deployment-side budget controls. Deterministic fixtures remain isolated to automated tests and are never presented as learner-selected modes.
 
@@ -67,7 +67,7 @@ Grounding was another challenge. Locations cannot be invented by a model, so the
 
 ## What we learned
 
-Trustworthy educational AI benefits from smaller interfaces between capabilities. Structured Outputs help with shape, but server-side source validation, state validation, tool restriction, and provenance labeling are what turn a model response into a reliable product behavior. We also learned that recovery is part of the core learning experience: preserving an unfinished sentence and returning to one concrete restart action can matter as much as the generated explanation.
+Trustworthy educational AI benefits from smaller interfaces between capabilities. Structured Outputs help with shape, but server-side source validation, state validation, tool restriction, and provenance labeling are what turn a model response into a reliable product behavior. We also learned that recovery is part of the core learning experience: returning to one concrete restart action can matter as much as the generated explanation.
 
 ## What's next
 

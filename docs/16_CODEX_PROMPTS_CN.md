@@ -64,7 +64,7 @@ Implement:
 - Stable source/chunk IDs, checksums and SQLite persistence.
 - Local retrieval using FTS5 when available.
 - File list, parse progress, partial-success, failure and retry/remove UI.
-- Source structure, snippet preview and source viewer.
+- Source structure and lightweight inline citations inside concept explanations.
 - Configurable file limits and clear validation.
 - Sample data fixtures.
 
@@ -82,7 +82,7 @@ Acceptance:
 
 ---
 
-## Prompt 2：设置、来源覆盖、知识地图和启动动作
+## Prompt 2：自动材料分析、知识地图和直接讲解
 
 ```text
 Goal:
@@ -111,7 +111,7 @@ Boundaries:
 - Do not call web search.
 - Do not send whole documents when relevant chunks suffice.
 
-Verify upload-to-start-action in browser and add contract/grounding tests.
+Verify upload-to-knowledge-framework-to-first-explanation in browser and add contract/grounding tests.
 ```
 
 ---
@@ -135,7 +135,7 @@ Implement:
 - Desktop three-column focus view.
 - Tablet collapsible layout and mobile single-column layout.
 - One active concept and one dominant recommended action.
-- Compact concept map, source viewer, session status and optional time display.
+- Compact concept map, explanation-first learning area, inline source citations, session status and optional time display.
 - Autosave, offline/local draft, refresh resume and save-conflict handling.
 - Pause, summary shell, history, settings, privacy and deletion confirmation.
 - Loading, empty, partial-success, API-error and recovery components.

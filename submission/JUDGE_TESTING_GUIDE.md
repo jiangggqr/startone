@@ -9,7 +9,7 @@ The public deployment needs no learner account. GPT-5.6 credentials stay on the 
 3. Upload `sample_data/transformer_notes.md` and `sample_data/matrix_prerequisite.md`, or upload your own readable PDF, Markdown, or TXT file.
 4. Confirm that both file status and the next action appear inside the upload panel, then select **Build my learning path**.
 5. Review the AI-selected learning focus, knowledge framework, concept route, and grounded references. No setup form is required.
-6. Confirm the route and complete the short starting response; this is the first baseline signal, not a graded test.
+6. Review the concise knowledge framework and click **Start learning the first concept**. Confirm that the explanation appears immediately, with no setup form or pre-test.
 7. In the focus workspace, inspect the concept explanation, open Tutor, then try a Quiz or free recall.
 8. Submit an answer, review the five-part feedback, and optionally complete a targeted remedial exercise.
 9. Finish the feedback boundary to create factual `LearningEvidence`, then ask the Adaptive Planning Agent for one next action.

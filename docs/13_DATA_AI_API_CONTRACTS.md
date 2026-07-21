@@ -12,8 +12,6 @@ idle
 → sources_processing
 → sources_reviewable
 → path_drafting
-→ path_confirmed
-→ start_action
 → learning_concept
 → practicing
 → feedback_shown
@@ -69,7 +67,7 @@ ended_at
 
 The current recommendation is derived from the latest accepted `AgentDecision`; it is not duplicated as an unconstrained writable session field.
 
-`goal` 由材料分析后的 `map_title` 派生。`prior_knowledge` 初始固定为未评估，真实基础只从首次短回答和后续活动逐步校准。`available_minutes` 是内部紧凑会话默认值；`energy_level` 为兼容既有数据库迁移保留且新会话写入 `NULL`。这些字段不构成用户设置表单，也不由产品 API 接收。
+`goal` 由材料分析后的 `map_title` 派生。`prior_knowledge` 初始固定为未评估；产品不用开始前测试估算水平，首个概念按初学者深度讲解，之后只根据已验证活动证据逐步校准。`available_minutes` 是内部紧凑会话默认值；`energy_level` 为兼容既有数据库迁移保留且新会话写入 `NULL`。这些字段不构成用户设置表单，也不由产品 API 接收。
 
 ### Workspace
 
@@ -326,14 +324,15 @@ source_refs[]
 
 ```text
 map_title
-concepts[]
+concepts[] {plain_definition, key_points[2..4], concrete_example, role_in_map, prerequisite_keys, source_refs}
 edges[]
 recommended_route[]
-start_action
 source_gaps[]
 ```
 
-### StartAction
+`start_action` 只为旧数据库与 API 向后兼容保留，不再是生产学习流程的显示字段、必做任务或校准信号。
+
+### Legacy StartAction (compatibility only)
 
 ```text
 title
@@ -444,7 +443,8 @@ Implemented endpoint groups. FastAPI's generated schema at `/api/docs` is author
 - `PATCH /api/sessions/{id}/path`
 - `GET /api/sessions/{id}/path`
 - `POST /api/sessions/{id}/path/confirm`
-- `POST /api/sessions/{id}/start-action/complete`
+- `POST /api/sessions/{id}/learn/start` — 生产流程直接打开第一个概念，无开始前测试
+- `POST /api/sessions/{id}/start-action/complete` — 仅供旧会话向后兼容
 - `GET /api/sessions/{id}/focus`
 - `PUT /api/sessions/{id}/drafts/{draft_type}` with optimistic `version`
 - `GET /api/sessions/{id}/drafts`

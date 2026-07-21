@@ -14,13 +14,13 @@ Implement PDF, Markdown, TXT and pasted-text ingestion; real page or line locati
 
 ## Milestone 2 — Automatic material analysis, coverage and knowledge map
 
-Implement material-driven source coverage, named gaps, AI-selected learning focus, a 2–5 concept dependency map, initial route and one 60–120 second start action. No learner setup form is allowed. This milestone creates the shared server-side OpenAI gateway and the first real GPT-5.6 Structured Outputs path while retaining deterministic test fixtures. Use schema validation and grounded source references.
+Implement material-driven source coverage, named gaps, an AI-selected learning focus and a 2–5 concept dependency map with beginner-friendly explanations, key points and examples. No learner setup form or pre-test is allowed. This milestone creates the shared server-side OpenAI gateway and the first real GPT-5.6 Structured Outputs path while retaining deterministic test fixtures. Use schema validation and grounded source references.
 
-**Status:** Complete and verified on 2026-07-21. Upload leads directly to AI coverage, focus and map generation; the first short response begins learner calibration. The real GPT-5.6 path is implemented and live-smoke-tested, with deterministic behavior isolated to tests.
+**Status:** Complete and verified on 2026-07-21. Upload leads to AI coverage, focus and map generation, then directly to the first concept explanation. Calibration begins only after guided practice produces validated evidence. The real GPT-5.6 path is implemented and live-smoke-tested, with deterministic behavior isolated to tests.
 
 ## Milestone 3 — Production focus-session shell
 
-Implement desktop/tablet/mobile layouts, one active concept, one primary action, compact map, source viewer, visible/optional time, autosave, resume, pause, summary shell, keyboard basics and cross-cutting states.
+Implement desktop/tablet/mobile layouts, one active concept, one primary action, compact map, lightweight inline source citations, visible/optional time, autosave, resume, pause, summary shell, keyboard basics and cross-cutting states.
 
 **Status:** Complete and verified on 2026-07-21. Start/focus drafts are server-versioned with explicit conflict resolution; pause/resume preserves the active concept and timer; the responsive focus workspace and restart summary are fully browser-tested.
 

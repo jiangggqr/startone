@@ -238,3 +238,13 @@ Record one section after each verified milestone.
 - UI correction: replaced the material-conversion headline with “Start faster. Build real understanding. Finish what you set out to learn.”; changed the learner-facing ADHD label to “Focus-friendly”; and identified AI and technical learning as the initial focus without restricting uploads
 - Artifact alignment: updated the production homepage, low-fidelity prototype, full specification, scope decision, README, judge instructions, Devpost copy and video script
 - Verification: 49 automated tests passed; JavaScript and diff checks passed; browser inspection confirmed the new English copy, flat background, no horizontal overflow and removal of the previous headline
+
+## Product-flow simplification — explanation before evaluation
+
+- Status: complete
+- Date: 2026-07-21
+- Trigger: learner review found the suggested outcome, duplicate route card, first-action card, pre-learning response and full-panel source preview redundant and reported that the actual teaching content appeared too late
+- Decision: keep one concise knowledge framework, remove route-adjustment decisions and the pre-test, then open the first concept explanation directly; source transparency remains available as a lightweight disclosure inside the explanation
+- Implementation: added a versioned direct-start endpoint; starts the first route concept without a draft or baseline answer; concept map outputs now carry teaching key points and a concrete example; legacy saved maps receive a grounded source-based explanation fallback; upload and focus UI were simplified; Tutor, Quiz, recall, feedback, LearningEvidence, Agent and four-gate search boundaries remain unchanged
+- Artifact alignment: updated the production UI, full specification, information architecture, end-to-end flow, screen specification, data/API contract, final decisions, prototype, README, judge guide, submission copy, video script and verification report
+- Verification: 50 automated tests passed; Python compilation and JavaScript syntax passed; browser inspection confirmed upload → concise framework → direct first explanation, expandable inline source text, no pre-test view, no preview panel, English-only copy, flat backgrounds and exact desktop viewport width

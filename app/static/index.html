@@ -112,7 +112,7 @@
         </div>
 
         <div class="connection-banner" id="connection-banner" role="status" hidden>
-          You are offline. Existing source previews remain visible; new uploads will wait until you reconnect.
+          You are offline. Existing material remains saved; new uploads will wait until you reconnect.
         </div>
         <div class="upload-layout">
           <div class="source-column">
@@ -168,7 +168,7 @@
               <section class="learning-ready" id="learning-ready" aria-labelledby="learning-ready-title" hidden>
                 <p class="eyebrow">Material ready · next step</p>
                 <h3 id="learning-ready-title">Build a learning path from this material</h3>
-                <p id="coverage-note">StartFrame will identify the core concepts, organize a short route, and use your first response to begin learning your starting level. Large PDFs usually take 20–60 seconds.</p>
+                <p id="coverage-note">StartFrame will identify the core concepts, organize the knowledge framework, and prepare the first explanation. Large PDFs usually take 20–60 seconds.</p>
                 <div class="learning-ready-actions">
                   <button class="button button-quiet" id="save-for-later" type="button">Save and return later</button>
                   <button class="button button-primary" id="review-coverage" type="button" disabled>
@@ -179,30 +179,6 @@
             </section>
           </div>
 
-          <aside class="preview-panel" aria-labelledby="preview-title">
-            <p class="eyebrow">Verifiable preview</p>
-            <h2 id="preview-title" tabindex="-1">Source location</h2>
-            <div id="preview-empty" class="preview-empty">
-              <span class="empty-icon" aria-hidden="true">⌖</span>
-              <p>Select a ready source to inspect its extracted text and real location.</p>
-            </div>
-            <div id="preview-content" hidden>
-              <div class="preview-heading">
-                <div>
-                  <h3 id="preview-filename"></h3>
-                  <p id="preview-location"></p>
-                </div>
-                <span class="origin-badge" id="preview-origin">Uploaded material</span>
-              </div>
-              <pre id="preview-text"></pre>
-              <div class="preview-purpose">
-                <strong>How this excerpt is used</strong>
-                <p id="preview-purpose">Available to ground the learning map, Tutor, and practice.</p>
-              </div>
-              <div class="chunk-navigation" id="chunk-navigation" aria-label="Source sections"></div>
-              <button class="button button-quiet" id="open-source-report" type="button">Report a source-location issue</button>
-            </div>
-          </aside>
         </div>
 
       </section>
@@ -257,62 +233,17 @@
         </div>
         <div class="form-message" id="path-message" role="status" aria-live="polite" hidden></div>
         <div class="path-layout">
-          <section class="result-panel" aria-labelledby="map-heading">
+          <section class="result-panel knowledge-framework" aria-labelledby="map-heading">
             <div class="result-heading">
-              <div><p class="eyebrow">Grounded map</p><h2 id="map-heading">Learning concepts</h2></div>
+              <div><p class="eyebrow">Knowledge framework</p><h2 id="map-heading">What you will learn</h2></div>
               <span class="status-chip" id="map-count">0 concepts</span>
             </div>
             <ol class="concept-map" id="concept-map"></ol>
           </section>
-          <div class="path-side">
-            <section class="result-panel" aria-labelledby="suggested-outcome-heading">
-              <p class="eyebrow">AI-selected learning focus</p>
-              <h2 id="suggested-outcome-heading">Suggested outcome</h2>
-              <p class="suggested-outcome" id="suggested-outcome"></p>
-              <p class="micro-copy">Chosen from the material. The route adapts after StartFrame observes your responses.</p>
-            </section>
-            <section class="result-panel" aria-labelledby="route-heading">
-              <p class="eyebrow">This session</p>
-              <h2 id="route-heading">Recommended route</h2>
-              <ol class="route-list" id="route-list"></ol>
-              <p class="route-total" id="route-total"></p>
-              <div class="compact-actions">
-                <button class="button button-secondary" id="shorten-route" type="button">Shorten by one concept</button>
-                <button class="button button-quiet" id="restore-route" type="button">Restore full route</button>
-              </div>
-            </section>
-            <section class="primary-action-card" aria-labelledby="start-action-heading">
-              <p class="eyebrow">Your only first action</p>
-              <h2 id="start-action-heading"></h2>
-              <p id="start-action-instruction"></p>
-              <p class="completion-line"><strong>Done when:</strong> <span id="start-action-condition"></span></p>
-              <p class="micro-copy" id="start-action-reason"></p>
-            </section>
-          </div>
         </div>
         <div class="workflow-actions">
-          <button class="button button-primary" id="confirm-path" type="button">Start with this learning path</button>
-          <p id="path-generation-label">Waiting for a validated map.</p>
-        </div>
-      </section>
-
-      <section class="workflow-view start-view" id="start-action-view" aria-labelledby="start-page-title" hidden>
-        <div class="start-shell">
-          <div class="start-meta">
-            <span class="status-chip" id="start-duration">About 90 seconds</span>
-            <button class="button button-quiet" id="start-save-later" type="button">Pause session</button>
-          </div>
-          <p class="eyebrow">Start action · no penalty for being wrong</p>
-          <h1 id="start-page-title" tabindex="-1"></h1>
-          <p class="hero-lead" id="start-page-instruction"></p>
-          <p class="context-note"><strong>This is not a test.</strong> Your response gives StartFrame its first signal about what support you need.</p>
-          <label for="start-answer">Your one-sentence answer</label>
-          <textarea id="start-answer" rows="6" placeholder="Write one sentence. It does not need to be correct."></textarea>
-          <div class="completion-box"><strong>Completion condition</strong><p id="start-page-condition"></p></div>
-          <div class="form-message" id="start-message" role="status" aria-live="polite" hidden></div>
-          <p class="save-state" id="start-save-status" role="status" aria-live="polite">Not saved yet</p>
-          <button class="button button-primary full-width" id="save-start-answer" type="button">Complete and enter focus mode</button>
-          <button class="button button-quiet full-width" id="start-back-map" type="button">Review the map again</button>
+          <button class="button button-primary" id="confirm-path" type="button">Start learning the first concept</button>
+          <p id="path-generation-label">The framework is ordered from foundation to application.</p>
         </div>
       </section>
 
@@ -345,16 +276,27 @@
               <p class="concept-role"><strong>Why it matters:</strong> <span id="focus-role"></span></p>
             </div>
             <section class="card-panel explanation-card" aria-labelledby="explanation-title">
-              <p class="eyebrow">Concise explanation</p>
-              <h2 id="explanation-title">Use the uploaded material as your anchor</h2>
-              <p id="focus-definition"></p>
-              <div id="focus-sources" class="focus-sources"></div>
+              <p class="eyebrow">Learn this concept</p>
+              <h2 id="explanation-title">What it means</h2>
+              <p class="lesson-definition" id="focus-definition"></p>
+              <div class="lesson-section">
+                <h3>How it works</h3>
+                <ol class="lesson-key-points" id="focus-key-points"></ol>
+              </div>
+              <div class="lesson-example">
+                <h3>A concrete example</h3>
+                <p id="focus-example"></p>
+              </div>
+              <details class="lesson-sources">
+                <summary>See where this explanation comes from</summary>
+                <div id="focus-sources" class="focus-sources"></div>
+              </details>
             </section>
             <section class="primary-action-card focus-primary" aria-labelledby="focus-action-title">
-              <p class="eyebrow">Recommended action · about 2 minutes</p>
-              <h2 id="focus-action-title">Let Tutor check your current understanding</h2>
-              <p>Tutor stays inside this concept, starts with the least support needed, and keeps uploaded material as the primary source.</p>
-              <button class="button button-primary full-width" id="open-tutor" type="button">Open Tutor for this concept</button>
+              <p class="eyebrow">Ask while you learn</p>
+              <h2 id="focus-action-title">Talk with your Tutor about this concept</h2>
+              <p>Ask for a simpler explanation, a definition, an example, or help with one confusing step.</p>
+              <button class="button button-primary full-width" id="open-tutor" type="button">Ask Tutor a question</button>
               <details class="focus-note-tool">
                 <summary>Save a private focus note</summary>
                 <p>This note is not graded and does not create learning evidence.</p>
@@ -388,9 +330,6 @@
             <label class="checkbox-row" for="hide-timer"><input id="hide-timer" type="checkbox" /> Hide time display</label>
             <div class="focus-progress" aria-label="Session route progress"><span id="focus-progress-bar"></span></div>
             <p class="micro-copy" id="focus-progress-copy"></p>
-            <hr />
-            <h3>Starting point</h3>
-            <p class="starting-point" id="starting-point"></p>
             <hr />
             <p class="source-boundary" id="focus-source-boundary"><span class="origin-badge">Uploaded material</span> remains the primary learning source. No internet search has run.</p>
             <button class="button button-secondary full-width" id="save-exit" type="button">Save and exit</button>
@@ -805,8 +744,8 @@
         <ol class="method-steps">
           <li><strong>Add your material.</strong><span>StartFrame keeps verifiable source locations.</span></li>
           <li><strong>Let AI prepare the learning focus.</strong><span>It identifies core concepts in the material and proposes a dependency-aware path.</span></li>
-          <li><strong>Give one short starting response.</strong><span>This first signal helps calibrate support without making you complete a setup form.</span></li>
-          <li><strong>Learn the current concept.</strong><span>Use its explanation, Tutor, a Quiz, free recall, or a hint when you need it.</span></li>
+          <li><strong>Start with the first concept.</strong><span>Read the explanation before moving into guided practice.</span></li>
+          <li><strong>Practice after learning.</strong><span>Use Tutor, a Quiz, free recall, or a hint when you are ready.</span></li>
           <li><strong>Respond to feedback.</strong><span>A short repair exercise closes a specific gap, then the Agent chooses one next step from validated learning evidence.</span></li>
         </ol>
         <p class="context-note"><strong>If your material has a real gap:</strong> StartFrame asks before using any external source. Your uploaded material remains the primary source.</p>
@@ -847,29 +786,6 @@
           <button class="button button-secondary" id="cancel-delete" type="button">Keep source</button>
           <button class="button button-danger" id="confirm-delete" type="button">Delete source</button>
         </div>
-      </div>
-    </dialog>
-
-    <dialog id="source-report-dialog" aria-labelledby="source-report-title" aria-describedby="source-report-description">
-      <div class="dialog-content">
-        <p class="eyebrow">Source quality</p>
-        <h2 id="source-report-title">Report a source-location issue</h2>
-        <p id="source-report-description">This records the exact saved source and excerpt for the deployment owner. It does not change your learning progress.</p>
-        <form id="source-report-form">
-          <label for="source-report-reason">What looks wrong?</label>
-          <select id="source-report-reason" name="reason">
-            <option value="location_incorrect">Page, heading, or line location is incorrect</option>
-            <option value="content_mismatch">Excerpt does not support the displayed claim</option>
-            <option value="other">Another source issue</option>
-          </select>
-          <label for="source-report-note">Optional detail</label>
-          <textarea id="source-report-note" name="note" rows="4" maxlength="500"></textarea>
-          <p class="field-error" id="source-report-error" role="alert" tabindex="-1" hidden></p>
-          <div class="dialog-actions">
-            <button class="button button-secondary" id="cancel-source-report" type="button">Cancel</button>
-            <button class="button button-primary" id="submit-source-report" type="submit">Send source report</button>
-          </div>
-        </form>
       </div>
     </dialog>
 

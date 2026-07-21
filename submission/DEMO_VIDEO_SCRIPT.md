@@ -16,9 +16,9 @@ Use English narration or complete English captions. Do not include copyrighted m
 
 ## 0:42–1:02 — Map and first action
 
-**On screen:** Coverage review, named gaps, learning map, then the 90-second start action.
+**On screen:** Coverage review, named gaps, the concise knowledge framework, then the first concept explanation.
 
-**Narration:** “GPT-5.6 produces schema-validated coverage, a compact dependency map, a short route, and one 60-to-120-second start action. Every returned reference is verified on the server before it can be saved or shown.”
+**Narration:** “GPT-5.6 produces schema-validated coverage, a compact dependency map, and beginner-friendly explanations with key steps and examples. There is no setup form or pre-test: one click opens the first concept. Every returned reference is verified on the server before it can be saved or shown.”
 
 ## 1:02–1:28 — Tutor and mastery loop
 
@@ -40,9 +40,9 @@ Use English narration or complete English captions. Do not include copyrighted m
 
 ## 2:20–2:38 — Recovery and trust
 
-**On screen:** Pause, refresh/resume, source viewer, summary restart action, settings/data controls.
+**On screen:** Pause, refresh/resume, an inline source citation, summary restart action, settings/data controls.
 
-**Narration:** “Autosave, conflict-safe drafts, pause and exact resume, source inspection, exports, deletion controls, and one concrete restart action make interruption recoverable. The interface stays English, responsive, keyboard-oriented, and uses flat solid backgrounds.”
+**Narration:** “Autosave, conflict-safe drafts, pause and exact resume, lightweight source citations, exports, deletion controls, and one concrete restart action make interruption recoverable. The interface stays English, responsive, keyboard-oriented, and uses flat solid backgrounds.”
 
 ## 2:38–2:50 — Codex and GPT-5.6
 

@@ -134,15 +134,11 @@
         </div></div>
       </section>
 
-      <section class="screen" id="upload" data-title="03 上传、解析与来源预览">
-        <div class="screen-head"><div><h2>03 上传、解析与来源预览</h2><p>显示真实解析状态、部分成功和可恢复错误；不把“正在处理”伪装成完成。</p></div></div>
+      <section class="screen" id="upload" data-title="03 上传、解析与材料清单">
+        <div class="screen-head"><div><h2>03 上传、解析与材料清单</h2><p>只显示真实解析状态、部分成功和可恢复错误，不在上传区展开大块原文预览。</p></div></div>
         <div class="frame"><div class="frame-bar"><span>步骤 1/3 · 添加学习材料</span><span>支持 PDF、Markdown、TXT、粘贴文本</span></div><div class="frame-body stack">
           <div class="callout"><strong>拖放文件或点击选择</strong><span class="small">支持 PDF、Markdown、TXT；最多 5 个文件，单文件最多 20 MB。扫描 PDF 无可提取文字时要明确提示，不得伪造页码。</span><div class="row" style="margin-top:8px"><button>选择文件</button><button>粘贴文本</button></div></div>
-          <div class="grid-3">
-            <div class="stack"><h3>文件</h3><div class="file"><div><strong>transformer_notes.md</strong><div class="small muted">25 行 · 解析完成</div></div><span aria-label="成功">✓</span></div><div class="file"><div><strong>matrix_prerequisite.md</strong><div class="small muted">13 行 · 解析完成</div></div><span aria-label="成功">✓</span></div><div class="file"><div><strong>scanned_appendix.pdf</strong><div class="small">无法提取文字</div><button class="small">重试或移除</button></div><span aria-label="错误">!</span></div><button>＋ 添加文件</button></div>
-            <div class="card tree"><h3>识别到的结构</h3><ul><li>第 1 章 Transformer 概览<ul><li>1.1 序列建模问题</li><li>1.2 Encoder 与 Decoder</li></ul></li><li>第 2 章 Self-attention<ul><li>2.1 Query、Key、Value</li><li>2.2 Attention score</li><li>2.3 Weighted sum</li></ul></li><li>第 3 章 位置编码</li></ul><p class="small muted">点击标题可定位原文；用户可以取消勾选不想纳入学习的章节。</p></div>
-            <div class="card"><h3>来源片段</h3><p><strong>transformer_notes.md</strong></p><p class="small">2. Self-attention · 第 7–13 行</p><div class="callout small">Self-attention 先比较同一序列中的位置，再按相关程度汇总 value 信息。</div><div class="row"><button>上一处</button><button>下一处</button></div><p><span class="source-label source-uploaded">用户上传材料</span></p></div>
-          </div>
+          <div class="stack"><h3>本次学习材料</h3><div class="file"><div><strong>transformer_notes.md</strong><div class="small muted">25 行 · 解析完成</div></div><span aria-label="成功">✓</span></div><div class="file"><div><strong>matrix_prerequisite.md</strong><div class="small muted">13 行 · 解析完成</div></div><span aria-label="成功">✓</span></div><div class="file"><div><strong>scanned_appendix.pdf</strong><div class="small">无法提取文字</div><button class="small">重试或移除</button></div><span aria-label="错误">!</span></div><button>＋ 添加文件</button></div>
           <div class="row between"><button data-go="landing">返回</button><div class="row"><button>保存稍后继续</button><button class="primary" data-go="path">由 AI 生成学习重点与路线</button></div></div>
         </div></div>
       </section>
@@ -159,21 +155,11 @@
         </div></div>
       </section>
 
-      <section class="screen" id="path" data-title="05 学习地图与路线确认">
-        <div class="screen-head"><div><h2>05 学习地图与路线确认</h2><p>知识地图表达依赖关系；路线表达这次实际要走的顺序，两者不能混为一谈。</p></div></div>
-        <div class="frame"><div class="frame-bar"><span>步骤 2/3 · 确认知识地图</span><span>AI 已从材料选择重点</span></div><div class="frame-body">
-          <div class="grid-2">
-            <div class="card node-map"><div class="node">Transformer 目标</div><div class="arrow">↓</div><div class="node current">Self-attention</div><div class="arrow">↓</div><div class="node">Q / K / V</div><div class="arrow">↓</div><div class="node-row"><div class="node">Scaled dot-product</div><div class="node">位置信息</div></div></div>
-            <div class="stack"><div class="card"><h3>AI 选择的学习重点</h3><p><strong>Transformer attention foundations</strong></p><p class="small muted">来自已上传材料；不会凭材料声称知道用户已有水平。</p></div><div class="card"><h3>本次推荐路线</h3><ol><li><strong>Self-attention 的作用</strong> · 7 分钟</li><li><strong>Q / K / V</strong> · 8 分钟</li><li><strong>Scaled dot-product attention</strong> · 7 分钟</li></ol></div><div class="card"><h3>第一个 1–2 分钟动作</h3><p><strong>写一句你目前认为 self-attention 是什么。</strong></p><p class="small">完成条件：写出一句可检查的回答，不要求正确。</p></div><div class="card"><h3>可调整项</h3><div class="row"><button>缩短一项</button><button>恢复完整路线</button></div></div></div>
-          </div>
-          <div class="row between" style="margin-top:16px"><button data-go="source-review">返回</button><button class="primary" data-go="start-action">确认并开始</button></div>
-        </div></div>
-      </section>
-
-      <section class="screen" id="start-action" data-title="06 两分钟启动动作">
-        <div class="screen-head"><div><h2>06 两分钟启动动作</h2><p>进入内容前只展示一个可执行动作，降低启动成本。</p></div></div>
-        <div class="frame"><div class="frame-bar"><span>本次会话已开始</span><button>暂停并保存</button></div><div class="frame-body" style="display:grid;place-items:center;min-height:620px">
-          <div class="card stack" style="max-width:720px;width:100%;padding:28px"><span class="badge">启动动作 · 约 90 秒</span><h2 style="margin:0">不用查资料，写一句你现在认为 self-attention 是什么。</h2><p class="muted">不要求正确。你的回答只用于确定从哪里开始。</p><textarea aria-label="启动动作回答" placeholder="我认为 self-attention 是……"></textarea><div class="row between"><button>先暂停</button><button class="primary" data-go="focus">完成，进入第一个概念</button></div><div class="callout small"><strong>完成条件</strong>输入一句可检查的回答。系统不会因为错误扣分，也不会显示红叉。</div></div>
+      <section class="screen" id="path" data-title="05 简洁知识框架">
+        <div class="screen-head"><div><h2>05 简洁知识框架</h2><p>只展示概念顺序、定义和依赖，不用多张卡片要求用户再做路线决策。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>从基础到应用</span><span>AI 已从材料生成</span></div><div class="frame-body">
+          <div class="card node-map"><div class="node current">Transformer 目标<br><span class="small muted">为什么需要 attention</span></div><div class="arrow">↓</div><div class="node">Self-attention<br><span class="small muted">比较相关性并汇总信息</span></div><div class="arrow">↓</div><div class="node">Q / K / V<br><span class="small muted">完成比较与信息传递</span></div><div class="arrow">↓</div><div class="node-row"><div class="node">Scaled dot-product</div><div class="node">位置信息</div></div></div>
+          <div class="row between" style="margin-top:16px"><button data-go="source-review">返回</button><button class="primary" data-go="focus">Start learning the first concept</button></div>
         </div></div>
       </section>
 
@@ -181,8 +167,8 @@
         <div class="screen-head"><div><h2>07 专注学习工作区</h2><p>桌面端三栏；中间始终只有一个当前概念和一个主推荐动作。</p></div></div>
         <div class="frame"><div class="frame-bar"><span>Transformer 基础　›　Self-attention</span><span>已保存 · <button>暂停并保存</button></span></div><div class="frame-body grid-3">
           <aside class="card"><h3>知识地图</h3><div class="concept-list"><div class="concept done">已完成：Transformer 目标</div><div class="concept active">当前：Self-attention</div><div class="concept">可进入：Q / K / V</div><div class="concept locked">锁定：Scaled dot-product</div><div class="concept locked">锁定：位置信息</div></div><p class="small muted">进度 1/5</p><button data-go="path">查看完整地图</button></aside>
-          <main class="stack"><div><span class="badge">当前概念 2/5</span><h2>Self-attention</h2><p><strong>它在整体中的作用：</strong>让序列中的每个位置根据与其他位置的关系，选择并汇总相关信息。</p></div><div class="card"><h3>简练解释</h3><p>Self-attention 先比较当前位置与其他位置的相关程度，再按照这些相关程度汇总信息。这样，每个位置都能形成包含上下文的新表示。</p><p><span class="source-label source-uploaded">用户上传材料</span> transformer_notes.md · 2. Self-attention · 第 7–13 行</p><button data-go="source-viewer">打开原文位置</button></div><div class="primary-action"><span class="badge">推荐下一步 · 约 2 分钟</span><h3>先让 Tutor 检查你对“相关程度”的理解</h3><button class="primary" data-go="tutor">打开 Tutor</button></div><div class="quick-actions"><button data-go="quiz">开始 Quiz</button><button data-go="recall">自由复述</button><button data-go="tutor">解释简单一点</button><button data-go="source-viewer">查看来源</button></div></main>
-          <aside class="card session-rail"><h3>会话状态</h3><p>当前用时：06:18</p><p>剩余时间：18:42</p><label class="row"><input type="checkbox" style="width:auto;min-height:auto"> 隐藏时间显示</label><div class="progress"><span style="width:28%"></span></div><p class="small">本概念进度 28%</p><hr><h4>最近信号</h4><p class="small">启动回答提到“关注其他词”，但未提到信息汇总。</p><hr><button>保存并退出</button><button class="danger">删除本次会话</button></aside>
+          <main class="stack"><div><span class="badge">当前概念 1/5</span><h2>Transformer 目标</h2><p><strong>它在整体中的作用：</strong>先理解为什么序列中不同位置需要直接交换相关信息。</p></div><div class="card stack"><span class="badge">先学这个概念</span><h3>是什么</h3><p>Transformer 为序列中的每个位置建立包含上下文的表示，而不是只依赖一步步传递信息。</p><h3>如何工作</h3><ol><li>表示序列中的每个位置。</li><li>让不同位置直接交换相关信息。</li><li>形成后续层可以使用的上下文表示。</li></ol><h3>具体例子</h3><p>一个代词可能依赖前面隔了多个词的名词；Transformer 可以直接连接这两个位置。</p><details><summary>查看这段讲解的材料依据</summary><p class="small"><span class="source-label source-uploaded">用户上传材料</span> transformer_notes.md · 第 1–6 行</p></details></div><div class="primary-action"><span class="badge">有问题时</span><h3>与 Tutor 讨论当前概念</h3><button class="primary" data-go="tutor">向 Tutor 提问</button></div><div class="quick-actions"><button data-go="quiz">开始 Quiz</button><button data-go="recall">自由复述</button><button data-go="tutor">解释简单一点</button></div></main>
+          <aside class="card session-rail"><h3>会话状态</h3><p>当前用时：01:18</p><p>剩余时间：23:42</p><label class="row"><input type="checkbox" style="width:auto;min-height:auto"> 隐藏时间显示</label><div class="progress"><span style="width:8%"></span></div><p class="small">当前概念 1/5</p><hr><button>保存并退出</button></aside>
         </div></div>
       </section>
 
@@ -247,18 +233,10 @@
       <section class="screen" id="search-results" data-title="15 外部来源选择与引用">
         <div class="screen-head"><div><h2>15 外部来源选择与引用</h2><p>不展示无差别链接列表；显示少量候选、选择原因和填补的具体缺口。</p></div></div>
         <div class="frame"><div class="frame-bar"><span>找到 3 个候选来源</span><span><span class="source-label source-external">外部补充</span></span></div><div class="frame-body stack">
-          <div class="result selected"><div class="row between"><div><strong>MIT OpenCourseWare · Linear Algebra</strong><p class="small">官方课程 · 可公开访问 · 访问于 2026-07-20</p><p class="small">https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/</p></div><span class="badge">推荐</span></div><p><strong>引用片段：</strong>点积把两个同维向量的对应分量相乘后求和，得到一个标量。</p><p><strong>选择原因：</strong>短范围即可解释向量点积和加权组合。</p><p><strong>填补缺口：</strong>帮助理解 attention score 与 weighted sum。</p><div class="row"><button data-go="source-viewer">预览来源</button><button class="primary" data-go="focus">使用该来源并插入前置任务</button></div></div>
+          <div class="result selected"><div class="row between"><div><strong>MIT OpenCourseWare · Linear Algebra</strong><p class="small">官方课程 · 可公开访问 · 访问于 2026-07-20</p><p class="small">https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/</p></div><span class="badge">推荐</span></div><p><strong>引用片段：</strong>点积把两个同维向量的对应分量相乘后求和，得到一个标量。</p><p><strong>选择原因：</strong>短范围即可解释向量点积和加权组合。</p><p><strong>填补缺口：</strong>帮助理解 attention score 与 weighted sum。</p><div class="row"><button>在新标签打开</button><button class="primary" data-go="focus">使用该来源并插入前置任务</button></div></div>
           <div class="result"><strong>Stanford CS229 Notes</strong><p class="small">官方课程 · URL 与访问时间已记录；内容可靠，但范围更大、数学密度较高。</p><button>选择该来源</button></div>
           <div class="result"><strong>University short tutorial</strong><p class="small">大学教学资料 · URL 与访问时间已记录；解释较简洁，但引用位置不如第一项明确。</p><button>选择该来源</button></div>
           <div class="row between"><button data-go="focus">忽略外部来源，继续现有路线</button><button>重新搜索</button></div>
-        </div></div>
-      </section>
-
-      <section class="screen" id="source-viewer" data-title="16 来源查看器与 AI 透明度">
-        <div class="screen-head"><div><h2>16 来源查看器与 AI 透明度</h2><p>用户能够核查解释依据；来源位置错误时可以报告。</p></div></div>
-        <div class="frame"><div class="frame-bar"><span>来源查看器</span><button data-go="focus">关闭来源查看器</button></div><div class="frame-body grid-2">
-          <div class="card"><h3>transformer_notes.md</h3><p>2. Self-attention · 第 7–13 行</p><div class="callout" style="min-height:380px"><p class="small">[Markdown 片段预览]</p><p>Self-attention lets each position compare itself with other positions in the same sequence. It first computes how relevant other positions are, then uses those relevance scores to combine information from the corresponding value representations.</p></div><div class="row"><button>上一处</button><button>下一处</button><button>打开完整材料</button></div></div>
-          <div class="stack"><div class="card"><h3>这段内容用于什么？</h3><p>支持“相关程度之后需要对 values 进行加权汇总”的解释和 Quiz 正确答案。</p></div><div class="card"><h3>来源标签</h3><p><span class="source-label source-uploaded">用户上传材料</span>可定位到文件、标题和行号。</p><p><span class="source-label source-external">外部补充</span>显示网页标题、URL、访问时间、引用片段和选用原因。</p><p><span class="source-label source-ai">AI 补充解释</span>没有原文依据时明确说明，不显示虚假位置。</p></div><div class="row"><button>报告定位错误</button><button data-go="focus" class="primary">返回学习</button></div></div>
         </div></div>
       </section>
 
@@ -314,7 +292,7 @@
       <section class="screen" id="responsive" data-title="21 响应式与键盘交互">
         <div class="screen-head"><div><h2>21 响应式与键盘交互</h2><p>核心学习流程在手机上仍可完成；不是把桌面三栏简单缩小。</p></div></div>
         <div class="frame"><div class="frame-bar"><span>移动端示例 · 390px</span><span>WCAG 2.2 AA 目标</span></div><div class="frame-body grid-2">
-          <div class="mobile-shell"><div class="mobile-top"><strong>Self-attention</strong><div class="small">进度 2/5 · 已保存</div></div><div class="mobile-body stack"><span class="badge">当前概念</span><h2>Self-attention</h2><p>比较相关程度，再汇总相关信息。</p><div class="primary-action"><strong>推荐：让 Tutor 检查理解</strong><button class="primary" data-go="tutor">打开 Tutor</button></div><button data-go="quiz">Quiz</button><button data-go="recall">复述</button><button data-go="source-viewer">来源</button></div><nav class="mobile-bottom" aria-label="移动端会话导航"><button data-go="path">地图</button><button data-go="focus">学习</button><button data-go="tutor">Tutor</button><button data-go="settings">更多</button></nav></div>
+          <div class="mobile-shell"><div class="mobile-top"><strong>Self-attention</strong><div class="small">进度 2/5 · 已保存</div></div><div class="mobile-body stack"><span class="badge">当前概念</span><h2>Self-attention</h2><p>比较相关程度，再汇总相关信息。</p><details><summary>材料依据</summary><p class="small">transformer_notes.md · 第 7–13 行</p></details><div class="primary-action"><strong>推荐：让 Tutor 检查理解</strong><button class="primary" data-go="tutor">打开 Tutor</button></div><button data-go="quiz">Quiz</button><button data-go="recall">复述</button></div><nav class="mobile-bottom" aria-label="移动端会话导航"><button data-go="path">地图</button><button data-go="focus">学习</button><button data-go="tutor">Tutor</button><button data-go="settings">更多</button></nav></div>
           <div class="stack"><div class="card"><h3>响应式规则</h3><ul class="small"><li>≥1200px：知识地图 / 内容 / 会话三栏。</li><li>768–1199px：地图可折叠，内容主栏，Tutor 为抽屉。</li><li>&lt;768px：单栏；底部导航；所有活动全屏。</li><li>不要在窄屏固定侧栏或横向滚动关键内容。</li></ul></div><div class="card"><h3>键盘与焦点</h3><p class="small"><span class="kbd">Tab</span> 顺序符合视觉顺序；模态框内焦点受控；关闭后焦点返回触发按钮。</p><p class="small">所有主要操作都有可见焦点；不依赖悬停；不能只用颜色传达正确与错误。</p></div><div class="card"><h3>目标尺寸</h3><p class="small">规范最低遵循 WCAG 2.2 的 24×24 CSS px；本产品主按钮和常用触控目标默认至少 44×44。</p></div></div>
         </div></div>
       </section>

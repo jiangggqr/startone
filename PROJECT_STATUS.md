@@ -36,16 +36,16 @@
 - Anonymous workspace Cookie isolation and private UUID-based source storage
 - PDF, Markdown, TXT and pasted-text parsing with real source locations
 - Stable source/chunk IDs, checksums, local retrieval, retry and source deletion
-- Source inventory, preview, empty/error/partial-success/offline/recovery UI states
+- Source inventory with empty/error/partial-success/offline/recovery states; no competing full-panel preview in the upload flow
 - Material-driven automatic learning focus and map with no goal, prior-knowledge, time or energy setup gate
 - Grounded source coverage with candidate gaps that never authorize search
-- A 2–5 concept dependency map, adjustable route and one 60–120 second start action
+- A concise 2–5 concept dependency framework followed by a direct first-concept explanation; no route-adjustment decision or pre-test gate
 - Shared server-side GPT-5.6 Responses API gateway with Pydantic Structured Outputs; the interactive default is the low-latency `gpt-5.6-luna` variant
 - Server validation of every generated source/chunk reference before persistence or rendering
 - Internal fixture/real-model separation, AI activity metadata and recoverable no-key/model errors
-- Server-versioned start-action and focus-note drafts with visible save/offline/failure/conflict states
+- Server-versioned focus-note and activity drafts with visible save/offline/failure/conflict states; legacy start-action drafts remain API-compatible but are absent from the learner flow
 - Explicit two-copy draft conflict comparison and user-selected resolution
-- One-current-concept focus workspace with compact route, source-backed explanation and one dominant action
+- One-current-concept focus workspace with a compact route, definition, key steps, concrete example, lightweight inline citations and one dominant Tutor action
 - Session timer, optional hiding, pause/resume mutation lock and refresh-safe restoration
 - Desktop three-column, tablet reflow and 390 px mobile session navigation
 - Saved-exit summary with a concrete next restart action
@@ -53,7 +53,7 @@
 - Six concrete Tutor quick actions, free questions and a visible seven-level guidance ladder
 - Strict typed Tutor responses with validated source references and explicit uploaded/AI-supplement labels
 - Factual confusion/prerequisite signals that are visibly not Agent decisions or search requests
-- Tutor pause/resume, refresh recovery, source-view return focus and full-screen 390 px mobile flow
+- Tutor pause/resume, refresh recovery, inline source context and full-screen 390 px mobile flow
 - Real GPT-5.6 Tutor contract path with no tools exposed; deterministic Tutor remains test-only
 - One-question Quiz with server-only answer keys and misconception-based distractors
 - Free recall with server-only key points, acceptable paraphrases and misconception patterns
@@ -84,7 +84,7 @@
 - Durable search confirmation, running, result, failure, cancel and focus-return recovery states
 - Searchable/filterable learning history, session copy/delete, JSON/Markdown export, AI activity log and full workspace deletion
 - Saved larger-text, reduced-motion, timer-default and search-suggestion preferences
-- Exact source-location issue reporting without learning-progress side effects
+- Exact source-location validation and lightweight learner-facing citations without learning-progress side effects
 - API no-store policy and hardened CSP, frame, MIME, referrer, permissions and opener headers
 - Schema-preserving migration from uploaded-only source origins and a complete automated regression suite
 - Upload-flow refinement keeps file status and the next learning action inside the primary upload panel; the homepage no longer exposes administrative/system-boundary cards
@@ -94,6 +94,12 @@
 - Model timeout, connection, authentication, access, rate-limit and invalid-request failures use distinct recoverable messages; interrupted operations are closed on server restart instead of remaining stuck as running
 - Model-facing citations use short aliases that are mapped back to real source/chunk IDs and revalidated before persistence; impossible generated prerequisite links are removed deterministically before the full map integrity check
 - Homepage value proposition now leads with fast initiation, a coherent knowledge structure, sustained concept-by-concept progress and learning completion; material upload is the mechanism, not the product promise
+- Explanation-first flow removes the suggested-outcome card, duplicate recommended-route card, route-adjustment controls, the pre-learning response test and the full-panel source preview; one click from the knowledge framework now opens the first concept lesson
+
+## Latest verification
+
+- 50 automated tests pass after the explanation-first flow change
+- Browser verification confirms the simplified upload page, concise knowledge framework, direct first-concept start, visible explanation sections, expandable inline source excerpt, English-only UI, no gradients and no horizontal overflow at 1280 px
 
 ## Next action
 

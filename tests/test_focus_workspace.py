@@ -15,6 +15,33 @@ async def prepare_start_action(client, *, demo_scenario: str = "standard"):
     return (await client.get(f"/api/sessions/{session['id']}")).json()["session"]
 
 
+def test_learning_starts_with_explanation_without_a_pretest(tmp_path: Path) -> None:
+    async def scenario() -> None:
+        app = make_app(tmp_path)
+        async with app_client(app) as client:
+            session = await create_session(client)
+            await client.post(f"/api/sessions/{session['id']}/demo-materials")
+            session = (await client.get(f"/api/sessions/{session['id']}")).json()["session"]
+            await build_learning_path(client, session)
+            session = (await client.get(f"/api/sessions/{session['id']}")).json()["session"]
+
+            started = await client.post(
+                f"/api/sessions/{session['id']}/learn/start",
+                json={"version": session["version"]},
+            )
+
+            assert started.status_code == 200
+            body = started.json()
+            assert body["session"]["state"] == "learning_concept"
+            assert body["active_concept"]["concept_key"] == "transformer_goal"
+            assert len(body["active_concept"]["key_points"]) >= 2
+            assert body["active_concept"]["concrete_example"]
+            assert body["active_concept"]["source_ref_details"][0]["excerpt"]
+            assert body["drafts"]["start_action"] is None
+
+    asyncio.run(scenario())
+
+
 def test_versioned_drafts_preserve_both_conflict_copies(tmp_path: Path) -> None:
     async def scenario() -> None:
         app = make_app(tmp_path)

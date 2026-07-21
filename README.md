@@ -27,8 +27,8 @@ Open `http://127.0.0.1:8000`, select **Upload material and start learning**, upl
 ## Product boundary
 
 1. Uploaded or pasted material is the required primary learning source and the only starting path.
-2. StartFrame preserves real source locations, lets AI select a learning focus from the material, and creates a verifiable 2–5 concept map plus one 60–120 second start action.
-3. The learner completes no setup form. The first response, Tutor interaction, Quiz, recall, and later evidence gradually calibrate support; the app never claims to know prior mastery from the document alone.
+2. StartFrame preserves real source locations, lets AI select a learning focus from the material, and creates a verifiable 2–5 concept knowledge framework.
+3. The learner completes no setup form or pre-test. One click opens the first beginner-friendly explanation; Tutor interaction, Quiz, recall, and later validated evidence gradually calibrate support.
 4. Tutor explains, asks questions, and guides only the active concept.
 5. Tutor, Quiz, free recall, progressive hints, immediate feedback, specific encouragement, and remedial practice form the Guided Mastery Loop.
 6. The loop produces factual `LearningEvidence` with no recommendation fields.
@@ -40,8 +40,8 @@ The product is ADHD-informed, but it makes no medical, diagnostic, or treatment 
 ## What works
 
 - PDF, Markdown, TXT, and pasted-text ingestion with page, heading, line, paragraph, and character locations
-- Stable chunks, checksums, source preview, parsing progress, partial success, retry, cancellation, deletion, and location reports
-- Source coverage, named gaps, dependency map, adjustable route, and short start action
+- Stable chunks, checksums, parsing progress, partial success, retry, cancellation, deletion, and lightweight inline source citations
+- Source coverage, named gaps, a concise dependency map, and explanation-first concept lessons
 - One-active-concept focus workspace with optional timer, autosave, optimistic conflict resolution, pause, exact resume, and concrete restart action
 - Source-grounded Tutor with six quick supports, free questions, a guidance ladder, persistent conversation, and factual confusion signals
 - One-question Quiz, misconception-based distractors, free recall, and three progressive hint levels
@@ -56,7 +56,7 @@ The product is ADHD-informed, but it makes no medical, diagnostic, or treatment 
 
 Real mode calls the OpenAI Responses API only from the FastAPI server. GPT-5.6 is used for:
 
-- source coverage, knowledge-map creation, and the short start action;
+- source coverage, knowledge-map creation, and concept explanations;
 - contextual Tutor guidance;
 - Quiz and recall generation;
 - structured feedback and targeted remediation;

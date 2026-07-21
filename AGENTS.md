@@ -7,7 +7,7 @@ Read `STARTFRAME_FULL_SPEC_CN.md`, `PLANS.md`, the relevant numbered files in `d
 ## Product boundaries
 
 - Uploaded learning material is the required primary source and the only product entry path.
-- Do not gate learning behind a goal, prior-knowledge, time or energy form. AI proposes the learning focus and map from the material; the learner's starting response and later evidence calibrate support.
+- Do not gate learning behind a goal, prior-knowledge, time or energy form or a pre-test. AI proposes the learning focus and map from the material, then opens a beginner-friendly first explanation; later validated learning evidence calibrates support.
 - Guided Mastery Loop teaches and evaluates the active concept.
 - Adaptive Planning Agent only selects one next action from validated evidence.
 - `LearningEvidence` contains observations, never recommendations.

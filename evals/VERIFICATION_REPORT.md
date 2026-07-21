@@ -10,7 +10,7 @@ Live GPT-5.6 status: passed an isolated real-mode core flow on 2026-07-21
 
 | Case | Result | Verification evidence |
 |---|---|---|
-| C01 Grounded upload | Pass | Markdown/PDF/pasted parsing tests plus browser source previews resolve exact saved locations. |
+| C01 Grounded upload | Pass | Markdown/PDF/pasted parsing tests plus inline citations resolve exact saved locations. |
 | C02 Partial file failure | Pass | Mixed-upload and blank-page PDF tests preserve usable sources and return recovery details. |
 | C03 No fabricated location | Pass | Invalid model references fail before persistence; the UI renders only validated references. |
 | C04 Start action | Pass | Generated actions are schema-bounded to 60–120 seconds and require one saved checkable response. |
@@ -61,7 +61,7 @@ Live GPT-5.6 status: passed an isolated real-mode core flow on 2026-07-21
 ## Additional hardening
 
 - Upload or pasted material is the only learning entry; the app has no topic-only substitute or setup form.
-- Automated coverage verifies upload → AI-selected focus/map → starting response → explanation/Tutor/Quiz/recall visibility.
+- Automated coverage verifies upload → AI-selected knowledge framework → direct first explanation → Tutor/Quiz/recall visibility.
 - Source-location reports are workspace-owned, tied to an exact chunk, exportable, and do not alter learning progress.
 - History search/filter, session copy/delete, JSON/Markdown export, AI activity, full workspace deletion, larger text, reduced motion, and new-session defaults are user-accessible.
 - API responses are `no-store`; CSP, frame denial, MIME sniff prevention, referrer policy, permissions policy, opener isolation, secure-cookie support, and conditional HSTS are enabled.
@@ -76,4 +76,4 @@ With `OPENAI_API_KEY` configured only in the ignored local `.env`, `scripts/live
 
 On 2026-07-21, a 49-page, 72-chunk uploaded PDF reproduced the visible learning-path failure. The corrected production path used `gpt-5.6-luna`, sampled representative excerpts across the full document, and completed real source coverage in 18.9 seconds plus the five-concept knowledge map in 13.9 seconds. The API key and generated learning content were not printed. The browser then restored a saved map, showed verified source locations, contained no Chinese UI text, used no background image or gradient, and matched the viewport width at desktop size.
 
-After source-reference aliasing and deterministic route-link normalization were added, the isolated current-flow smoke script passed automatic `gpt-5.6-luna` learning-path generation, starting response, Tutor, Quiz, structured feedback, recommendation-free `LearningEvidence`, and the Agent's exactly-one-action decision. The final automated regression suite contained 49 passing tests.
+After source-reference aliasing and deterministic route-link normalization were added, the isolated current-flow smoke script passed automatic `gpt-5.6-luna` learning-path generation, concept explanation, Tutor, Quiz, structured feedback, recommendation-free `LearningEvidence`, and the Agent's exactly-one-action decision. The regression count is updated in `PROJECT_STATUS.md` after each product-flow change.

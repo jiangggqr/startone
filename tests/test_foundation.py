@@ -53,6 +53,11 @@ def test_homepage_serves_accessible_app_shell(tmp_path: Path) -> None:
     assert "Upload material and start learning" in response.text
     assert "AI and technical learning first" in response.text
     assert "Build my learning path" in response.text
+    assert "Start learning the first concept" in response.text
+    assert 'id="start-action-view"' not in response.text
+    assert "Verifiable preview" not in response.text
+    assert "Suggested outcome" not in response.text
+    assert "Recommended route" not in response.text
     assert "Demo mode" not in response.text
     assert "Enter a topic only" not in response.text
     assert 'id="setup-view"' not in response.text
