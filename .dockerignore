@@ -1,0 +1,17 @@
+.git
+.github
+.venv
+.env
+.DS_Store
+.pytest_cache
+__pycache__
+*.pyc
+*.sqlite3
+*.db
+instance
+prototype
+docs
+evals
+references
+submission
+tests

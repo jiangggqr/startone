@@ -63,3 +63,5 @@ Audit and close gaps in loading, empty, error, partial-success, offline and reco
 ## Milestone 8 — Submission readiness
 
 Finalize README, license, setup, deployment or judge path, sample data, under-three-minute video, Devpost copy, Codex build log and `/feedback` Session ID.
+
+**Status:** Local release and submission package complete on 2026-07-21. Version 1.0.0 includes public workspace quotas, Docker/Render deployment files, CI, MIT license, English README, judge instructions, Devpost copy, a timed 2:50 video script, final checklist and verified `/feedback` Session ID. Remaining external gates are one live GPT-5.6 smoke flow, a public repository and Demo deployment, video recording/upload, and the user-confirmed final Devpost action.

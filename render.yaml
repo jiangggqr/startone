@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: startframe-agent
+    runtime: docker
+    plan: free
+    region: singapore
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: STARTFRAME_MODE
+        value: demo
+      - key: STARTFRAME_HOST
+        value: 0.0.0.0
+      - key: STARTFRAME_SECURE_COOKIES
+        value: "true"
+      - key: STARTFRAME_MAX_FILE_MB
+        value: "20"
+      - key: STARTFRAME_MAX_FILES
+        value: "5"
+      - key: STARTFRAME_MAX_SESSIONS_PER_WORKSPACE
+        value: "20"
+      - key: STARTFRAME_MAX_SOURCES_PER_WORKSPACE
+        value: "50"

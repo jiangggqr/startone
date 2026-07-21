@@ -18,6 +18,7 @@
 - Milestone 5 Adaptive Planning Agent: complete
 - Milestone 6 controlled external search: complete
 - Milestone 7 production hardening: implementation and Demo verification complete; live GPT-5.6 smoke test pending a server-side key
+- Milestone 8 submission readiness: local 1.0.0 release package complete; external publication steps pending
 - Production UI language: English
 
 ## What the prototype is
@@ -89,4 +90,4 @@
 
 ## Next action
 
-Prepare Milestone 8 submission artifacts and deployment/judge path. Run the one remaining live GPT-5.6 smoke test when a server-side key is configured.
+Configure a server-side key for one private live GPT-5.6 smoke flow, then publish the repository and no-key Demo, record/upload the under-three-minute English video, replace the three pending URLs in `submission/DEVPOST_SUBMISSION.md`, and obtain user confirmation before the final Devpost submission action.

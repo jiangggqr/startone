@@ -84,9 +84,28 @@ def validate_file_bytes(media_kind: str, data: bytes) -> None:
         )
 
 
-def create_session(database_path: Path, workspace_id: str, mode: str) -> dict[str, Any]:
+def create_session(
+    database_path: Path,
+    workspace_id: str,
+    mode: str,
+    max_sessions: int | None = None,
+) -> dict[str, Any]:
     session_id = str(uuid.uuid4())
     with connect(database_path) as connection:
+        if max_sessions is not None:
+            session_count = int(
+                connection.execute(
+                    "SELECT COUNT(*) AS count FROM learning_sessions WHERE workspace_id = ?",
+                    (workspace_id,),
+                ).fetchone()["count"]
+            )
+            if session_count >= max_sessions:
+                raise SourceError(
+                    "workspace_session_quota_reached",
+                    f"This workspace can keep up to {max_sessions} study sessions. Delete one before starting another.",
+                    status_code=429,
+                    saved_state="Your existing sessions and sources are unchanged.",
+                )
         connection.execute(
             """
             INSERT INTO learning_sessions(id, workspace_id, name, mode)
@@ -151,6 +170,7 @@ def store_source(
     media_kind: str,
     data: bytes,
     source_origin: str = "uploaded",
+    max_sources: int | None = None,
 ) -> dict[str, Any]:
     get_session(database_path, workspace_id, session_id)
     if source_origin not in {"uploaded", "ai_supplement"}:
@@ -160,6 +180,20 @@ def store_source(
     workspace_dir.mkdir(parents=True, exist_ok=True)
 
     with connect(database_path) as connection:
+        if max_sources is not None:
+            source_count = int(
+                connection.execute(
+                    "SELECT COUNT(*) AS count FROM source_documents WHERE workspace_id = ?",
+                    (workspace_id,),
+                ).fetchone()["count"]
+            )
+            if source_count >= max_sources:
+                raise SourceError(
+                    "workspace_source_quota_reached",
+                    f"This workspace can keep up to {max_sources} sources. Remove one before adding another.",
+                    status_code=429,
+                    saved_state="Your existing sessions, sources, and uploaded files are unchanged.",
+                )
         blob = connection.execute(
             "SELECT * FROM source_blobs WHERE workspace_id = ? AND checksum = ?",
             (workspace_id, checksum),

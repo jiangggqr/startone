@@ -2,7 +2,7 @@
 
 Date: 2026-07-21  
 Application mode: deterministic Demo  
-Automated result: `43 passed`  
+Automated result: `45 passed`
 Browser widths exercised: 390 px, 640 px zoom-equivalent, and desktop  
 Live GPT-5.6 status: contract-tested; one live smoke test remains pending a server-side key
 
@@ -64,8 +64,10 @@ Live GPT-5.6 status: contract-tested; one live smoke test remains pending a serv
 - Source-location reports are workspace-owned, tied to an exact chunk, exportable, and do not alter learning progress.
 - History search/filter, session copy/delete, JSON/Markdown export, AI activity, full workspace deletion, larger text, reduced motion, and new-session defaults are user-accessible.
 - API responses are `no-store`; CSP, frame denial, MIME sniff prevention, referrer policy, permissions policy, opener isolation, secure-cookie support, and conditional HSTS are enabled.
+- Public-release defaults enforce 20 sessions and 50 sources per anonymous workspace; quota failures preserve existing data and return a recoverable English error envelope.
 - Export excludes API keys, server paths, hidden answer keys, internal prompts, and model response IDs.
-- Secret scan, Python compilation, dependency integrity, diff hygiene, English UI scan, and no-gradient scan pass.
+- The 1.0.0 release browser check loaded the standard two-source judge fixture; at 390 px the document width equaled the viewport, no visible control was below 24×24 CSS px, no Chinese UI was present, and the computed body background image was `none`.
+- Secret scan, Python compilation, dependency integrity, diff hygiene, English UI scan, no-gradient scan, and deployment YAML parsing pass.
 
 ## Remaining external verification
 

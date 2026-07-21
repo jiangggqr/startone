@@ -9,6 +9,36 @@
 - `PLANS.md`：按依赖关系排列的开发里程碑。
 - `STARTFRAME_FULL_SPEC_CN.md`：完整产品方案总入口。
 - `CODEX_BUILD_LOG.md`：记录 Codex 贡献、人工决策、测试和 Session ID。
+- `LICENSE`：MIT 开源许可证。
+- `requirements.txt`：Python 运行与测试依赖。
+- `.env.example`：不含密钥的本地配置模板。
+- `Dockerfile`、`.dockerignore`、`render.yaml`、`DEPLOYMENT.md`：容器与 Render 评委 Demo 部署入口。
+
+## `app/`
+
+- `main.py`：FastAPI 路由、匿名 workspace、安全头与静态应用入口。
+- `db.py`：SQLite schema、迁移和连接管理。
+- `sources.py`、`learning.py`、`focus.py`：来源、地图与可恢复专注会话。
+- `tutor.py`、`activities.py`、`mastery.py`：Guided Mastery Loop。
+- `agent.py`、`search.py`：单动作规划 Agent 与四重门受控搜索。
+- `ai.py`、`topic.py`：GPT-5.6 Responses API、结构化输出与主题备用来源。
+- `records.py`：会话复制/删除、总结、导出、AI 活动和 workspace 数据控制。
+- `static/`：全英文、纯色背景的生产 HTML/CSS/JavaScript UI。
+
+## `tests/`
+
+- 覆盖基础服务、来源、学习路径、专注会话、Tutor、练习、反馈、Evidence、Agent、搜索、主题备用路径与数据控制的自动化测试。
+
+## `.github/`
+
+- `workflows/tests.yml`：Python 3.13 自动测试与依赖完整性检查。
+
+## `submission/`
+
+- `JUDGE_TESTING_GUIDE.md`：无需 Key 的主评委路径与受控搜索路径。
+- `DEVPOST_SUBMISSION.md`：完整英文 Devpost 文案和待替换链接。
+- `DEMO_VIDEO_SCRIPT.md`：目标 2 分 50 秒的英文分镜与旁白。
+- `FINAL_CHECKLIST.md`：官方提交规则、外部发布步骤和最终确认清单。
 
 ## `prototype/`
 

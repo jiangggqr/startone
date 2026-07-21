@@ -1,6 +1,6 @@
 # 17 Demo 与提交设计
 
-## Official Rules 基线（核对于 2026-07-20）
+## Official Rules 基线（再次核对于 2026-07-21）
 
 - 提交截止：2026-07-21 17:00 Pacific Time，即 2026-07-22 08:00 新加坡时间
 - 类别：Education
@@ -98,3 +98,4 @@ README 首页提供：
 - 仓库必须公开并带适用许可证，或私有共享给 `testing@devpost.com` 与 `build-week-event@openai.com`
 - README 明确标出 Codex 加速点、人工产品/工程/设计决策和 GPT-5.6 的实际职责
 - Devpost 草稿可在截止前修改；截止后不能实质修改提交内容
+- 免费评委访问必须保持至评审期结束：2026-08-05 17:00 Pacific Time

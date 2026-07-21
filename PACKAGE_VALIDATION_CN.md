@@ -1,5 +1,7 @@
 # V4 修订规格与 UI/UX 原型基线检查报告
 
+> 历史基线说明：本报告与 `PACKAGE_MANIFEST.json` 只证明应用代码创建前的规格包状态。下方“无生产应用代码”和结论描述的是基线 commit，不是当前仓库状态；当前实现与验证结果以 `PROJECT_STATUS.md`、`CODEX_BUILD_LOG.md` 和 `evals/VERIFICATION_REPORT.md` 为准。
+
 - Overall: PASS
 - Files checked before manifest: 35
 - Prototype screens: 22

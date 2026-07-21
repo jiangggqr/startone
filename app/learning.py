@@ -131,6 +131,7 @@ def load_demo_materials(
             "text/markdown",
             "markdown",
             data,
+            max_sources=settings.max_sources_per_workspace,
         )
         process_source(settings.database_path, workspace_id, str(source["id"]))
         created.append(source)

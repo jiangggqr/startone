@@ -35,7 +35,7 @@ def test_health_initializes_versioned_database(tmp_path: Path) -> None:
         "mode": "demo",
         "database": "ready",
         "schema_version": 11,
-        "version": "0.9.0",
+        "version": "1.0.0",
     }
     assert response.headers["cache-control"] == "no-store"
     assert (tmp_path / "test.sqlite3").exists()
@@ -56,3 +56,25 @@ def test_homepage_serves_accessible_app_shell(tmp_path: Path) -> None:
     assert response.headers["cross-origin-opener-policy"] == "same-origin"
     assert "frame-ancestors 'none'" in response.headers["content-security-policy"]
     assert "object-src 'none'" in response.headers["content-security-policy"]
+
+
+def test_public_workspace_session_quota_is_enforced(tmp_path: Path) -> None:
+    async def scenario() -> None:
+        app = create_app(Settings(
+            mode="demo",
+            database_path=tmp_path / "quota.sqlite3",
+            upload_dir=tmp_path / "uploads",
+            max_sessions_per_workspace=1,
+        ))
+        async with app.router.lifespan_context(app):
+            transport = httpx.ASGITransport(app=app)
+            async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+                first = await client.post("/api/sessions")
+                second = await client.post("/api/sessions")
+
+        assert first.status_code == 201
+        assert second.status_code == 429
+        assert second.json()["error_code"] == "workspace_session_quota_reached"
+        assert second.json()["saved_state"] == "Your existing sessions and sources are unchanged."
+
+    asyncio.run(scenario())

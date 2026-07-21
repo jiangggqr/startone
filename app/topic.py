@@ -78,6 +78,7 @@ def create_topic_source(
             "markdown",
             _topic_markdown(output, settings.mode).encode("utf-8"),
             source_origin="ai_supplement",
+            max_sources=settings.max_sources_per_workspace,
         )
         process_source(settings.database_path, workspace_id, str(source["id"]))
         created = next(

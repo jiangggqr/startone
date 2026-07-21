@@ -346,6 +346,7 @@ def create_app(
             resolved_settings.database_path,
             _workspace_id(request),
             resolved_settings.mode,
+            resolved_settings.max_sessions_per_workspace,
         )
         return {"session": _public_session(session)}
 
@@ -369,6 +370,8 @@ def create_app(
             resolved_settings.database_path,
             _workspace_id(request),
             session_id,
+            resolved_settings.max_sessions_per_workspace,
+            resolved_settings.max_sources_per_workspace,
         )
         return {"session": _public_session(session)}
 
@@ -482,6 +485,7 @@ def create_app(
                     media_type,
                     media_kind,
                     data,
+                    max_sources=resolved_settings.max_sources_per_workspace,
                 )
                 accepted.append(_public_source(source))
                 background_tasks.add_task(
@@ -537,6 +541,7 @@ def create_app(
             "text/plain",
             "pasted",
             data,
+            max_sources=resolved_settings.max_sources_per_workspace,
         )
         background_tasks.add_task(
             process_source,

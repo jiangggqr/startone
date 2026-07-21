@@ -191,3 +191,17 @@ Record one section after each verified milestone.
 - Security/privacy verification: API responses use `no-store`; browser headers deny framing and sensitive capabilities; exports exclude keys, server paths, hidden rubrics, internal prompts and response IDs; source/report/session access is workspace-scoped
 - Problems and corrections: the production topic-only card was initially static and is now fully functional; AI fallback provenance initially risked being relabeled downstream and is now derived at every layer; the audit also found missing source reports, history filters and user accessibility preferences, all of which are now implemented rather than deferred
 - Remaining limitation: one real GPT-5.6 smoke flow requires a server-side `OPENAI_API_KEY`; deterministic Demo and all real request contracts are already verified without exposing a secret
+
+## Milestone 8 — Submission readiness
+
+- Status: local release package complete; external publication gates pending
+- Date: 2026-07-21
+- Codex thread/session: `019f7ff7-6b6a-74d1-98b2-2f895e28bbce`
+- Git commit: Milestone 8 focused commit (this commit)
+- Goal: produce a judge-ready 1.0.0 release, deployment path and complete English submission package without exposing credentials or prematurely publishing the final entry
+- Codex contribution: rechecked the live Devpost overview and Official Rules; added public per-workspace quotas, release metadata, non-root Docker packaging, a Render Blueprint, CI, MIT license, deployment documentation, judge instructions, full Devpost copy, a timed 2:50 video script and a final compliance checklist; also resolved the historical package-validation wording that could be mistaken for current status
+- Human product decisions: the public anonymous deployment stays in visibly labeled deterministic Demo mode without an OpenAI key; the required live GPT-5.6 verification is private and server-side; final repository publication, hosting, YouTube upload and Devpost submit remain explicit user-controlled external actions
+- Verification: 45 automated tests passed; dependency integrity and diff hygiene passed; Render YAML parsed; `/api/health` reported version 1.0.0 and schema 11; official requirements were verified against `openai.devpost.com` and its rules page on 2026-07-21
+- Browser verification: the release opened from a fresh request, created a session, loaded both standard Demo sources, rendered exact source locations and showed an English-only healthy Demo state; at 390 px, document width matched viewport width, no visible control was under 24×24 CSS px, body background image was `none`, and no Chinese UI string was present
+- Problems and corrections: GitHub CLI was installed but its saved authentication token was invalid, so no repository was created or pushed and no URL was fabricated; Docker was unavailable locally, so the image definition is covered by source review and the app itself was smoke-tested with the same Uvicorn entry point, while final platform build remains an external deployment gate
+- Remaining external gates: server-side GPT-5.6 key and smoke flow; Git hosting authentication and public/private judge access; public HTTPS Demo; under-three-minute public YouTube video; replacement of pending URLs; user-confirmed Devpost submission before the deadline

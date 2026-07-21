@@ -134,6 +134,33 @@ def test_mixed_upload_reports_partial_success(tmp_path: Path) -> None:
     asyncio.run(scenario())
 
 
+def test_public_workspace_source_quota_is_enforced(tmp_path: Path) -> None:
+    async def scenario() -> None:
+        app = create_app(Settings(
+            mode="demo",
+            database_path=tmp_path / "quota.sqlite3",
+            upload_dir=tmp_path / "uploads",
+            max_sources_per_workspace=1,
+        ))
+        async with app_client(app) as client:
+            session_id = await create_session(client)
+            first = await client.post(
+                f"/api/sessions/{session_id}/pasted-sources",
+                json={"title": "First source", "text": "A grounded learning note."},
+            )
+            second = await client.post(
+                f"/api/sessions/{session_id}/pasted-sources",
+                json={"title": "Second source", "text": "Another grounded note."},
+            )
+
+        assert first.status_code == 202
+        assert second.status_code == 429
+        assert second.json()["error_code"] == "workspace_source_quota_reached"
+        assert "existing sessions" in second.json()["saved_state"]
+
+    asyncio.run(scenario())
+
+
 def test_pasted_text_uses_paragraph_locations(tmp_path: Path) -> None:
     async def scenario() -> None:
         app = make_app(tmp_path)

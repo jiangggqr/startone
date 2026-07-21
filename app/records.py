@@ -16,6 +16,8 @@ def copy_session(
     database_path: Path,
     workspace_id: str,
     session_id: str,
+    max_sessions: int | None = None,
+    max_sources: int | None = None,
 ) -> dict[str, Any]:
     """Create a fresh study session that reuses immutable source blobs."""
 
@@ -28,6 +30,17 @@ def copy_session(
         "setup_completed",
     )
     with connect(database_path) as connection:
+        session_count = int(connection.execute(
+            "SELECT COUNT(*) AS count FROM learning_sessions WHERE workspace_id = ?",
+            (workspace_id,),
+        ).fetchone()["count"])
+        if max_sessions is not None and session_count >= max_sessions:
+            raise SourceError(
+                "workspace_session_quota_reached",
+                f"This workspace can keep up to {max_sessions} study sessions. Delete one before copying another.",
+                status_code=429,
+                saved_state="The original session and all existing data are unchanged.",
+            )
         source_rows = connection.execute(
             """
             SELECT * FROM source_documents
@@ -36,6 +49,17 @@ def copy_session(
             """,
             (session_id, workspace_id),
         ).fetchall()
+        source_count = int(connection.execute(
+            "SELECT COUNT(*) AS count FROM source_documents WHERE workspace_id = ?",
+            (workspace_id,),
+        ).fetchone()["count"])
+        if max_sources is not None and source_count + len(source_rows) > max_sources:
+            raise SourceError(
+                "workspace_source_quota_reached",
+                f"Copying this session would exceed the workspace limit of {max_sources} sources. Remove sources or another session first.",
+                status_code=429,
+                saved_state="The original session and all existing data are unchanged.",
+            )
         new_state = "sources_reviewable" if source_rows else "session_created"
         connection.execute(
             f"""
