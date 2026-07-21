@@ -1,0 +1,9 @@
+# id	short_title	caption	preferred_capture
+01_problem	Start with one source	One clear first step. One connected learning loop.	01_landing.png
+02_sources	Your material stays primary	Upload or paste notes. No setup form. No pre-test.	02_upload.png
+03_map	See the whole, then focus on one	A clickable dependency map leads directly to explanation.	03_map.png,04_explanation.png
+04_tutor	Guided Mastery Loop	Tutor guidance, three-question Quiz, free recall and hints.	05_tutor.png,06_quiz.png
+05_feedback	A truthful win, then keep going	LearningEvidence records facts; the Agent chooses one safe next action.	07_feedback.png,08_next.png
+06_search	External search has four gates	A named gap, Agent request and exact learner confirmation are required.	09_search.png
+07_recovery	Interruptions are recoverable	Autosave, pause, exact resume and lightweight citations.	10_resume.png,04_explanation.png
+08_build	Built with Codex and GPT-5.6	Structured Outputs, bounded actions and 52 passing tests.	11_build.png,01_landing.png

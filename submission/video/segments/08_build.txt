@@ -1,0 +1,1 @@
+Codex transformed the product specification, prototype, and acceptance cases into this tested FastAPI application, while I set the learning boundaries and corrected issues found through browser review. GPT-5.6 powers the public structured map, explanations, Tutor, practice, feedback, and bounded planning flow. Deterministic fixtures remain isolated to automated tests.

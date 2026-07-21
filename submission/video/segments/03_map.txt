@@ -1,0 +1,1 @@
+GPT-5.6 returns schema-validated coverage and a connected dependency map. Every node is clickable, so the learner can see what a concept means and where it belongs without changing the route. One clear action opens a beginner-friendly explanation: the big idea, its place in the framework, key parts, a concrete example, and one memory anchor.

@@ -1,0 +1,1 @@
+The learner uploads a PDF, Markdown or text file, or pastes notes. Uploaded material is required and remains the primary source. Parsing results stay inside the upload panel, with real page or line locations. One button lets AI choose a learning focus, connect the concepts, and prepare the first explanation. There is no setup form and no pre-test.

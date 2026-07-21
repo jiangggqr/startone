@@ -11,7 +11,7 @@ Record one section after each verified milestone.
 - Main Codex thread/session: current StartFrame Agent task
 - Decisions resolved: four search gates; Evidence-only learning judgment; local vs global next action; anonymous workspace isolation; file storage/delete/export; source location schemes; pause/conflict recovery; normal/search Demo fixtures; Milestone 2 real-model entry
 - Competition verification: OpenAI Build Week homepage and Official Rules reviewed
-- Verification: 18 numbered specs present; 22 prototype screens; navigation targets valid; prototype JavaScript parses; manifest hashes regenerated
+- Verification: 18 numbered specs present; 17 retained prototype views after product-scope simplification; navigation targets valid; prototype JavaScript parses; manifest hashes regenerated
 
 ## Milestone 0 — Runnable foundation
 

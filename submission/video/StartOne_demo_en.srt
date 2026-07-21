@@ -1,0 +1,100 @@
+1
+00:00:00,000 --> 00:00:05,833
+Wanting to learn is not the same as getting started, seeing how ideas fit together, or finishing.
+
+2
+00:00:05,833 --> 00:00:15,097
+StartOne turns one uploaded source into one clear first step, a visual knowledge map, and a focused learning loop that keeps moving one concept at a time.
+
+3
+00:00:15,817 --> 00:00:20,325
+The learner uploads a PDF, Markdown or text file, or pastes notes.
+
+4
+00:00:20,325 --> 00:00:23,706
+Uploaded material is required and remains the primary source.
+
+5
+00:00:23,706 --> 00:00:28,591
+Parsing results stay inside the upload panel, with real page or line locations.
+
+6
+00:00:28,591 --> 00:00:34,602
+One button lets AI choose a learning focus, connect the concepts, and prepare the first explanation.
+
+7
+00:00:34,602 --> 00:00:37,608
+There is no setup form and no pre-test.
+
+8
+00:00:38,328 --> 00:00:41,839
+GPT-5.6 returns schema-validated coverage and a connected dependency map.
+
+9
+00:00:41,839 --> 00:00:50,033
+Every node is clickable, so the learner can see what a concept means and where it belongs without changing the route.
+
+10
+00:00:50,033 --> 00:00:59,396
+One clear action opens a beginner-friendly explanation: the big idea, its place in the framework, key parts, a concrete example, and one memory anchor.
+
+11
+00:01:00,116 --> 00:01:08,437
+If the learner gets stuck, the contextual Tutor explains and asks smaller questions, but only for the active concept.
+
+12
+00:01:08,437 --> 00:01:13,254
+A three-question quiz or one free-recall response then creates active retrieval.
+
+13
+00:01:13,254 --> 00:01:19,822
+Hints, immediate feedback, specific encouragement, and targeted remediation all stay inside the Guided Mastery Loop.
+
+14
+00:01:20,542 --> 00:01:27,645
+Quiz feedback is intentionally small: the score, each answer, why it is correct, and one truthful win.
+
+15
+00:01:27,645 --> 00:01:32,241
+Behind the interface, the loop records factual LearningEvidence with no recommendation.
+
+16
+00:01:32,241 --> 00:01:41,851
+Keep going asks the planning Agent for exactly one bounded action and automatically enters the next safe learning task, avoiding another decision screen.
+
+17
+00:01:42,571 --> 00:01:56,923
+External search is impossible until four gates pass: the session permits search suggestions, the server validates a named material gap, the Agent requests search, and the learner confirms this exact scope.
+
+18
+00:01:56,923 --> 00:02:00,627
+Only that confirmed execution receives the web-search tool.
+
+19
+00:02:00,627 --> 00:02:06,646
+Cited results are clearly labeled as external supplements; uploaded material always remains primary.
+
+20
+00:02:07,366 --> 00:02:12,469
+Autosave, conflict-safe drafts, pause and exact resume make interruption recoverable.
+
+21
+00:02:12,469 --> 00:02:17,062
+Lightweight source citations preserve trust without distracting from learning.
+
+22
+00:02:17,062 --> 00:02:25,228
+The interface is English, responsive, keyboard-oriented, and uses calm, flat backgrounds with one visually dominant action.
+
+23
+00:02:25,948 --> 00:02:39,219
+Codex transformed the product specification, prototype, and acceptance cases into this tested FastAPI application, while I set the learning boundaries and corrected issues found through browser review.
+
+24
+00:02:39,219 --> 00:02:46,100
+GPT-5.6 powers the public structured map, explanations, Tutor, practice, feedback, and bounded planning flow.
+
+25
+00:02:46,100 --> 00:02:49,541
+Deterministic fixtures remain isolated to automated tests.
+

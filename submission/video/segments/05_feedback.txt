@@ -1,0 +1,1 @@
+Quiz feedback is intentionally small: the score, each answer, why it is correct, and one truthful win. Behind the interface, the loop records factual LearningEvidence with no recommendation. Keep going asks the planning Agent for exactly one bounded action and automatically enters the next safe learning task, avoiding another decision screen.

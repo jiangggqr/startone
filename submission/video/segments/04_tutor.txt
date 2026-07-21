@@ -1,0 +1,1 @@
+If the learner gets stuck, the contextual Tutor explains and asks smaller questions, but only for the active concept. A three-question quiz or one free-recall response then creates active retrieval. Hints, immediate feedback, specific encouragement, and targeted remediation all stay inside the Guided Mastery Loop.
