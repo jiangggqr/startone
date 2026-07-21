@@ -16,6 +16,15 @@ from pydantic import BaseModel, Field
 from app import __version__
 from app.config import Settings
 from app.db import current_schema_version, ensure_workspace, initialize_database
+from app.focus import (
+    complete_start_action,
+    get_drafts,
+    get_focus_workspace,
+    pause_session,
+    resolve_draft_conflict,
+    resume_session,
+    save_draft,
+)
 from app.learning import (
     adjust_knowledge_map,
     confirm_knowledge_map,
@@ -82,6 +91,23 @@ class PathAdjustmentRequest(BaseModel):
     route_concept_keys: list[str] = Field(min_length=2, max_length=5)
 
 
+class DraftSaveRequest(BaseModel):
+    content: str = Field(max_length=20_000)
+    hint_depth: int = Field(default=0, ge=0, le=3)
+    version: int = Field(ge=0)
+
+
+class DraftConflictRequest(BaseModel):
+    choice: Literal["local", "server"]
+    local_content: str = Field(default="", max_length=20_000)
+    server_version: int = Field(ge=0)
+    hint_depth: int = Field(default=0, ge=0, le=3)
+
+
+class SessionVersionRequest(BaseModel):
+    version: int = Field(ge=1)
+
+
 def create_app(
     settings: Settings | None = None,
     *,
@@ -115,6 +141,7 @@ def create_app(
                 "retry_after_seconds": None,
                 "field_errors": None,
                 "saved_state": exc.saved_state,
+                "details": exc.details,
                 "request_id": str(uuid.uuid4()),
             },
         )
@@ -505,6 +532,102 @@ def create_app(
             session_id,
         )
 
+    @application.get("/api/sessions/{session_id}/drafts")
+    async def session_drafts(session_id: str, request: Request) -> dict:
+        return {
+            "drafts": get_drafts(
+                resolved_settings.database_path,
+                _workspace_id(request),
+                session_id,
+            )
+        }
+
+    @application.put("/api/sessions/{session_id}/drafts/{draft_type}")
+    async def put_draft(
+        session_id: str,
+        draft_type: str,
+        payload: DraftSaveRequest,
+        request: Request,
+    ) -> dict:
+        draft = save_draft(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            session_id,
+            draft_type,
+            payload.content,
+            payload.hint_depth,
+            payload.version,
+        )
+        return {"draft": draft}
+
+    @application.post("/api/sessions/{session_id}/draft-conflicts/{draft_type}/resolve")
+    async def resolve_conflict(
+        session_id: str,
+        draft_type: str,
+        payload: DraftConflictRequest,
+        request: Request,
+    ) -> dict:
+        draft = resolve_draft_conflict(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            session_id,
+            draft_type,
+            payload.choice,
+            payload.local_content,
+            payload.server_version,
+            payload.hint_depth,
+        )
+        return {"draft": draft}
+
+    @application.post("/api/sessions/{session_id}/start-action/complete")
+    async def finish_start_action(
+        session_id: str,
+        payload: SessionVersionRequest,
+        request: Request,
+    ) -> dict:
+        return complete_start_action(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            session_id,
+            payload.version,
+        )
+
+    @application.get("/api/sessions/{session_id}/focus")
+    async def focus_workspace(session_id: str, request: Request) -> dict:
+        return get_focus_workspace(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            session_id,
+        )
+
+    @application.post("/api/sessions/{session_id}/pause")
+    async def pause_learning_session(
+        session_id: str,
+        payload: SessionVersionRequest,
+        request: Request,
+    ) -> dict:
+        session = pause_session(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            session_id,
+            payload.version,
+        )
+        return {"session": _public_session(session)}
+
+    @application.post("/api/sessions/{session_id}/resume")
+    async def resume_learning_session(
+        session_id: str,
+        payload: SessionVersionRequest,
+        request: Request,
+    ) -> dict:
+        session = resume_session(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            session_id,
+            payload.version,
+        )
+        return {"session": _public_session(session)}
+
     application.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
     return application
 
@@ -544,6 +667,16 @@ def _public_session(session: dict) -> dict:
         "show_timer",
         "search_permission",
         "setup_completed",
+        "resume_state",
+        "is_paused",
+        "active_concept_id",
+        "active_activity_id",
+        "timer_started_at",
+        "elapsed_seconds",
+        "remaining_seconds",
+        "started_at",
+        "last_saved_at",
+        "ended_at",
         "created_at",
         "updated_at",
     }
@@ -552,7 +685,7 @@ def _public_session(session: dict) -> dict:
         import json
 
         result["support_preferences"] = json.loads(session.get("support_preferences_json") or "[]")
-    for key in ("show_timer", "search_permission", "setup_completed"):
+    for key in ("show_timer", "search_permission", "setup_completed", "is_paused"):
         if key in result:
             result[key] = bool(result[key])
     return result

@@ -362,7 +362,7 @@
         <div class="start-shell">
           <div class="start-meta">
             <span class="status-chip" id="start-duration">About 90 seconds</span>
-            <button class="button button-quiet" id="start-save-later" type="button">Pause and save</button>
+            <button class="button button-quiet" id="start-save-later" type="button">Pause session</button>
           </div>
           <p class="eyebrow">Start action · no penalty for being wrong</p>
           <h1 id="start-page-title" tabindex="-1"></h1>
@@ -371,8 +371,98 @@
           <textarea id="start-answer" rows="6" placeholder="Write one sentence. It does not need to be correct."></textarea>
           <div class="completion-box"><strong>Completion condition</strong><p id="start-page-condition"></p></div>
           <div class="form-message" id="start-message" role="status" aria-live="polite" hidden></div>
-          <button class="button button-primary full-width" id="save-start-answer" type="button">Save this starting point</button>
+          <p class="save-state" id="start-save-status" role="status" aria-live="polite">Not saved yet</p>
+          <button class="button button-primary full-width" id="save-start-answer" type="button">Complete and enter focus mode</button>
           <button class="button button-quiet full-width" id="start-back-map" type="button">Review the map again</button>
+        </div>
+      </section>
+
+      <section class="workflow-view focus-view" id="focus-view" aria-labelledby="focus-title" hidden>
+        <div class="focus-topbar">
+          <div>
+            <p class="eyebrow">One active concept</p>
+            <p class="focus-breadcrumb" id="focus-breadcrumb">Learning session</p>
+          </div>
+          <div class="focus-top-actions">
+            <span class="save-state" id="focus-save-status" role="status" aria-live="polite">Saved</span>
+            <button class="button button-quiet" id="pause-session" type="button">Pause session</button>
+          </div>
+        </div>
+
+        <div class="focus-grid">
+          <aside class="focus-map card-panel" id="focus-map-panel" aria-labelledby="focus-map-title">
+            <div class="panel-heading">
+              <h2 id="focus-map-title">Learning map</h2>
+              <span class="status-chip" id="focus-progress-count">1 of 1</span>
+            </div>
+            <ol class="focus-route" id="focus-route"></ol>
+            <button class="button button-secondary full-width" id="review-full-map" type="button">Review full map</button>
+          </aside>
+
+          <article class="focus-learning" id="focus-learn-panel">
+            <div class="concept-heading">
+              <span class="status-chip" id="active-concept-count">Current concept</span>
+              <h1 id="focus-title" tabindex="-1">Current concept</h1>
+              <p class="concept-role"><strong>Why it matters:</strong> <span id="focus-role"></span></p>
+            </div>
+            <section class="card-panel explanation-card" aria-labelledby="explanation-title">
+              <p class="eyebrow">Concise explanation</p>
+              <h2 id="explanation-title">Use the uploaded material as your anchor</h2>
+              <p id="focus-definition"></p>
+              <div id="focus-sources" class="focus-sources"></div>
+            </section>
+            <section class="primary-action-card focus-primary" aria-labelledby="focus-action-title">
+              <p class="eyebrow">Recommended action · about 2 minutes</p>
+              <h2 id="focus-action-title">Capture the one part you want to clarify</h2>
+              <p>This note is not graded and does not create mastery evidence. It keeps your next step concrete while the Guided Mastery Loop is being prepared.</p>
+              <label for="focus-note">My focus note</label>
+              <textarea id="focus-note" rows="5" placeholder="For example: I understand relevance scores, but not how values are combined."></textarea>
+              <p class="save-state" id="focus-note-status" role="status" aria-live="polite">Not saved yet</p>
+              <button class="button button-primary full-width" id="save-focus-note" type="button">Save this focus note</button>
+            </section>
+          </article>
+
+          <aside class="focus-session card-panel" id="focus-more-panel" aria-labelledby="session-status-title">
+            <h2 id="session-status-title">Session status</h2>
+            <div id="timer-content">
+              <dl class="timer-stats">
+                <div><dt>Time used</dt><dd id="elapsed-time">00:00</dd></div>
+                <div><dt>Time left</dt><dd id="remaining-time">00:00</dd></div>
+              </dl>
+            </div>
+            <label class="checkbox-row" for="hide-timer"><input id="hide-timer" type="checkbox" /> Hide time display</label>
+            <div class="focus-progress" aria-label="Session route progress"><span id="focus-progress-bar"></span></div>
+            <p class="micro-copy" id="focus-progress-copy"></p>
+            <hr />
+            <h3>Starting point</h3>
+            <p class="starting-point" id="starting-point"></p>
+            <hr />
+            <p class="source-boundary"><span class="origin-badge">Uploaded material</span> remains the primary learning source. No internet search has run.</p>
+            <button class="button button-secondary full-width" id="save-exit" type="button">Save and exit</button>
+          </aside>
+        </div>
+
+        <nav class="mobile-session-nav" aria-label="Session navigation">
+          <button type="button" data-focus-panel="map">Map</button>
+          <button type="button" data-focus-panel="learn" aria-current="page">Learn</button>
+          <button type="button" data-focus-panel="tutor">Tutor</button>
+          <button type="button" data-focus-panel="more">More</button>
+        </nav>
+      </section>
+
+      <section class="workflow-view summary-view" id="summary-view" aria-labelledby="summary-title" hidden>
+        <div class="summary-shell card-panel">
+          <p class="eyebrow">Session saved · no penalty for pausing</p>
+          <h1 id="summary-title" tabindex="-1">Your exact restart point is ready</h1>
+          <p class="hero-lead" id="summary-restart-action"></p>
+          <div class="summary-grid">
+            <div><strong>Current concept</strong><p id="summary-concept"></p></div>
+            <div><strong>Saved focus note</strong><p id="summary-note"></p></div>
+          </div>
+          <div class="dialog-actions">
+            <button class="button button-secondary" id="summary-library" type="button">Return to library</button>
+            <button class="button button-primary" id="summary-resume" type="button">Resume this concept</button>
+          </div>
         </div>
       </section>
     </main>
@@ -411,6 +501,36 @@
         <div class="dialog-actions">
           <button class="button button-secondary" id="cancel-delete" type="button">Keep source</button>
           <button class="button button-danger" id="confirm-delete" type="button">Delete source</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="pause-dialog" aria-labelledby="pause-title" aria-describedby="pause-description">
+      <div class="dialog-content">
+        <p class="eyebrow">Session paused</p>
+        <h2 id="pause-title">Your place is saved</h2>
+        <p id="pause-description">Pausing is not counted as a failure. Learning changes stay locked until you resume.</p>
+        <div class="dialog-actions">
+          <button class="button button-secondary" id="pause-library" type="button">Return to library</button>
+          <button class="button button-primary" id="resume-session" type="button">Resume session</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="conflict-dialog" aria-labelledby="conflict-title" aria-describedby="conflict-description">
+      <div class="dialog-content conflict-content">
+        <p class="eyebrow">Draft conflict</p>
+        <h2 id="conflict-title">Choose which version to keep</h2>
+        <p id="conflict-description">Another page saved a different version. Both copies are shown below; nothing was overwritten.</p>
+        <div class="conflict-grid">
+          <label for="conflict-local">This device</label>
+          <textarea id="conflict-local" rows="5" readonly></textarea>
+          <label for="conflict-server">Saved on server</label>
+          <textarea id="conflict-server" rows="5" readonly></textarea>
+        </div>
+        <div class="dialog-actions">
+          <button class="button button-secondary" id="keep-server-draft" type="button">Keep server version</button>
+          <button class="button button-primary" id="keep-local-draft" type="button">Keep this device version</button>
         </div>
       </div>
     </dialog>

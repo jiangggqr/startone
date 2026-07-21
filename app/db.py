@@ -6,7 +6,7 @@ import sqlite3
 from pathlib import Path
 
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 SOURCE_SCHEMA = """
 CREATE TABLE IF NOT EXISTS workspaces (
@@ -180,6 +180,47 @@ CREATE INDEX idx_ai_activity_session_created
     ON ai_activity_logs(session_id, created_at);
 """
 
+FOCUS_WORKSPACE_SCHEMA = """
+ALTER TABLE learning_sessions ADD COLUMN resume_state TEXT;
+ALTER TABLE learning_sessions ADD COLUMN is_paused INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE learning_sessions ADD COLUMN active_concept_id TEXT;
+ALTER TABLE learning_sessions ADD COLUMN active_activity_id TEXT;
+ALTER TABLE learning_sessions ADD COLUMN timer_started_at TEXT;
+ALTER TABLE learning_sessions ADD COLUMN elapsed_seconds INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE learning_sessions ADD COLUMN remaining_seconds INTEGER;
+ALTER TABLE learning_sessions ADD COLUMN started_at TEXT;
+ALTER TABLE learning_sessions ADD COLUMN last_saved_at TEXT;
+ALTER TABLE learning_sessions ADD COLUMN ended_at TEXT;
+
+CREATE TABLE drafts (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    session_id TEXT NOT NULL REFERENCES learning_sessions(id) ON DELETE CASCADE,
+    activity_id TEXT,
+    draft_type TEXT NOT NULL,
+    content TEXT NOT NULL,
+    hint_depth INTEGER NOT NULL DEFAULT 0,
+    server_version INTEGER NOT NULL DEFAULT 1,
+    sync_status TEXT NOT NULL DEFAULT 'saved',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(session_id, draft_type)
+);
+CREATE INDEX idx_drafts_session_updated
+    ON drafts(session_id, updated_at DESC);
+
+CREATE TABLE session_events (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    session_id TEXT NOT NULL REFERENCES learning_sessions(id) ON DELETE CASCADE,
+    event_type TEXT NOT NULL,
+    detail_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_session_events_session_created
+    ON session_events(session_id, created_at);
+"""
+
 
 def connect(database_path: Path) -> sqlite3.Connection:
     """Open a configured SQLite connection with safety pragmas enabled."""
@@ -216,6 +257,9 @@ def initialize_database(database_path: Path) -> None:
         if 3 not in applied:
             connection.executescript(LEARNING_PATH_SCHEMA)
             connection.execute("INSERT INTO schema_migrations(version) VALUES (3)")
+        if 4 not in applied:
+            connection.executescript(FOCUS_WORKSPACE_SCHEMA)
+            connection.execute("INSERT INTO schema_migrations(version) VALUES (4)")
 
 
 def ensure_workspace(database_path: Path, workspace_id: str) -> None:

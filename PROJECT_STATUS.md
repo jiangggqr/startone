@@ -11,7 +11,8 @@
 - Milestone 0 application foundation: complete
 - Milestone 1 source ingestion and grounding: complete
 - Milestone 2 learner setup, coverage and knowledge map: complete
-- Milestone 3 production focus-session shell: in progress
+- Milestone 3 production focus-session shell: complete
+- Milestone 4A contextual Tutor: in progress
 - Production UI language: English
 
 ## What the prototype is
@@ -35,7 +36,13 @@
 - Shared server-side GPT-5.6 Responses API gateway with Pydantic Structured Outputs
 - Server validation of every generated source/chunk reference before persistence or rendering
 - Explicit Demo/live-model separation, AI activity metadata and recoverable no-key/model errors
+- Server-versioned start-action and focus-note drafts with visible save/offline/failure/conflict states
+- Explicit two-copy draft conflict comparison and user-selected resolution
+- One-current-concept focus workspace with compact route, source-backed explanation and one dominant action
+- Session timer, optional hiding, pause/resume mutation lock and refresh-safe restoration
+- Desktop three-column, tablet reflow and 390 px mobile session navigation
+- Saved-exit summary with a concrete next restart action
 
 ## Next action
 
-Implement Milestone 3 focus-session shell, server-backed start-action draft, pause/resume overlay, timer preference and responsive learning workspace.
+Implement Milestone 4A contextual Tutor with source-aware guidance, persisted messages and factual prerequisite-gap signals. Tutor must remain inside the active concept and cannot change the route or search.

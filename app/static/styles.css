@@ -1187,6 +1187,290 @@ dialog::backdrop {
   color: var(--muted);
 }
 
+.save-state {
+  margin: 0.55rem 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 680;
+}
+
+.focus-view {
+  padding-top: 1.5rem;
+}
+
+.focus-topbar,
+.focus-top-actions,
+.panel-heading,
+.focus-source-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.focus-topbar {
+  margin-bottom: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.focus-topbar p,
+.focus-topbar .eyebrow {
+  margin: 0;
+}
+
+.focus-breadcrumb {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.focus-grid {
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.72fr) minmax(24rem, 1.7fr) minmax(15rem, 0.8fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.card-panel {
+  padding: 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.card-panel h2,
+.card-panel h3 {
+  margin-top: 0;
+}
+
+.focus-map,
+.focus-session {
+  position: sticky;
+  top: 5.5rem;
+}
+
+.panel-heading h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.focus-route {
+  display: grid;
+  gap: 0.55rem;
+  margin: 1rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.focus-route-item {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.4rem;
+  border-radius: 0.7rem;
+  color: var(--muted);
+}
+
+.focus-route-item strong {
+  grid-column: 2;
+  font-size: 0.75rem;
+}
+
+.focus-route-item[data-status="active"] {
+  color: var(--ink);
+  background: var(--primary-soft);
+  font-weight: 740;
+}
+
+.focus-route-item[data-status="completed"] {
+  color: #17635c;
+}
+
+.route-marker {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  place-items: center;
+  border: 1px solid #9ba6bd;
+  border-radius: 50%;
+  background: var(--surface);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.focus-learning {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.concept-heading {
+  padding: 1rem 0 0.2rem;
+}
+
+.concept-heading h1 {
+  max-width: 18ch;
+  margin-top: 0.7rem;
+  font-size: clamp(2.1rem, 4vw, 3.5rem);
+}
+
+.concept-role {
+  color: var(--muted);
+}
+
+.explanation-card h2 {
+  font-size: 1.25rem;
+}
+
+.focus-sources {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.focus-source-row {
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.focus-source-row .source-reference {
+  flex: 1 1 15rem;
+}
+
+.focus-primary {
+  border-width: 2px;
+}
+
+.focus-primary textarea {
+  min-height: 7.5rem;
+}
+
+.timer-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.timer-stats div {
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+}
+
+.timer-stats dt {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.timer-stats dd {
+  margin: 0;
+  font-size: 1.2rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 780;
+}
+
+.checkbox-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  min-height: 44px;
+  font-size: 0.88rem;
+}
+
+.checkbox-row input {
+  width: 1.25rem;
+  min-height: 1.25rem;
+  margin: 0;
+}
+
+.focus-progress {
+  height: 0.65rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e1e5ee;
+}
+
+.focus-progress span {
+  display: block;
+  height: 100%;
+  background: var(--teal);
+}
+
+.starting-point,
+.source-boundary {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.mobile-session-nav {
+  display: none;
+}
+
+.summary-view {
+  display: grid;
+  min-height: calc(100vh - 7rem);
+  place-items: center;
+}
+
+.summary-view[hidden] {
+  display: none;
+}
+
+.summary-shell {
+  width: min(50rem, 100%);
+  padding: clamp(1.5rem, 5vw, 3rem);
+}
+
+.summary-shell h1 {
+  max-width: 15ch;
+}
+
+.summary-grid,
+.conflict-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.summary-grid > div {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+}
+
+.conflict-content {
+  width: min(46rem, calc(100vw - 2rem));
+}
+
+.conflict-grid label {
+  margin: 0;
+}
+
+.conflict-grid textarea {
+  min-height: 8rem;
+}
+
+@media (max-width: 1199px) and (min-width: 768px) {
+  .focus-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.55fr);
+  }
+
+  .focus-map {
+    position: static;
+    grid-column: 1 / -1;
+  }
+
+  .focus-route {
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  }
+}
+
 @media (max-width: 900px) {
   .header-inner {
     flex-wrap: wrap;
@@ -1226,7 +1510,7 @@ dialog::backdrop {
   }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 767px) {
   main {
     width: min(100% - 1.25rem, 38rem);
   }
@@ -1318,6 +1602,70 @@ dialog::backdrop {
   .compact-actions,
   .compact-actions .button {
     width: 100%;
+  }
+
+  .focus-view {
+    padding-bottom: 5rem;
+  }
+
+  .focus-topbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .focus-grid {
+    display: block;
+  }
+
+  .focus-map,
+  .focus-session {
+    position: static;
+  }
+
+  #focus-map-panel,
+  #focus-learn-panel,
+  #focus-more-panel {
+    display: none;
+  }
+
+  #focus-map-panel[data-mobile-active="true"],
+  #focus-learn-panel[data-mobile-active="true"],
+  #focus-more-panel[data-mobile-active="true"] {
+    display: grid;
+  }
+
+  .mobile-session-nav {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 30;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin: 0;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .mobile-session-nav button {
+    min-height: 56px;
+    border: 0;
+    color: var(--muted);
+    background: var(--surface);
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 730;
+  }
+
+  .mobile-session-nav button[aria-current="page"] {
+    color: var(--primary-dark);
+    background: var(--primary-soft);
+  }
+
+  .summary-grid,
+  .conflict-grid {
+    grid-template-columns: 1fr;
   }
 }
 

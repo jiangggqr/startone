@@ -22,11 +22,13 @@ Implement session setup, source coverage, named gaps, 2–5 concept dependency m
 
 Implement desktop/tablet/mobile layouts, one active concept, one primary action, compact map, source viewer, visible/optional time, autosave, resume, pause, summary shell, keyboard basics and cross-cutting states.
 
-**Status:** In progress.
+**Status:** Complete and verified on 2026-07-21. Start/focus drafts are server-versioned with explicit conflict resolution; pause/resume preserves the active concept and timer; the responsive focus workspace and restart summary are fully browser-tested.
 
 ## Milestone 4A — Contextual Tutor
 
 Implement source-aware chat, quick actions, free questions, graduated guidance, checking questions, persistence, origin labels and prerequisite-gap signals. Tutor cannot change route or search.
+
+**Status:** In progress.
 
 ## Milestone 4B — Quiz and free recall
 

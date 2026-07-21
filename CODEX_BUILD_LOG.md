@@ -69,7 +69,7 @@ Record one section after each verified milestone.
 - Status: complete
 - Date: 2026-07-21
 - Codex thread/session: current StartFrame Agent task
-- Git commit: Milestone 2 focused commit (this commit)
+- Git commit: `c2b2304`
 - Goal: turn ready uploaded sources into an English session setup, grounded coverage review, 2–5 concept map, adjustable route and one 60–120 second start action
 - Codex contribution: added schema version 3, optimistic setup persistence, candidate SourceGap records, typed coverage/map schemas, a shared server-side Responses API gateway, deterministic Demo generation, real GPT-5.6 configuration, source-reference validation, AI activity metadata, Demo material loading and the complete pre-learning browser flow
 - Human product decisions: the production UI and generated learning content stay in English; all major backgrounds are flat colors; the OpenAI key is configured only in local/deployment environment variables and is never pasted into chat or committed
@@ -79,3 +79,19 @@ Record one section after each verified milestone.
 - Official API alignment: implementation uses the Responses API `responses.parse` path, `gpt-5.6` server default, low reasoning effort, `store=False`, a privacy-preserving safety identifier and Pydantic Structured Outputs; the OpenAI SDK was inspected locally to confirm these parameters
 - Problems and corrections: local ports 8000 and 8010 were already occupied, so browser verification used 8020; a source-reference preview initially lacked a direct return path, so it now returns to coverage/map and restores focus to the invoking citation control
 - Remaining limitations: the environment has no `OPENAI_API_KEY`, so the live GPT-5.6 smoke test is deferred to final hardening; the start-action answer is currently restored from local storage and becomes a versioned server draft in Milestone 3; no external search tool is exposed in this milestone
+
+## Milestone 3 — Production focus-session shell
+
+- Status: complete
+- Date: 2026-07-21
+- Codex thread/session: current StartFrame Agent task
+- Git commit: Milestone 3 focused commit (this commit)
+- Goal: make the first learning step durable, resumable and usable across desktop, tablet and mobile without adding Tutor or mastery judgments early
+- Codex contribution: added schema version 4; server-versioned drafts; explicit two-copy conflict resolution; start-action completion; one-active-concept initialization; source-backed focus payloads; elapsed/remaining timer state; pause/resume mutation locks; a responsive three-column focus workspace; 390 px bottom session navigation; offline/save status; source-return focus restoration; and a concrete restart summary
+- Human product decisions: the Demo route treats Transformer goal as completed orientation and starts active learning at Self-attention; a focus note is an ungraded navigation aid and never LearningEvidence; all user-visible copy remains English and all large backgrounds remain flat colors
+- Files changed: focus-state service, schema/API/session serialization, static focus/start/summary UI, automated tests, project status and milestone records
+- Verification: 17 automated tests passed; Python compilation, JavaScript syntax and diff hygiene passed; application/test/environment files contained no Chinese UI strings or gradient declarations
+- Browser verification: created a new grounded session; completed and server-autosaved the 90-second start answer; entered Self-attention as the only active concept; opened the exact uploaded line reference and returned keyboard focus to the invoking control; autosaved a focus note; paused with the mutation lock; resumed and refreshed with draft, concept and timer intact; saved and exited to a concrete restart action; and resolved a real two-tab draft conflict after comparing both copies
+- Responsive verification: at 390 px the Map/Learn/More panels were operable from the fixed bottom navigation, the document width remained exactly 390 px with no horizontal overflow, and visual inspection confirmed solid backgrounds with no large-area gradient
+- Problems and corrections: the initial test module import did not resolve under pytest collection and was converted to an explicit test package import; draft conflict QA intentionally used two live pages to prove that no copy is silently overwritten
+- Remaining limitations: Tutor is deliberately disclosed as the next Guided Mastery Loop milestone; the environment still has no `OPENAI_API_KEY`, which is not needed for this deterministic milestone

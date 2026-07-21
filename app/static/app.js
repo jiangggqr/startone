@@ -12,6 +12,11 @@ const state = {
   sourceReturn: null,
   sourceReturnTrigger: null,
   pollTimer: null,
+  focusTimer: null,
+  saveTimers: {},
+  drafts: {},
+  focus: null,
+  conflict: null,
   runtimeMode: "demo",
 };
 
@@ -22,6 +27,8 @@ const views = {
   coverage: document.querySelector("#coverage-view"),
   path: document.querySelector("#path-view"),
   start: document.querySelector("#start-action-view"),
+  focus: document.querySelector("#focus-view"),
+  summary: document.querySelector("#summary-view"),
 };
 
 const modeBadge = document.querySelector("#mode-badge");
@@ -105,9 +112,47 @@ const startPageCondition = document.querySelector("#start-page-condition");
 const startDuration = document.querySelector("#start-duration");
 const startAnswer = document.querySelector("#start-answer");
 const startMessage = document.querySelector("#start-message");
+const startSaveStatus = document.querySelector("#start-save-status");
 const saveStartAnswerButton = document.querySelector("#save-start-answer");
 const startSaveLaterButton = document.querySelector("#start-save-later");
 const startBackMapButton = document.querySelector("#start-back-map");
+
+const focusTitle = document.querySelector("#focus-title");
+const focusBreadcrumb = document.querySelector("#focus-breadcrumb");
+const focusRole = document.querySelector("#focus-role");
+const focusDefinition = document.querySelector("#focus-definition");
+const focusSources = document.querySelector("#focus-sources");
+const focusRoute = document.querySelector("#focus-route");
+const focusProgressCount = document.querySelector("#focus-progress-count");
+const activeConceptCount = document.querySelector("#active-concept-count");
+const focusProgressBar = document.querySelector("#focus-progress-bar");
+const focusProgressCopy = document.querySelector("#focus-progress-copy");
+const startingPoint = document.querySelector("#starting-point");
+const elapsedTime = document.querySelector("#elapsed-time");
+const remainingTime = document.querySelector("#remaining-time");
+const timerContent = document.querySelector("#timer-content");
+const hideTimer = document.querySelector("#hide-timer");
+const focusNote = document.querySelector("#focus-note");
+const focusNoteStatus = document.querySelector("#focus-note-status");
+const focusSaveStatus = document.querySelector("#focus-save-status");
+const saveFocusNoteButton = document.querySelector("#save-focus-note");
+const pauseSessionButton = document.querySelector("#pause-session");
+const saveExitButton = document.querySelector("#save-exit");
+const reviewFullMapButton = document.querySelector("#review-full-map");
+const mobileSessionNav = document.querySelector(".mobile-session-nav");
+const pauseDialog = document.querySelector("#pause-dialog");
+const pauseLibraryButton = document.querySelector("#pause-library");
+const resumeSessionButton = document.querySelector("#resume-session");
+const conflictDialog = document.querySelector("#conflict-dialog");
+const conflictLocal = document.querySelector("#conflict-local");
+const conflictServer = document.querySelector("#conflict-server");
+const keepLocalDraftButton = document.querySelector("#keep-local-draft");
+const keepServerDraftButton = document.querySelector("#keep-server-draft");
+const summaryRestartAction = document.querySelector("#summary-restart-action");
+const summaryConcept = document.querySelector("#summary-concept");
+const summaryNote = document.querySelector("#summary-note");
+const summaryLibraryButton = document.querySelector("#summary-library");
+const summaryResumeButton = document.querySelector("#summary-resume");
 
 function element(tag, className, text) {
   const node = document.createElement(tag);
@@ -230,6 +275,8 @@ function renderSessions(sessions) {
 }
 
 function resumeLabel(session) {
+  if (session.is_paused) return "Resume paused session";
+  if (session.state === "learning_concept") return "Resume current concept";
   if (session.state === "start_action") return "Open start action";
   if (session.state === "path_drafting") return "Review learning path";
   if (session.setup_completed) return "Review source coverage";
@@ -241,8 +288,12 @@ async function resumeSession(sessionId) {
   window.localStorage.setItem("startframe_session_id", sessionId);
   try {
     const session = await getCurrentSession();
-    if (session.state === "start_action") {
+    if (session.state === "learning_concept") {
+      await showFocus();
+      if (session.is_paused) pauseDialog.showModal();
+    } else if (session.state === "start_action") {
       await showStartAction();
+      if (session.is_paused) pauseDialog.showModal();
     } else if (session.state === "path_drafting") {
       try {
         await showPath();
@@ -272,6 +323,8 @@ async function showSources(returnTo = null) {
     ? "← Back to coverage"
     : returnTo === "path"
       ? "← Back to learning map"
+      : returnTo === "focus"
+        ? "← Back to current concept"
       : "← Back to library";
   showView("sources", `sources/${state.sessionId}`, sourceTitle);
   await Promise.all([loadSources(), getCurrentSession()]);
@@ -280,6 +333,7 @@ async function showSources(returnTo = null) {
 async function showHome(event) {
   if (event) event.preventDefault();
   window.clearTimeout(state.pollTimer);
+  window.clearInterval(state.focusTimer);
   showView("home", "library", document.querySelector("#hero-title"));
   await loadSessions();
 }
@@ -468,7 +522,11 @@ function renderPreview() {
 }
 
 async function openSourceReference(reference, trigger) {
-  const returnTo = window.location.hash.startsWith("#path/") ? "path" : "coverage";
+  const returnTo = window.location.hash.startsWith("#focus/")
+    ? "focus"
+    : window.location.hash.startsWith("#path/")
+      ? "path"
+      : "coverage";
   state.sourceReturnTrigger = trigger;
   await showSources(returnTo);
   await selectSource(reference.source_id, reference.chunk_id);
@@ -483,6 +541,7 @@ async function leaveSourceView() {
   state.sourceReturnTrigger = null;
   if (returnTo === "coverage") showView("coverage", `coverage/${state.sessionId}`, coverageTitle);
   else if (returnTo === "path") showView("path", `path/${state.sessionId}`, pathTitle);
+  else if (returnTo === "focus") showView("focus", `focus/${state.sessionId}`, focusTitle);
   else await showHome();
   if (trigger?.isConnected) trigger.focus({ preventScroll: true });
 }
@@ -854,32 +913,321 @@ async function confirmPath() {
 }
 
 async function showStartAction(existing = null) {
-  const body = existing || await api(`/api/sessions/${state.sessionId}/path`);
+  const [body, draftsBody] = await Promise.all([
+    existing ? Promise.resolve(existing) : api(`/api/sessions/${state.sessionId}/path`),
+    api(`/api/sessions/${state.sessionId}/drafts`),
+    getCurrentSession(),
+  ]);
   state.knowledgeMap = body;
+  state.drafts = Object.fromEntries(draftsBody.drafts.map((draft) => [draft.draft_type, draft]));
   const action = body.knowledge_map.start_action;
   startPageTitle.textContent = action.title;
   startPageInstruction.textContent = action.instruction;
   startPageCondition.textContent = action.completion_condition;
   startDuration.textContent = `About ${action.estimated_seconds} seconds`;
-  startAnswer.value = window.localStorage.getItem(startDraftKey()) || "";
-  setMessage(startMessage, startAnswer.value ? "Your unfinished answer was restored from this device." : "");
+  const serverDraft = state.drafts.start_action?.content || "";
+  const localDraft = window.localStorage.getItem(startDraftKey());
+  startAnswer.value = localDraft === null ? serverDraft : localDraft;
+  startSaveStatus.textContent = serverDraft && startAnswer.value === serverDraft
+    ? "Saved on server"
+    : startAnswer.value
+      ? "Saved on this device · waiting to sync"
+      : "Not saved yet";
+  setMessage(startMessage, startAnswer.value ? "Your unfinished answer was restored." : "");
   showView("start", `start/${state.sessionId}`, startPageTitle);
 }
 
 function saveStartDraft() {
   window.localStorage.setItem(startDraftKey(), startAnswer.value);
+  queueDraftSave("start_action", startAnswer.value, startSaveStatus);
 }
 
-function saveStartPoint() {
+async function saveStartPoint() {
   const answer = startAnswer.value.trim();
   if (!answer) {
-    setMessage(startMessage, "Write one checkable sentence before saving this starting point.", "error");
+    setMessage(startMessage, "Write one checkable sentence before entering the first concept.", "error");
     startAnswer.focus();
     return;
   }
-  saveStartDraft();
-  setMessage(startMessage, "Starting point saved on this device. It will carry into the focus session.", "success");
-  saveStartAnswerButton.textContent = "Starting point saved";
+  setButtonBusy(saveStartAnswerButton, true, "Saving starting point…", "Complete and enter focus mode");
+  try {
+    const draft = await saveDraftNow("start_action", startAnswer.value, startSaveStatus);
+    if (!draft) return;
+    const body = await api(`/api/sessions/${state.sessionId}/start-action/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ version: state.session.version }),
+    });
+    state.session = body.session;
+    renderFocus(body);
+    showView("focus", `focus/${state.sessionId}`, focusTitle);
+  } catch (error) {
+    setMessage(startMessage, `${error.message} Your starting-point draft is still saved.`, "error");
+  } finally {
+    setButtonBusy(saveStartAnswerButton, false, "", "Complete and enter focus mode");
+  }
+}
+
+function focusDraftKey() {
+  return `startframe_focus_note_${state.sessionId}`;
+}
+
+function draftLocalKey(draftType) {
+  return draftType === "start_action" ? startDraftKey() : focusDraftKey();
+}
+
+function queueDraftSave(draftType, content, statusTarget) {
+  window.localStorage.setItem(draftLocalKey(draftType), content);
+  window.clearTimeout(state.saveTimers[draftType]);
+  if (!navigator.onLine) {
+    statusTarget.textContent = "Saved on this device · waiting to sync";
+    return;
+  }
+  statusTarget.textContent = "Saving…";
+  state.saveTimers[draftType] = window.setTimeout(
+    () => saveDraftNow(draftType, content, statusTarget),
+    500,
+  );
+}
+
+async function saveDraftNow(draftType, content, statusTarget) {
+  window.clearTimeout(state.saveTimers[draftType]);
+  window.localStorage.setItem(draftLocalKey(draftType), content);
+  if (!navigator.onLine) {
+    statusTarget.textContent = "Saved on this device · waiting to sync";
+    return null;
+  }
+  statusTarget.textContent = "Saving…";
+  try {
+    const body = await api(`/api/sessions/${state.sessionId}/drafts/${draftType}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        content,
+        hint_depth: 0,
+        version: state.drafts[draftType]?.server_version || 0,
+      }),
+    });
+    state.drafts[draftType] = body.draft;
+    window.localStorage.setItem(draftLocalKey(draftType), body.draft.content);
+    statusTarget.textContent = "Saved on server";
+    focusSaveStatus.textContent = "Saved";
+    return body.draft;
+  } catch (error) {
+    if (error.body?.error_code === "draft_version_conflict") {
+      openDraftConflict(draftType, content, statusTarget, error.body.details);
+      return null;
+    }
+    statusTarget.textContent = "Save failed · local copy kept";
+    focusSaveStatus.textContent = "Local copy kept";
+    return null;
+  }
+}
+
+function openDraftConflict(draftType, localContent, statusTarget, details) {
+  const serverDraft = details?.server_draft;
+  state.conflict = {
+    draftType,
+    localContent,
+    statusTarget,
+    serverVersion: serverDraft?.server_version || 0,
+  };
+  conflictLocal.value = localContent;
+  conflictServer.value = serverDraft?.content || "The server copy is empty.";
+  statusTarget.textContent = "Conflict · choose a version";
+  conflictDialog.showModal();
+}
+
+async function showFocus(existing = null) {
+  const body = existing || await api(`/api/sessions/${state.sessionId}/focus`);
+  renderFocus(body);
+  showView("focus", `focus/${state.sessionId}`, focusTitle);
+  if (body.session.is_paused && !pauseDialog.open) pauseDialog.showModal();
+}
+
+function renderFocus(body) {
+  state.focus = body;
+  state.session = body.session;
+  if (body.drafts.start_action) state.drafts.start_action = body.drafts.start_action;
+  if (body.drafts.focus_note) state.drafts.focus_note = body.drafts.focus_note;
+  const concept = body.active_concept;
+  focusTitle.textContent = concept.title;
+  focusBreadcrumb.textContent = `${state.session.name} › ${concept.title}`;
+  focusRole.textContent = concept.role_in_map;
+  focusDefinition.textContent = concept.plain_definition;
+  activeConceptCount.textContent = `Current concept ${body.progress.current} of ${body.progress.total}`;
+  focusProgressCount.textContent = `${body.progress.current} of ${body.progress.total}`;
+  focusProgressCopy.textContent = `${body.progress.completed} completed · current concept is ${concept.title}`;
+  focusProgressBar.style.width = `${Math.max(4, (body.progress.completed / body.progress.total) * 100)}%`;
+  startingPoint.textContent = body.drafts.start_action?.content || "No starting point was saved.";
+
+  focusRoute.replaceChildren();
+  body.route.forEach((item, index) => {
+    const row = element("li", "focus-route-item");
+    row.dataset.status = item.is_active ? "active" : item.status;
+    const marker = item.status === "completed" ? "✓" : String(index + 1);
+    row.append(element("span", "route-marker", marker), element("span", "", item.title));
+    if (item.is_active) row.append(element("strong", "", "Current"));
+    focusRoute.append(row);
+  });
+
+  focusSources.replaceChildren();
+  concept.source_refs.forEach((reference) => {
+    const button = referenceButton(reference, concept.source_ref_details);
+    const origin = element("span", "origin-badge", "Uploaded material");
+    const row = element("div", "focus-source-row");
+    row.append(origin, button);
+    focusSources.append(row);
+  });
+
+  const serverNote = body.drafts.focus_note?.content || "";
+  const localNote = window.localStorage.getItem(focusDraftKey());
+  focusNote.value = localNote === null ? serverNote : localNote;
+  focusNoteStatus.textContent = serverNote && focusNote.value === serverNote
+    ? "Saved on server"
+    : focusNote.value
+      ? "Saved on this device · waiting to sync"
+      : "Not saved yet";
+  focusSaveStatus.textContent = body.session.last_saved_at ? "Saved" : "Ready to save";
+
+  const storedTimerPreference = window.localStorage.getItem("startframe_hide_timer");
+  hideTimer.checked = storedTimerPreference === null ? !Boolean(body.session.show_timer) : storedTimerPreference === "true";
+  timerContent.hidden = hideTimer.checked;
+  startFocusClock(body.timer);
+  selectMobilePanel("learn");
+}
+
+function startFocusClock(timer) {
+  window.clearInterval(state.focusTimer);
+  const loadedAt = Date.now();
+  const baseElapsed = timer.elapsed_seconds;
+  const baseRemaining = timer.remaining_seconds;
+  const paint = () => {
+    const delta = state.session?.is_paused ? 0 : Math.floor((Date.now() - loadedAt) / 1000);
+    elapsedTime.textContent = formatDuration(baseElapsed + delta);
+    remainingTime.textContent = formatDuration(Math.max(0, baseRemaining - delta));
+  };
+  paint();
+  state.focusTimer = window.setInterval(paint, 1000);
+}
+
+function formatDuration(totalSeconds) {
+  const safe = Math.max(0, Number(totalSeconds) || 0);
+  const minutes = Math.floor(safe / 60);
+  const seconds = Math.floor(safe % 60);
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+async function saveFocusNoteNow() {
+  setButtonBusy(saveFocusNoteButton, true, "Saving note…", "Save this focus note");
+  const draft = await saveDraftNow("focus_note", focusNote.value, focusNoteStatus);
+  setButtonBusy(saveFocusNoteButton, false, "", "Save this focus note");
+  return draft;
+}
+
+async function pauseActiveSession({ showDialog = true } = {}) {
+  const draftType = state.session?.state === "start_action" ? "start_action" : "focus_note";
+  const input = draftType === "start_action" ? startAnswer : focusNote;
+  const status = draftType === "start_action" ? startSaveStatus : focusNoteStatus;
+  if (input.value || state.drafts[draftType]) {
+    const saved = await saveDraftNow(draftType, input.value, status);
+    if (!saved) return null;
+  }
+  const body = await api(`/api/sessions/${state.sessionId}/pause`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ version: state.session.version }),
+  });
+  state.session = body.session;
+  window.clearInterval(state.focusTimer);
+  if (showDialog && !pauseDialog.open) pauseDialog.showModal();
+  return body.session;
+}
+
+async function resumeActiveSession() {
+  setButtonBusy(resumeSessionButton, true, "Resuming…", "Resume session");
+  try {
+    const body = await api(`/api/sessions/${state.sessionId}/resume`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ version: state.session.version }),
+    });
+    state.session = body.session;
+    if (pauseDialog.open) pauseDialog.close();
+    if (state.session.state === "learning_concept") await showFocus();
+    else await showStartAction();
+  } catch (error) {
+    pauseDialog.querySelector("#pause-description").textContent = `${error.message} Your saved work is unchanged.`;
+  } finally {
+    setButtonBusy(resumeSessionButton, false, "", "Resume session");
+  }
+}
+
+async function saveAndExit() {
+  setButtonBusy(saveExitButton, true, "Saving session…", "Save and exit");
+  try {
+    const draft = await saveFocusNoteNow();
+    if (!draft) return;
+    const paused = await pauseActiveSession({ showDialog: false });
+    if (!paused) return;
+    showSummary();
+  } catch (error) {
+    focusSaveStatus.textContent = `${error.message} Local drafts remain available.`;
+  } finally {
+    setButtonBusy(saveExitButton, false, "", "Save and exit");
+  }
+}
+
+function showSummary() {
+  const focus = state.focus;
+  summaryRestartAction.textContent = focus.restart_action;
+  summaryConcept.textContent = focus.active_concept.title;
+  summaryNote.textContent = focusNote.value.trim() || "No focus note yet. Resume at the concise explanation.";
+  showView("summary", `summary/${state.sessionId}`, document.querySelector("#summary-title"));
+}
+
+function selectMobilePanel(panel) {
+  if (panel === "tutor") {
+    focusNoteStatus.textContent = "Tutor is enabled in the next Guided Mastery Loop milestone. Your current concept remains saved.";
+    panel = "learn";
+  }
+  document.querySelectorAll("[data-focus-panel]").forEach((button) => {
+    if (button.dataset.focusPanel === panel) button.setAttribute("aria-current", "page");
+    else button.removeAttribute("aria-current");
+  });
+  document.querySelector("#focus-map-panel").dataset.mobileActive = String(panel === "map");
+  document.querySelector("#focus-learn-panel").dataset.mobileActive = String(panel === "learn");
+  document.querySelector("#focus-more-panel").dataset.mobileActive = String(panel === "more");
+}
+
+async function chooseConflictVersion(choice) {
+  if (!state.conflict) return;
+  const conflict = state.conflict;
+  const button = choice === "local" ? keepLocalDraftButton : keepServerDraftButton;
+  setButtonBusy(button, true, "Saving choice…", button.textContent);
+  try {
+    const body = await api(`/api/sessions/${state.sessionId}/draft-conflicts/${conflict.draftType}/resolve`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        choice,
+        local_content: conflict.localContent,
+        server_version: conflict.serverVersion,
+        hint_depth: 0,
+      }),
+    });
+    state.drafts[conflict.draftType] = body.draft;
+    const target = conflict.draftType === "start_action" ? startAnswer : focusNote;
+    target.value = body.draft.content;
+    window.localStorage.setItem(draftLocalKey(conflict.draftType), body.draft.content);
+    conflict.statusTarget.textContent = "Saved on server";
+    state.conflict = null;
+    conflictDialog.close();
+  } catch (error) {
+    conflict.statusTarget.textContent = `${error.message} Both copies remain available.`;
+  } finally {
+    setButtonBusy(button, false, "", choice === "local" ? "Keep this device version" : "Keep server version");
+  }
 }
 
 startButtons.forEach((button) => button.addEventListener("click", beginSession));
@@ -912,8 +1260,33 @@ restoreRouteButton.addEventListener("click", () => adjustRoute(state.fullRoute))
 confirmPathButton.addEventListener("click", confirmPath);
 startAnswer.addEventListener("input", saveStartDraft);
 saveStartAnswerButton.addEventListener("click", saveStartPoint);
-startSaveLaterButton.addEventListener("click", showHome);
+startSaveLaterButton.addEventListener("click", () => pauseActiveSession());
 startBackMapButton.addEventListener("click", showPath);
+focusNote.addEventListener("input", () => queueDraftSave("focus_note", focusNote.value, focusNoteStatus));
+saveFocusNoteButton.addEventListener("click", saveFocusNoteNow);
+pauseSessionButton.addEventListener("click", () => pauseActiveSession());
+resumeSessionButton.addEventListener("click", resumeActiveSession);
+pauseLibraryButton.addEventListener("click", async () => {
+  pauseDialog.close();
+  await showHome();
+});
+keepLocalDraftButton.addEventListener("click", () => chooseConflictVersion("local"));
+keepServerDraftButton.addEventListener("click", () => chooseConflictVersion("server"));
+saveExitButton.addEventListener("click", saveAndExit);
+summaryLibraryButton.addEventListener("click", showHome);
+summaryResumeButton.addEventListener("click", resumeActiveSession);
+reviewFullMapButton.addEventListener("click", () => {
+  focusRoute.scrollIntoView({ behavior: "smooth", block: "start" });
+  focusProgressCopy.textContent = "The complete confirmed route is shown in this panel.";
+});
+hideTimer.addEventListener("change", () => {
+  timerContent.hidden = hideTimer.checked;
+  window.localStorage.setItem("startframe_hide_timer", String(hideTimer.checked));
+});
+mobileSessionNav.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-focus-panel]");
+  if (button) selectMobilePanel(button.dataset.focusPanel);
+});
 
 ["dragenter", "dragover"].forEach((eventName) => {
   dropZone.addEventListener(eventName, (event) => {
@@ -931,10 +1304,17 @@ dropZone.addEventListener("drop", (event) => uploadFiles(event.dataTransfer.file
 
 window.addEventListener("offline", () => {
   connectionBanner.hidden = false;
+  if (state.session?.state === "start_action") startSaveStatus.textContent = "Offline · local copy kept";
+  if (state.session?.state === "learning_concept") {
+    focusNoteStatus.textContent = "Offline · local copy kept";
+    focusSaveStatus.textContent = "Offline";
+  }
 });
 window.addEventListener("online", () => {
   connectionBanner.hidden = true;
   setUploadMessage("Connection restored. You can upload or retry now.", "success");
+  if (state.session?.state === "start_action") saveDraftNow("start_action", startAnswer.value, startSaveStatus);
+  if (state.session?.state === "learning_concept") saveDraftNow("focus_note", focusNote.value, focusNoteStatus);
 });
 
 async function initialize() {
@@ -947,6 +1327,11 @@ async function initialize() {
     else if (hash.startsWith("#coverage/")) await showCoverage();
     else if (hash.startsWith("#path/")) await showPath();
     else if (hash.startsWith("#start/")) await showStartAction();
+    else if (hash.startsWith("#focus/")) await showFocus();
+    else if (hash.startsWith("#summary/")) {
+      await showFocus();
+      showSummary();
+    }
     else if (hash.startsWith("#sources/")) await showSources();
   } catch (error) {
     await showSources();

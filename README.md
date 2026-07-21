@@ -35,7 +35,7 @@ StartFrame Agent 是一个以上传学习材料为主来源的学习 Agent Web A
 
 ## 当前实现
 
-Milestone 0–2 已建立：
+Milestone 0–3 已建立：
 
 - Python 3.11+ / FastAPI / Uvicorn 服务
 - SQLite 初始化与 Schema 版本记录
@@ -54,6 +54,11 @@ Milestone 0–2 已建立：
 - 服务端 GPT-5.6 Responses API 网关与 Pydantic Structured Outputs
 - 每个模型来源引用在保存和显示前经过 workspace、session、source 与 chunk 验证
 - 明确分离的确定性 Demo 模式与真实模型模式
+- 服务端版本化的启动回答与专注笔记，以及明确的双版本冲突选择
+- 单一当前概念的三栏专注工作区与可核查来源返回路径
+- 自动保存、离线本地保留、暂停/恢复锁、计时与刷新恢复
+- 桌面、平板与 390px 手机端可完成的会话导航
+- 保存退出总结和具体的下次启动动作
 
 Tutor、练习、Agent 与受控外部搜索会在后续里程碑逐步加入。未完成的功能不会用假数据冒充成功状态。
 

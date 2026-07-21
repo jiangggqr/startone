@@ -35,6 +35,7 @@ class SourceError(Exception):
         status_code: int = 400,
         recoverable: bool = True,
         saved_state: str = "No new source was saved.",
+        details: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(user_message)
         self.error_code = error_code
@@ -42,6 +43,7 @@ class SourceError(Exception):
         self.status_code = status_code
         self.recoverable = recoverable
         self.saved_state = saved_state
+        self.details = details
 
 
 @dataclass(frozen=True, slots=True)
