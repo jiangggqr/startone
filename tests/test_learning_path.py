@@ -5,8 +5,18 @@ from types import SimpleNamespace
 
 import httpx
 
-from app.ai import CoveredConcept, SourceCoverageOutput, SourceReference
+from app.ai import (
+    CoveredConcept,
+    ConceptEdge,
+    ConceptOutput,
+    KnowledgeMapOutput,
+    SourceCoverageOutput,
+    SourceReference,
+    StartActionOutput,
+    model_gateway_error_for_exception,
+)
 from app.config import Settings
+from app.learning import _normalize_map_structure, _resolve_source_reference_aliases, _source_context
 from app.main import create_app
 
 
@@ -71,6 +81,152 @@ def test_material_builds_an_automatic_learning_path_without_user_setup(tmp_path:
             assert prepared["goal"] == f"Understand and explain {prepared['name']}."
 
     asyncio.run(scenario())
+
+
+def test_learning_path_can_report_coverage_before_building_the_map(tmp_path: Path) -> None:
+    async def scenario() -> None:
+        app = make_app(tmp_path)
+        async with app_client(app) as client:
+            session = await create_session(client)
+            await client.post(f"/api/sessions/{session['id']}/demo-materials")
+            session = (await client.get(f"/api/sessions/{session['id']}")).json()["session"]
+
+            coverage = await client.post(
+                f"/api/sessions/{session['id']}/learning-path",
+                json={"version": session["version"], "stage": "coverage"},
+            )
+            assert coverage.status_code == 200
+            assert coverage.json()["coverage"]["coverage"]["covered_concepts"]
+            assert coverage.json()["path"] is None
+            assert (await client.get(f"/api/sessions/{session['id']}/path")).status_code == 404
+
+            path = await client.post(f"/api/sessions/{session['id']}/path")
+            assert path.status_code == 200
+            assert path.json()["knowledge_map"]["concepts"]
+
+    asyncio.run(scenario())
+
+
+def test_long_source_context_samples_the_whole_document() -> None:
+    chunks = [
+        {
+            "id": f"chunk-{index}",
+            "source_id": "source-1",
+            "filename": "long.pdf",
+            "source_origin": "uploaded",
+            "heading_path": "",
+            "page_number": index,
+            "start_line": None,
+            "end_line": None,
+            "text": f"Page {index} " + ("content " * 300),
+        }
+        for index in range(1, 73)
+    ]
+
+    context = _source_context(chunks)
+
+    assert "page: 1" in context
+    assert "page: 72" in context
+    assert len(context) < 24_000
+    assert context.count("<source_excerpt>") == 20
+
+
+def test_model_reference_aliases_resolve_to_saved_source_ids() -> None:
+    chunks = [
+        {
+            "id": "real-chunk-id",
+            "source_id": "real-source-id",
+            "filename": "notes.md",
+            "source_origin": "uploaded",
+            "heading_path": "Topic",
+            "page_number": None,
+            "start_line": 1,
+            "end_line": 2,
+            "text": "A grounded topic.",
+        }
+    ]
+    output = SourceCoverageOutput(
+        covered_concepts=[
+            CoveredConcept(
+                concept_key="topic",
+                title="Topic",
+                coverage_summary="A grounded topic.",
+                source_refs=[SourceReference(source_id="source_1", chunk_id="chunk_1")],
+            )
+        ],
+        source_gaps=[],
+        ignored_sections=[],
+        source_refs=[SourceReference(source_id="source_1", chunk_id="chunk_1")],
+    )
+
+    resolved = _resolve_source_reference_aliases(output, chunks)
+
+    assert resolved.covered_concepts[0].source_refs[0] == SourceReference(
+        source_id="real-source-id",
+        chunk_id="real-chunk-id",
+    )
+    assert "real-source-id" not in _source_context(chunks)
+
+
+def test_map_structure_normalization_removes_invalid_prerequisites() -> None:
+    reference = SourceReference(source_id="source", chunk_id="chunk")
+    output = KnowledgeMapOutput(
+        map_title="Topic",
+        concepts=[
+            ConceptOutput(
+                concept_key="foundation",
+                title="Foundation",
+                plain_definition="The foundation.",
+                role_in_map="First.",
+                prerequisite_keys=["missing"],
+                estimated_minutes=2,
+                source_refs=[reference],
+            ),
+            ConceptOutput(
+                concept_key="application",
+                title="Application",
+                plain_definition="The application.",
+                role_in_map="Second.",
+                prerequisite_keys=["foundation", "missing"],
+                estimated_minutes=2,
+                source_refs=[reference],
+            ),
+        ],
+        edges=[
+            ConceptEdge(
+                from_concept_key="missing",
+                to_concept_key="application",
+                relationship="prepares for",
+            )
+        ],
+        recommended_route=["application", "foundation"],
+        start_action=StartActionOutput(
+            title="Start",
+            instruction="Write one sentence.",
+            estimated_seconds=60,
+            completion_condition="One sentence is written.",
+            why_this_first="It provides a starting signal.",
+        ),
+        source_gaps=[],
+    )
+
+    normalized = _normalize_map_structure(output)
+
+    assert normalized.recommended_route == ["foundation", "application"]
+    assert normalized.concepts[0].prerequisite_keys == []
+    assert normalized.concepts[1].prerequisite_keys == ["foundation"]
+    assert normalized.edges == []
+
+
+def test_timeout_error_is_specific_and_recoverable() -> None:
+    class APITimeoutError(Exception):
+        pass
+
+    error = model_gateway_error_for_exception(APITimeoutError())
+
+    assert error.error_code == "openai_timeout"
+    assert "longer than expected" in error.user_message
+    assert "saved" in error.user_message
 
 
 def test_automatic_coverage_map_adjust_and_confirm(tmp_path: Path) -> None:

@@ -39,7 +39,7 @@
 - Material-driven automatic learning focus and map with no goal, prior-knowledge, time or energy setup gate
 - Grounded source coverage with candidate gaps that never authorize search
 - A 2–5 concept dependency map, adjustable route and one 60–120 second start action
-- Shared server-side GPT-5.6 Responses API gateway with Pydantic Structured Outputs
+- Shared server-side GPT-5.6 Responses API gateway with Pydantic Structured Outputs; the interactive default is the low-latency `gpt-5.6-luna` variant
 - Server validation of every generated source/chunk reference before persistence or rendering
 - Internal fixture/real-model separation, AI activity metadata and recoverable no-key/model errors
 - Server-versioned start-action and focus-note drafts with visible save/offline/failure/conflict states
@@ -89,6 +89,9 @@
 - Upload-flow refinement keeps file status and the next learning action inside the primary upload panel; the homepage no longer exposes administrative/system-boundary cards
 - Uploaded files and their status remain inside the upload panel; the next action builds the learning focus and map directly
 - Knowledge map, source-grounded explanation, Tutor, Quiz and free recall are visible in the primary post-upload flow
+- Long-source analysis samples representative excerpts across the entire document, reports coverage and route-building as separate visible stages, caps a failed model attempt at one request, and resumes from any completed stage
+- Model timeout, connection, authentication, access, rate-limit and invalid-request failures use distinct recoverable messages; interrupted operations are closed on server restart instead of remaining stuck as running
+- Model-facing citations use short aliases that are mapped back to real source/chunk IDs and revalidated before persistence; impossible generated prerequisite links are removed deterministically before the full map integrity check
 
 ## Next action
 

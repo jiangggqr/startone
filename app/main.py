@@ -13,6 +13,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
+from starlette.concurrency import run_in_threadpool
 
 from app import __version__
 from app.activities import (
@@ -127,6 +128,7 @@ class AutomaticLearningPathRequest(BaseModel):
     version: int = Field(ge=1)
     show_timer: bool = False
     search_permission: bool = False
+    stage: Literal["coverage", "complete"] = "complete"
 
 
 class PathAdjustmentRequest(BaseModel):
@@ -443,13 +445,17 @@ def create_app(
                 show_timer=payload.show_timer,
                 search_permission=payload.search_permission,
             )
-        coverage = generate_coverage(
+        coverage = await run_in_threadpool(
+            generate_coverage,
             resolved_settings,
             workspace_id,
             session_id,
             client_factory=ai_client_factory,
         )
-        path = generate_knowledge_map(
+        if payload.stage == "coverage":
+            return {"coverage": coverage, "path": None}
+        path = await run_in_threadpool(
+            generate_knowledge_map,
             resolved_settings,
             workspace_id,
             session_id,
@@ -699,7 +705,8 @@ def create_app(
 
     @application.post("/api/sessions/{session_id}/coverage")
     async def create_coverage(session_id: str, request: Request) -> dict:
-        return generate_coverage(
+        return await run_in_threadpool(
+            generate_coverage,
             resolved_settings,
             _workspace_id(request),
             session_id,
@@ -727,7 +734,8 @@ def create_app(
 
     @application.post("/api/sessions/{session_id}/path")
     async def create_path(session_id: str, request: Request) -> dict:
-        return generate_knowledge_map(
+        return await run_in_threadpool(
+            generate_knowledge_map,
             resolved_settings,
             _workspace_id(request),
             session_id,

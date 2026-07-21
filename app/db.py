@@ -541,6 +541,21 @@ def initialize_database(database_path: Path) -> None:
         if 11 not in applied:
             connection.executescript(SOURCE_REPORT_SCHEMA)
             connection.execute("INSERT INTO schema_migrations(version) VALUES (11)")
+        # A process restart cannot resume an in-flight synchronous model call.
+        # Close stale records so the saved session returns to an honest,
+        # retryable state instead of appearing to analyze forever.
+        activity_table = connection.execute(
+            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ai_activity_logs'"
+        ).fetchone()
+        if activity_table:
+            connection.execute(
+                """
+                UPDATE ai_activity_logs
+                SET status = 'failed', error_code = 'operation_interrupted',
+                    completed_at = CURRENT_TIMESTAMP
+                WHERE status = 'running'
+                """
+            )
 
 
 def _migrate_source_origin_constraint(connection: sqlite3.Connection) -> None:

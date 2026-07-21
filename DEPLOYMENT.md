@@ -49,7 +49,7 @@ Create a local `.env` that is never committed:
 ```dotenv
 STARTFRAME_MODE=real
 OPENAI_API_KEY=your-server-side-secret
-STARTFRAME_OPENAI_MODEL=gpt-5.6
+STARTFRAME_OPENAI_MODEL=gpt-5.6-luna
 STARTFRAME_SECURE_COOKIES=false
 ```
 

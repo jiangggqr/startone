@@ -158,7 +158,7 @@ def generate_coverage(
                 _source_context(chunks),
                 client_factory=client_factory,
             )
-            output = result.output
+            output = _resolve_source_reference_aliases(result.output, chunks)
             response_id = result.response_id
             model = settings.openai_model
         _validate_coverage(output)
@@ -232,7 +232,9 @@ def generate_knowledge_map(
                 _source_context(chunks),
                 client_factory=client_factory,
             )
-            output = result.output
+            output = _normalize_map_structure(
+                _resolve_source_reference_aliases(result.output, chunks)
+            )
             response_id = result.response_id
             model = settings.openai_model
         _validate_map(output)
@@ -666,6 +668,40 @@ def _validate_map(output: KnowledgeMapOutput) -> None:
             )
 
 
+def _normalize_map_structure(output: KnowledgeMapOutput) -> KnowledgeMapOutput:
+    """Repair non-factual route links while preserving grounded concept content."""
+
+    keys = [concept.concept_key for concept in output.concepts]
+    if len(keys) != len(set(keys)) or any(
+        not re.fullmatch(r"[a-z][a-z0-9_]{0,63}", key) for key in keys
+    ):
+        return output
+
+    position = {key: index for index, key in enumerate(keys)}
+    concepts = []
+    for index, concept in enumerate(output.concepts):
+        prerequisites = [
+            key
+            for key in concept.prerequisite_keys
+            if key in position and position[key] < index
+        ]
+        concepts.append(concept.model_copy(update={"prerequisite_keys": prerequisites}))
+    edges = [
+        edge
+        for edge in output.edges
+        if edge.from_concept_key in position
+        and edge.to_concept_key in position
+        and position[edge.from_concept_key] < position[edge.to_concept_key]
+    ]
+    return output.model_copy(
+        update={
+            "concepts": concepts,
+            "edges": edges,
+            "recommended_route": keys,
+        }
+    )
+
+
 def _validate_coverage(output: SourceCoverageOutput) -> None:
     keys = [concept.concept_key for concept in output.covered_concepts]
     if len(keys) != len(set(keys)) or any(not re.fullmatch(r"[a-z][a-z0-9_]{0,63}", key) for key in keys):
@@ -903,20 +939,77 @@ def _source_ref_details(database_path: Path, workspace_id: str, session_id: str)
     return details
 
 
+def _context_source_chunks(chunks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    # A learning path needs a representative outline, not every extracted
+    # paragraph. Sampling across the whole source is both faster and more
+    # faithful than sending only the first half of a long PDF.
+    max_chunks = 20
+    if len(chunks) > max_chunks:
+        indexes = {
+            round(index * (len(chunks) - 1) / (max_chunks - 1))
+            for index in range(max_chunks)
+        }
+        return [chunks[index] for index in sorted(indexes)]
+    return chunks
+
+
+def _reference_aliases(
+    chunks: list[dict[str, Any]],
+) -> tuple[list[tuple[dict[str, Any], str, str]], dict[tuple[str, str], tuple[str, str]]]:
+    selected_chunks = _context_source_chunks(chunks)
+    source_aliases: dict[str, str] = {}
+    labeled_chunks: list[tuple[dict[str, Any], str, str]] = []
+    alias_to_real: dict[tuple[str, str], tuple[str, str]] = {}
+    for index, chunk in enumerate(selected_chunks, start=1):
+        real_source_id = str(chunk["source_id"])
+        source_alias = source_aliases.setdefault(
+            real_source_id,
+            f"source_{len(source_aliases) + 1}",
+        )
+        chunk_alias = f"chunk_{index}"
+        labeled_chunks.append((chunk, source_alias, chunk_alias))
+        alias_to_real[(source_alias, chunk_alias)] = (real_source_id, str(chunk["id"]))
+    return labeled_chunks, alias_to_real
+
+
+def _resolve_source_reference_aliases(
+    output: SourceCoverageOutput | KnowledgeMapOutput,
+    chunks: list[dict[str, Any]],
+) -> SourceCoverageOutput | KnowledgeMapOutput:
+    _, alias_to_real = _reference_aliases(chunks)
+    payload = output.model_dump()
+
+    def walk(value: Any) -> None:
+        if isinstance(value, dict):
+            if set(value) >= {"source_id", "chunk_id"}:
+                resolved = alias_to_real.get((str(value["source_id"]), str(value["chunk_id"])))
+                if resolved:
+                    value["source_id"], value["chunk_id"] = resolved
+            for item in value.values():
+                walk(item)
+        elif isinstance(value, list):
+            for item in value:
+                walk(item)
+
+    walk(payload)
+    return type(output).model_validate(payload)
+
+
 def _source_context(chunks: list[dict[str, Any]]) -> str:
+    labeled_chunks, _ = _reference_aliases(chunks)
+    max_excerpt_chars = 900
+
     parts = []
-    used = 0
-    for chunk in chunks:
+    for chunk, source_alias, chunk_alias in labeled_chunks:
         text = str(chunk["text"])
-        if used + len(text) > 30_000:
-            break
-        used += len(text)
+        if len(text) > max_excerpt_chars:
+            text = f"{text[:max_excerpt_chars].rstrip()}\n[excerpt shortened]"
         parts.append(
             "\n".join(
                 [
                     "<source_excerpt>",
-                    f"source_id: {chunk['source_id']}",
-                    f"chunk_id: {chunk['id']}",
+                    f"source_id: {source_alias}",
+                    f"chunk_id: {chunk_alias}",
                     f"filename: {chunk['filename']}",
                     f"source_origin: {chunk['source_origin']}",
                     f"heading: {chunk.get('heading_path') or ''}",

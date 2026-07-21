@@ -527,7 +527,7 @@ request_id
 - Responses API
 - schema validation
 - real web search only after gates
-- default model alias `gpt-5.6`, configurable on the server
+- default model `gpt-5.6-luna`, configurable on the server; the low-latency GPT-5.6 variant is used for interactive learning generation
 
 Fixture data must never be presented as a real model response or used for arbitrary public uploads.
 

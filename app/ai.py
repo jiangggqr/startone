@@ -187,6 +187,51 @@ class ModelGatewayError(Exception):
         self.user_message = user_message
 
 
+def model_gateway_error_for_exception(exc: Exception) -> ModelGatewayError:
+    """Translate OpenAI SDK failures into specific, recoverable product errors."""
+
+    error_name = exc.__class__.__name__
+    if error_name == "APITimeoutError":
+        return ModelGatewayError(
+            "openai_timeout",
+            "Analysis took longer than expected. Your material is saved; retry to continue.",
+        )
+    if error_name == "APIConnectionError":
+        return ModelGatewayError(
+            "openai_connection_failed",
+            "StartFrame could not reach the model service. Your material is saved; check the connection and retry.",
+        )
+    if error_name == "AuthenticationError":
+        return ModelGatewayError(
+            "openai_authentication_failed",
+            "The server API key was rejected. Your material is saved; update the key and retry.",
+        )
+    if error_name in {"PermissionDeniedError", "NotFoundError"}:
+        return ModelGatewayError(
+            "openai_model_unavailable",
+            "This API key cannot use the configured model. Your material is saved; check model access and retry.",
+        )
+    if error_name == "RateLimitError":
+        return ModelGatewayError(
+            "openai_rate_limited",
+            "The model service is temporarily rate-limited. Your material is saved; wait briefly and retry.",
+        )
+    if error_name in {"InternalServerError", "UnprocessableEntityError"}:
+        return ModelGatewayError(
+            "openai_temporary_failure",
+            "The model service could not finish this analysis. Your material is saved; retry in a moment.",
+        )
+    if error_name == "BadRequestError":
+        return ModelGatewayError(
+            "openai_request_invalid",
+            "The model could not process this analysis request. Your material is saved; try again or use a smaller source.",
+        )
+    return ModelGatewayError(
+        "openai_request_failed",
+        "The model request could not be completed. Your material is saved; retry in a moment.",
+    )
+
+
 OutputT = TypeVar("OutputT", bound=BaseModel)
 ClientFactory = Callable[[Settings], Any]
 
@@ -225,7 +270,9 @@ def parse_structured_response(
         client = OpenAI(
             api_key=settings.openai_api_key,
             timeout=settings.openai_timeout_seconds,
-            max_retries=1,
+            # Product-level recovery is explicit. An SDK retry doubled one
+            # visible 45-second timeout into a 91-second wait.
+            max_retries=0,
         )
     else:
         client = client_factory(settings)
@@ -234,7 +281,9 @@ def parse_structured_response(
     try:
         response = client.responses.parse(
             model=settings.openai_model,
-            reasoning={"effort": "low"},
+            # GPT-5.6 uses `none` as its latency baseline; `minimal` is not a
+            # supported value for this model family.
+            reasoning={"effort": "none"},
             store=False,
             safety_identifier=safety_identifier,
             input=[
@@ -253,10 +302,7 @@ def parse_structured_response(
     except ModelGatewayError:
         raise
     except Exception as exc:
-        raise ModelGatewayError(
-            "openai_request_failed",
-            "The model request could not be completed. Your session and sources are saved; retry when the connection is available.",
-        ) from exc
+        raise model_gateway_error_for_exception(exc) from exc
 
     parsed = getattr(response, "output_parsed", None)
     status = getattr(response, "status", "completed")

@@ -88,43 +88,24 @@ async def _run() -> None:
                     "source-ready session",
                     {200},
                 )["session"]
-                setup = _body(
-                    await client.patch(
-                        f"/api/sessions/{session_id}",
+                prepared = _body(
+                    await client.post(
+                        f"/api/sessions/{session_id}/learning-path",
                         json={
-                            "goal": "Understand self-attention and explain its basic flow",
-                            "prior_knowledge": "Basic machine learning",
-                            "available_minutes": 25,
-                            "energy_level": "medium",
-                            "current_question": "How do relevance scores change a token representation?",
-                            "support_preferences": [
-                                "direct_explanation",
-                                "define_terms",
-                                "short_steps",
-                            ],
+                            "version": current["version"],
                             "show_timer": False,
                             "search_permission": True,
-                            "version": current["version"],
                         },
                     ),
-                    "learner setup",
-                    {200},
-                )["session"]
-
-                coverage = _body(
-                    await client.post(f"/api/sessions/{session_id}/coverage"),
-                    "GPT-5.6 source coverage",
+                    "automatic GPT-5.6 learning path",
                     {200},
                 )
-                if coverage["generation"]["model"] != "gpt-5.6":
+                coverage = prepared["coverage"]
+                if coverage["generation"]["model"] != settings.openai_model:
                     raise RuntimeError("Coverage did not report the configured GPT-5.6 model.")
 
-                path = _body(
-                    await client.post(f"/api/sessions/{session_id}/path"),
-                    "GPT-5.6 knowledge map",
-                    {200},
-                )
-                if path["generation"]["model"] != "gpt-5.6":
+                path = prepared["path"]
+                if path["generation"]["model"] != settings.openai_model:
                     raise RuntimeError("Knowledge map did not report the configured GPT-5.6 model.")
                 _body(
                     await client.post(f"/api/sessions/{session_id}/path/confirm"),

@@ -102,7 +102,7 @@ Configure credentials only in a local `.env` or deployment secret:
 ```dotenv
 STARTFRAME_MODE=real
 OPENAI_API_KEY=your-server-side-secret
-STARTFRAME_OPENAI_MODEL=gpt-5.6
+STARTFRAME_OPENAI_MODEL=gpt-5.6-luna
 ```
 
 Never paste a key into chat, browser code, documentation, screenshots, video, logs, or Git. Without a server-side key, the product returns an explicit recoverable error and never switches to deterministic fixtures.

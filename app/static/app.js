@@ -1174,21 +1174,53 @@ function startDraftKey() {
 
 async function prepareLearningPath() {
   window.clearTimeout(state.pollTimer);
-  setButtonBusy(reviewCoverageButton, true, "Analyzing your material…", "Build my learning path");
-  setUploadMessage("Analyzing the material, checking coverage, and building a short concept path…");
+  let readyLabel = "Build my learning path";
+  let progressStage = "Reading representative sections across your material.";
+  const startedAt = Date.now();
+  const progressTimer = window.setInterval(() => {
+    const elapsed = Math.max(1, Math.round((Date.now() - startedAt) / 1000));
+    coverageNote.textContent = `${progressStage} ${elapsed} seconds elapsed. Large PDFs usually take 20–60 seconds.`;
+  }, 1000);
+  setButtonBusy(reviewCoverageButton, true, "Analyzing source coverage…", readyLabel);
+  setUploadMessage("Reading sections across the full material. Your upload is already saved.");
   try {
     const session = await getCurrentSession();
-    const result = await api(`/api/sessions/${state.sessionId}/learning-path`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        version: session.version,
-        show_timer: savedPreference("show_timer"),
-        search_permission: savedPreference("search_suggestions"),
-      }),
-    });
-    state.coverage = result.coverage;
-    const path = result.path;
+
+    let path = null;
+    try {
+      path = await api(`/api/sessions/${state.sessionId}/path`);
+    } catch (error) {
+      if (error.body?.error_code !== "map_not_generated") throw error;
+    }
+
+    if (!path) {
+      let coverage = null;
+      try {
+        coverage = await api(`/api/sessions/${state.sessionId}/coverage`);
+      } catch (error) {
+        if (error.body?.error_code !== "coverage_not_generated") throw error;
+      }
+
+      if (!coverage) {
+        const result = await api(`/api/sessions/${state.sessionId}/learning-path`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            version: session.version,
+            show_timer: savedPreference("show_timer"),
+            search_permission: savedPreference("search_suggestions"),
+            stage: "coverage",
+          }),
+        });
+        coverage = result.coverage;
+      }
+      state.coverage = coverage;
+      progressStage = "Source coverage is ready. Organizing the concept route.";
+      setButtonBusy(reviewCoverageButton, true, "Building your learning path…", readyLabel);
+      setUploadMessage("Source coverage is ready. Building the knowledge framework and first learning action…", "success");
+      path = await api(`/api/sessions/${state.sessionId}/path`, { method: "POST" });
+    }
+
     state.knowledgeMap = path;
     state.fullRoute = path.knowledge_map.concepts.map((concept) => concept.concept_key);
     showView("path", `path/${state.sessionId}`, pathTitle);
@@ -1196,9 +1228,12 @@ async function prepareLearningPath() {
     confirmPathButton.disabled = false;
     setMessage(pathMessage, "Your learning path is ready. StartFrame will learn your starting level from the first short response and later practice evidence.", "success");
   } catch (error) {
-    setUploadMessage(`${error.message} ${error.body?.saved_state || "Your material is still saved."}`, "error");
+    readyLabel = "Retry learning path";
+    setUploadMessage(error.message, "error");
+    coverageNote.textContent = `${error.body?.saved_state || "Your material is still saved."} Retry continues from the last completed stage.`;
   } finally {
-    setButtonBusy(reviewCoverageButton, false, "", "Build my learning path");
+    window.clearInterval(progressTimer);
+    setButtonBusy(reviewCoverageButton, false, "", readyLabel);
   }
 }
 

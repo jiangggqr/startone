@@ -1,9 +1,11 @@
 import asyncio
 from pathlib import Path
+import uuid
 
 import httpx
 
 from app.config import AppMode, Settings
+from app.db import connect, initialize_database
 from app.main import create_app
 
 
@@ -81,3 +83,46 @@ def test_public_workspace_session_quota_is_enforced(tmp_path: Path) -> None:
         assert second.json()["saved_state"] == "Your existing sessions and sources are unchanged."
 
     asyncio.run(scenario())
+
+
+def test_restart_closes_interrupted_ai_activity(tmp_path: Path) -> None:
+    database_path = tmp_path / "recovery.sqlite3"
+    settings = Settings(
+        mode="demo",
+        database_path=database_path,
+        upload_dir=tmp_path / "uploads",
+    )
+
+    async def create_running_activity() -> str:
+        app = create_app(settings)
+        async with app.router.lifespan_context(app):
+            transport = httpx.ASGITransport(app=app)
+            async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+                session = (await client.post("/api/sessions")).json()["session"]
+        activity_id = str(uuid.uuid4())
+        with connect(database_path) as connection:
+            row = connection.execute(
+                "SELECT workspace_id FROM learning_sessions WHERE id = ?",
+                (session["id"],),
+            ).fetchone()
+            connection.execute(
+                """
+                INSERT INTO ai_activity_logs(
+                    id, workspace_id, session_id, operation, generation_mode, model, status
+                ) VALUES (?, ?, ?, 'source_coverage', 'demo', 'deterministic-demo-v1', 'running')
+                """,
+                (activity_id, row["workspace_id"], session["id"]),
+            )
+        return activity_id
+
+    activity_id = asyncio.run(create_running_activity())
+    initialize_database(database_path)
+
+    with connect(database_path) as connection:
+        activity = connection.execute(
+            "SELECT status, error_code, completed_at FROM ai_activity_logs WHERE id = ?",
+            (activity_id,),
+        ).fetchone()
+    assert activity["status"] == "failed"
+    assert activity["error_code"] == "operation_interrupted"
+    assert activity["completed_at"] is not None

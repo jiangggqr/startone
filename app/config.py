@@ -31,7 +31,7 @@ class Settings:
     host: str = "127.0.0.1"
     port: int = 8000
     openai_api_key: str | None = None
-    openai_model: str = "gpt-5.6"
+    openai_model: str = "gpt-5.6-luna"
     openai_timeout_seconds: float = 45.0
 
     @classmethod
@@ -98,7 +98,7 @@ class Settings:
             raise ValueError("STARTFRAME_OPENAI_TIMEOUT_SECONDS must be between 5 and 180")
 
         openai_api_key = os.getenv("OPENAI_API_KEY", "").strip() or None
-        openai_model = os.getenv("STARTFRAME_OPENAI_MODEL", "gpt-5.6").strip()
+        openai_model = os.getenv("STARTFRAME_OPENAI_MODEL", "gpt-5.6-luna").strip()
         if not openai_model:
             raise ValueError("STARTFRAME_OPENAI_MODEL cannot be empty")
 
