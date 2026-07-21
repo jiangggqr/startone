@@ -6,7 +6,7 @@ import sqlite3
 from pathlib import Path
 
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 SOURCE_SCHEMA = """
 CREATE TABLE IF NOT EXISTS workspaces (
@@ -90,6 +90,96 @@ CREATE TABLE IF NOT EXISTS source_events (
 );
 """
 
+LEARNING_PATH_SCHEMA = """
+ALTER TABLE learning_sessions ADD COLUMN goal TEXT;
+ALTER TABLE learning_sessions ADD COLUMN prior_knowledge TEXT;
+ALTER TABLE learning_sessions ADD COLUMN available_minutes INTEGER;
+ALTER TABLE learning_sessions ADD COLUMN energy_level TEXT;
+ALTER TABLE learning_sessions ADD COLUMN language TEXT NOT NULL DEFAULT 'English';
+ALTER TABLE learning_sessions ADD COLUMN current_question TEXT;
+ALTER TABLE learning_sessions ADD COLUMN support_preferences_json TEXT NOT NULL DEFAULT '[]';
+ALTER TABLE learning_sessions ADD COLUMN show_timer INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE learning_sessions ADD COLUMN search_permission INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE learning_sessions ADD COLUMN setup_completed INTEGER NOT NULL DEFAULT 0;
+
+CREATE TABLE source_coverages (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    session_id TEXT NOT NULL UNIQUE REFERENCES learning_sessions(id) ON DELETE CASCADE,
+    output_json TEXT NOT NULL,
+    generation_mode TEXT NOT NULL CHECK(generation_mode IN ('demo', 'real')),
+    model TEXT,
+    version INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE source_gaps (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    session_id TEXT NOT NULL REFERENCES learning_sessions(id) ON DELETE CASCADE,
+    concept_key TEXT,
+    description TEXT NOT NULL,
+    why_needed TEXT NOT NULL,
+    evidence TEXT NOT NULL,
+    current_source_refs_json TEXT NOT NULL,
+    suggested_query_scope TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'candidate'
+        CHECK(status IN ('candidate', 'validated', 'resolved', 'dismissed')),
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    resolved_at TEXT
+);
+CREATE INDEX idx_source_gaps_session_status
+    ON source_gaps(session_id, status);
+
+CREATE TABLE knowledge_maps (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    session_id TEXT NOT NULL UNIQUE REFERENCES learning_sessions(id) ON DELETE CASCADE,
+    output_json TEXT NOT NULL,
+    generation_mode TEXT NOT NULL CHECK(generation_mode IN ('demo', 'real')),
+    model TEXT,
+    version INTEGER NOT NULL DEFAULT 1,
+    confirmed_at TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE concepts (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    session_id TEXT NOT NULL REFERENCES learning_sessions(id) ON DELETE CASCADE,
+    concept_key TEXT NOT NULL,
+    title TEXT NOT NULL,
+    plain_definition TEXT NOT NULL,
+    role_in_map TEXT NOT NULL,
+    prerequisite_keys_json TEXT NOT NULL,
+    order_index INTEGER NOT NULL,
+    status TEXT NOT NULL DEFAULT 'planned',
+    estimated_minutes INTEGER NOT NULL,
+    source_refs_json TEXT NOT NULL,
+    UNIQUE(session_id, concept_key)
+);
+CREATE INDEX idx_concepts_session_order
+    ON concepts(session_id, order_index);
+
+CREATE TABLE ai_activity_logs (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    session_id TEXT NOT NULL REFERENCES learning_sessions(id) ON DELETE CASCADE,
+    operation TEXT NOT NULL,
+    generation_mode TEXT NOT NULL CHECK(generation_mode IN ('demo', 'real')),
+    model TEXT,
+    status TEXT NOT NULL,
+    response_id TEXT,
+    error_code TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    completed_at TEXT
+);
+CREATE INDEX idx_ai_activity_session_created
+    ON ai_activity_logs(session_id, created_at);
+"""
+
 
 def connect(database_path: Path) -> sqlite3.Connection:
     """Open a configured SQLite connection with safety pragmas enabled."""
@@ -123,6 +213,9 @@ def initialize_database(database_path: Path) -> None:
         if 2 not in applied:
             connection.executescript(SOURCE_SCHEMA)
             connection.execute("INSERT INTO schema_migrations(version) VALUES (2)")
+        if 3 not in applied:
+            connection.executescript(LEARNING_PATH_SCHEMA)
+            connection.execute("INSERT INTO schema_migrations(version) VALUES (3)")
 
 
 def ensure_workspace(database_path: Path, workspace_id: str) -> None:

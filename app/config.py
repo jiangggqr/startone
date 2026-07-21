@@ -28,6 +28,9 @@ class Settings:
     secure_cookies: bool = False
     host: str = "127.0.0.1"
     port: int = 8000
+    openai_api_key: str | None = None
+    openai_model: str = "gpt-5.6"
+    openai_timeout_seconds: float = 45.0
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -70,6 +73,19 @@ class Settings:
         if secure_cookies not in {"true", "false"}:
             raise ValueError("STARTFRAME_SECURE_COOKIES must be true or false")
 
+        openai_timeout_raw = os.getenv("STARTFRAME_OPENAI_TIMEOUT_SECONDS", "45")
+        try:
+            openai_timeout_seconds = float(openai_timeout_raw)
+        except ValueError as exc:
+            raise ValueError("STARTFRAME_OPENAI_TIMEOUT_SECONDS must be a number") from exc
+        if not 5 <= openai_timeout_seconds <= 180:
+            raise ValueError("STARTFRAME_OPENAI_TIMEOUT_SECONDS must be between 5 and 180")
+
+        openai_api_key = os.getenv("OPENAI_API_KEY", "").strip() or None
+        openai_model = os.getenv("STARTFRAME_OPENAI_MODEL", "gpt-5.6").strip()
+        if not openai_model:
+            raise ValueError("STARTFRAME_OPENAI_MODEL cannot be empty")
+
         return cls(
             mode=raw_mode,  # type: ignore[arg-type]
             database_path=database_path,
@@ -79,4 +95,7 @@ class Settings:
             secure_cookies=secure_cookies == "true",
             host=os.getenv("STARTFRAME_HOST", "127.0.0.1"),
             port=port,
+            openai_api_key=openai_api_key,
+            openai_model=openai_model,
+            openai_timeout_seconds=openai_timeout_seconds,
         )

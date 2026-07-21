@@ -16,11 +16,13 @@ Implement PDF, Markdown, TXT and pasted-text ingestion; real page or line locati
 
 Implement session setup, source coverage, named gaps, 2–5 concept dependency map, initial route and one 60–120 second start action. This milestone creates the shared server-side OpenAI gateway and the first real GPT-5.6 Structured Outputs path, while retaining a deterministic Demo path. Use schema validation and grounded source references.
 
-**Status:** In progress. Demo mode can proceed; a real-model smoke test requires a locally configured `OPENAI_API_KEY`.
+**Status:** Complete and verified on 2026-07-21. The deterministic Demo path is fully runnable; the real GPT-5.6 path is implemented and contract-tested, while a live smoke test remains pending until a local `OPENAI_API_KEY` is configured.
 
 ## Milestone 3 — Production focus-session shell
 
 Implement desktop/tablet/mobile layouts, one active concept, one primary action, compact map, source viewer, visible/optional time, autosave, resume, pause, summary shell, keyboard basics and cross-cutting states.
+
+**Status:** In progress.
 
 ## Milestone 4A — Contextual Tutor
 

@@ -152,6 +152,12 @@
                 />
               </div>
               <button class="button button-secondary" id="open-paste" type="button">Paste text instead</button>
+              <button class="button button-quiet" id="load-demo-materials" type="button">
+                Load the two Demo materials
+              </button>
+              <p class="micro-copy" id="demo-material-note">
+                Demo fixture: Transformer notes plus a matrix prerequisite. No model or internet call is used to load them.
+              </p>
             </section>
 
             <section class="source-inventory" aria-labelledby="inventory-title">
@@ -175,7 +181,7 @@
 
           <aside class="preview-panel" aria-labelledby="preview-title">
             <p class="eyebrow">Verifiable preview</p>
-            <h2 id="preview-title">Source location</h2>
+            <h2 id="preview-title" tabindex="-1">Source location</h2>
             <div id="preview-empty" class="preview-empty">
               <span class="empty-icon" aria-hidden="true">⌖</span>
               <p>Select a ready source to inspect its extracted text and real location.</p>
@@ -196,10 +202,177 @@
 
         <div class="workflow-actions">
           <button class="button button-secondary" id="save-for-later" type="button">Save and return later</button>
-          <button class="button button-secondary" type="button" disabled aria-describedby="coverage-note">
-            Review source coverage
+          <button class="button button-primary" id="review-coverage" type="button" disabled aria-describedby="coverage-note">
+            Continue to session setup
           </button>
-          <p id="coverage-note">Coverage review opens in Milestone 2 after at least one source is ready.</p>
+          <p id="coverage-note">Add at least one readable source to continue.</p>
+        </div>
+      </section>
+
+      <section class="workflow-view" id="setup-view" aria-labelledby="setup-title" hidden>
+        <div class="workflow-heading">
+          <button class="button button-quiet" id="back-to-sources" type="button">← Back to sources</button>
+          <p class="eyebrow">Step 2 · Shape this session</p>
+          <h1 id="setup-title" tabindex="-1">Set a small, useful learning target</h1>
+          <p class="hero-lead">A few constraints help the map fit your time and energy. The learning interface stays in English.</p>
+        </div>
+
+        <div class="form-message" id="setup-message" role="status" aria-live="polite" hidden></div>
+        <form class="setup-form" id="setup-form">
+          <div class="form-card form-card-main">
+            <label for="goal">What do you want to understand or be able to do?</label>
+            <textarea id="goal" name="goal" rows="3" minlength="5" maxlength="500" required></textarea>
+
+            <label for="prior-knowledge">What do you already know?</label>
+            <textarea id="prior-knowledge" name="prior_knowledge" rows="3" minlength="2" maxlength="500" required></textarea>
+
+            <div class="field-grid">
+              <div>
+                <label for="available-minutes">Time available</label>
+                <select id="available-minutes" name="available_minutes">
+                  <option value="10">10 minutes</option>
+                  <option value="25" selected>25 minutes</option>
+                  <option value="45">45 minutes</option>
+                </select>
+              </div>
+              <div>
+                <label for="energy-level">Current energy</label>
+                <select id="energy-level" name="energy_level">
+                  <option value="low">Low</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+            </div>
+
+            <label for="learning-language">Learning language</label>
+            <input id="learning-language" value="English" readonly aria-describedby="language-note" />
+            <p class="micro-copy" id="language-note">All interface text and generated learning content are displayed in English.</p>
+
+            <label for="current-question">What feels unclear right now? <span class="optional">Optional</span></label>
+            <textarea id="current-question" name="current_question" rows="3" maxlength="1000"></textarea>
+          </div>
+
+          <div class="form-card">
+            <fieldset>
+              <legend>Support preferences</legend>
+              <label class="check-row"><input type="checkbox" name="support" value="direct_explanation" checked /> Explain directly before using a metaphor</label>
+              <label class="check-row"><input type="checkbox" name="support" value="define_terms" checked /> Define technical terms separately</label>
+              <label class="check-row"><input type="checkbox" name="support" value="short_steps" checked /> Use shorter steps</label>
+              <label class="check-row"><input type="checkbox" name="support" value="examples_on_request" /> Offer examples on request</label>
+            </fieldset>
+
+            <fieldset>
+              <legend>Session controls</legend>
+              <label class="check-row"><input type="checkbox" id="show-timer" name="show_timer" /> Show the session timer</label>
+              <label class="check-row"><input type="checkbox" id="search-permission" name="search_permission" /> Allow the Agent to suggest external search when a verified gap exists</label>
+              <p class="micro-copy">Turning this on never runs a search. Every search still needs a named gap, an Agent request, and your confirmation.</p>
+            </fieldset>
+
+            <div class="save-status" id="setup-save-status" role="status">Draft is saved on this device.</div>
+            <button class="button button-primary full-width" id="generate-coverage" type="submit">Save setup and review source coverage</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="workflow-view" id="coverage-view" aria-labelledby="coverage-title" hidden>
+        <div class="workflow-heading">
+          <button class="button button-quiet" id="back-to-setup" type="button">← Back to setup</button>
+          <p class="eyebrow">Step 3 · Verify source coverage</p>
+          <h1 id="coverage-title" tabindex="-1">See what your material covers before planning</h1>
+          <p class="hero-lead">Covered concepts and candidate gaps stay tied to real uploaded source locations.</p>
+        </div>
+
+        <div class="trust-banner" role="status">
+          <strong>No internet search has run.</strong>
+          <span>A candidate gap is an observation, not permission to search.</span>
+        </div>
+        <div class="form-message" id="coverage-message" role="status" aria-live="polite" hidden></div>
+        <div class="coverage-grid">
+          <section class="result-panel" aria-labelledby="covered-title">
+            <div class="result-heading">
+              <div><p class="eyebrow">Uploaded material</p><h2 id="covered-title">Covered concepts</h2></div>
+              <span class="status-chip" id="covered-count">0 covered</span>
+            </div>
+            <div class="result-list" id="covered-list"></div>
+          </section>
+          <section class="result-panel" aria-labelledby="gaps-title">
+            <div class="result-heading">
+              <div><p class="eyebrow">Candidate observations</p><h2 id="gaps-title">Possible source gaps</h2></div>
+              <span class="status-chip" id="gap-count">0 gaps</span>
+            </div>
+            <div class="result-list" id="gap-list"></div>
+          </section>
+        </div>
+        <section class="source-policy" aria-label="Source origin policy">
+          <div><span class="origin-badge">Uploaded material</span><p>Primary source for this map and later learning activities.</p></div>
+          <div><span class="origin-badge origin-external">External supplement</span><p>Unavailable until all four search gates pass.</p></div>
+          <div><span class="origin-badge origin-ai">AI supplemental explanation</span><p>Must stay labeled and cannot invent source locations.</p></div>
+        </section>
+        <div class="workflow-actions">
+          <button class="button button-secondary" id="regenerate-coverage" type="button">Regenerate coverage</button>
+          <button class="button button-primary" id="generate-map" type="button">Generate the learning map</button>
+          <p id="coverage-generation-label">Waiting for a validated result.</p>
+        </div>
+      </section>
+
+      <section class="workflow-view" id="path-view" aria-labelledby="path-title" hidden>
+        <div class="workflow-heading">
+          <button class="button button-quiet" id="back-to-coverage" type="button">← Back to coverage</button>
+          <p class="eyebrow">Step 4 · Confirm one route</p>
+          <h1 id="path-title" tabindex="-1">Review the dependency map and first action</h1>
+          <p class="hero-lead">The complete map shows relationships; the selected route shows what fits this session.</p>
+        </div>
+        <div class="form-message" id="path-message" role="status" aria-live="polite" hidden></div>
+        <div class="path-layout">
+          <section class="result-panel" aria-labelledby="map-heading">
+            <div class="result-heading">
+              <div><p class="eyebrow">Grounded map</p><h2 id="map-heading">Learning concepts</h2></div>
+              <span class="status-chip" id="map-count">0 concepts</span>
+            </div>
+            <ol class="concept-map" id="concept-map"></ol>
+          </section>
+          <div class="path-side">
+            <section class="result-panel" aria-labelledby="route-heading">
+              <p class="eyebrow">This session</p>
+              <h2 id="route-heading">Recommended route</h2>
+              <ol class="route-list" id="route-list"></ol>
+              <p class="route-total" id="route-total"></p>
+              <div class="compact-actions">
+                <button class="button button-secondary" id="shorten-route" type="button">Shorten by one concept</button>
+                <button class="button button-quiet" id="restore-route" type="button">Restore full route</button>
+              </div>
+            </section>
+            <section class="primary-action-card" aria-labelledby="start-action-heading">
+              <p class="eyebrow">Your only first action</p>
+              <h2 id="start-action-heading"></h2>
+              <p id="start-action-instruction"></p>
+              <p class="completion-line"><strong>Done when:</strong> <span id="start-action-condition"></span></p>
+              <p class="micro-copy" id="start-action-reason"></p>
+            </section>
+          </div>
+        </div>
+        <div class="workflow-actions">
+          <button class="button button-primary" id="confirm-path" type="button">Confirm this route and show the start action</button>
+          <p id="path-generation-label">Waiting for a validated map.</p>
+        </div>
+      </section>
+
+      <section class="workflow-view start-view" id="start-action-view" aria-labelledby="start-page-title" hidden>
+        <div class="start-shell">
+          <div class="start-meta">
+            <span class="status-chip" id="start-duration">About 90 seconds</span>
+            <button class="button button-quiet" id="start-save-later" type="button">Pause and save</button>
+          </div>
+          <p class="eyebrow">Start action · no penalty for being wrong</p>
+          <h1 id="start-page-title" tabindex="-1"></h1>
+          <p class="hero-lead" id="start-page-instruction"></p>
+          <label for="start-answer">Your one-sentence answer</label>
+          <textarea id="start-answer" rows="6" placeholder="Write one sentence. It does not need to be correct."></textarea>
+          <div class="completion-box"><strong>Completion condition</strong><p id="start-page-condition"></p></div>
+          <div class="form-message" id="start-message" role="status" aria-live="polite" hidden></div>
+          <button class="button button-primary full-width" id="save-start-answer" type="button">Save this starting point</button>
+          <button class="button button-quiet full-width" id="start-back-map" type="button">Review the map again</button>
         </div>
       </section>
     </main>

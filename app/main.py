@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import AsyncIterator
+from typing import Any, AsyncIterator, Callable, Literal
 import uuid
 
 from fastapi import BackgroundTasks, FastAPI, File, Request, UploadFile
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -15,6 +16,17 @@ from pydantic import BaseModel, Field
 from app import __version__
 from app.config import Settings
 from app.db import current_schema_version, ensure_workspace, initialize_database
+from app.learning import (
+    adjust_knowledge_map,
+    confirm_knowledge_map,
+    generate_coverage,
+    generate_knowledge_map,
+    get_coverage,
+    get_knowledge_map,
+    list_source_gaps,
+    load_demo_materials,
+    update_session_setup,
+)
 from app.sources import (
     SourceError,
     cancel_source,
@@ -35,6 +47,7 @@ from app.sources import (
 
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
+SAMPLE_DIR = Path(__file__).resolve().parent.parent / "sample_data"
 WORKSPACE_COOKIE = "startframe_workspace"
 
 
@@ -51,7 +64,29 @@ class PastedSourceRequest(BaseModel):
     text: str = Field(min_length=1, max_length=2_000_000)
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+class SessionSetupRequest(BaseModel):
+    goal: str = Field(min_length=5, max_length=500)
+    prior_knowledge: str = Field(min_length=2, max_length=500)
+    available_minutes: int = Field(ge=5, le=240)
+    energy_level: Literal["low", "medium", "high"]
+    current_question: str | None = Field(default=None, max_length=1000)
+    support_preferences: list[
+        Literal["direct_explanation", "define_terms", "short_steps", "examples_on_request"]
+    ] = Field(default_factory=list, max_length=4)
+    show_timer: bool = False
+    search_permission: bool = False
+    version: int = Field(ge=1)
+
+
+class PathAdjustmentRequest(BaseModel):
+    route_concept_keys: list[str] = Field(min_length=2, max_length=5)
+
+
+def create_app(
+    settings: Settings | None = None,
+    *,
+    ai_client_factory: Callable[[Settings], Any] | None = None,
+) -> FastAPI:
     resolved_settings = settings or Settings.from_env()
 
     @asynccontextmanager
@@ -80,6 +115,31 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 "retry_after_seconds": None,
                 "field_errors": None,
                 "saved_state": exc.saved_state,
+                "request_id": str(uuid.uuid4()),
+            },
+        )
+
+    @application.exception_handler(RequestValidationError)
+    async def request_validation_error_handler(
+        request: Request,
+        exc: RequestValidationError,
+    ) -> JSONResponse:
+        field_errors = [
+            {
+                "field": ".".join(str(part) for part in error["loc"] if part not in {"body", "query"}),
+                "message": str(error["msg"]),
+            }
+            for error in exc.errors()
+        ]
+        return JSONResponse(
+            status_code=422,
+            content={
+                "error_code": "request_validation_failed",
+                "user_message": "Check the highlighted information and try again.",
+                "recoverable": True,
+                "retry_after_seconds": None,
+                "field_errors": field_errors,
+                "saved_state": "Existing session data is unchanged.",
                 "request_id": str(uuid.uuid4()),
             },
         )
@@ -151,6 +211,21 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             resolved_settings.database_path,
             _workspace_id(request),
             session_id,
+        )
+        return {"session": _public_session(session)}
+
+    @application.patch("/api/sessions/{session_id}")
+    async def update_session(
+        session_id: str,
+        payload: SessionSetupRequest,
+        request: Request,
+    ) -> dict:
+        session = update_session_setup(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            session_id,
+            payload.model_dump(exclude={"version"}),
+            payload.version,
         )
         return {"session": _public_session(session)}
 
@@ -345,6 +420,91 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
         return {"query": q[:200], "results": [_public_chunk(item) for item in results]}
 
+    @application.post("/api/sessions/{session_id}/demo-materials", status_code=201)
+    async def add_demo_materials(session_id: str, request: Request) -> dict:
+        created = load_demo_materials(
+            resolved_settings,
+            _workspace_id(request),
+            session_id,
+            SAMPLE_DIR,
+        )
+        items = list_sources(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            session_id,
+        )
+        return {
+            "created_count": len(created),
+            "sources": [_public_source(item) for item in items],
+            "fixture": "Transformer foundations",
+        }
+
+    @application.post("/api/sessions/{session_id}/coverage")
+    async def create_coverage(session_id: str, request: Request) -> dict:
+        return generate_coverage(
+            resolved_settings,
+            _workspace_id(request),
+            session_id,
+            client_factory=ai_client_factory,
+        )
+
+    @application.get("/api/sessions/{session_id}/coverage")
+    async def coverage_detail(session_id: str, request: Request) -> dict:
+        return get_coverage(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            session_id,
+        )
+
+    @application.get("/api/sessions/{session_id}/source-gaps")
+    async def source_gaps(session_id: str, request: Request) -> dict:
+        return {
+            "source_gaps": list_source_gaps(
+                resolved_settings.database_path,
+                _workspace_id(request),
+                session_id,
+            ),
+            "internet_search_performed": False,
+        }
+
+    @application.post("/api/sessions/{session_id}/path")
+    async def create_path(session_id: str, request: Request) -> dict:
+        return generate_knowledge_map(
+            resolved_settings,
+            _workspace_id(request),
+            session_id,
+            client_factory=ai_client_factory,
+        )
+
+    @application.get("/api/sessions/{session_id}/path")
+    async def path_detail(session_id: str, request: Request) -> dict:
+        return get_knowledge_map(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            session_id,
+        )
+
+    @application.patch("/api/sessions/{session_id}/path")
+    async def adjust_path(
+        session_id: str,
+        payload: PathAdjustmentRequest,
+        request: Request,
+    ) -> dict:
+        return adjust_knowledge_map(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            session_id,
+            payload.route_concept_keys,
+        )
+
+    @application.post("/api/sessions/{session_id}/path/confirm")
+    async def confirm_path(session_id: str, request: Request) -> dict:
+        return confirm_knowledge_map(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            session_id,
+        )
+
     application.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
     return application
 
@@ -375,10 +535,27 @@ def _public_session(session: dict) -> dict:
         "version",
         "source_count",
         "ready_source_count",
+        "goal",
+        "prior_knowledge",
+        "available_minutes",
+        "energy_level",
+        "language",
+        "current_question",
+        "show_timer",
+        "search_permission",
+        "setup_completed",
         "created_at",
         "updated_at",
     }
-    return {key: session.get(key) for key in fields if key in session}
+    result = {key: session.get(key) for key in fields if key in session}
+    if "support_preferences_json" in session:
+        import json
+
+        result["support_preferences"] = json.loads(session.get("support_preferences_json") or "[]")
+    for key in ("show_timer", "search_permission", "setup_completed"):
+        if key in result:
+            result[key] = bool(result[key])
+    return result
 
 
 def _public_source(source: dict, *, include_chunks: bool = False) -> dict:

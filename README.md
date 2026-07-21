@@ -35,7 +35,7 @@ StartFrame Agent 是一个以上传学习材料为主来源的学习 Agent Web A
 
 ## 当前实现
 
-Milestone 0–1 已建立：
+Milestone 0–2 已建立：
 
 - Python 3.11+ / FastAPI / Uvicorn 服务
 - SQLite 初始化与 Schema 版本记录
@@ -48,8 +48,14 @@ Milestone 0–1 已建立：
 - 真实 PDF 页码、Markdown/TXT 标题与行号、粘贴文本段落定位
 - 稳定来源/片段 ID、校验和、本地检索、重试与删除
 - 英文来源清单、可核查预览、部分成功与可恢复错误状态
+- 英文会话设置、自动本地草稿与服务端乐观版本控制
+- 材料覆盖、明确候选缺口、2–5 个概念知识地图和可调整路线
+- 一个带时长与完成条件的 60–120 秒启动动作
+- 服务端 GPT-5.6 Responses API 网关与 Pydantic Structured Outputs
+- 每个模型来源引用在保存和显示前经过 workspace、session、source 与 chunk 验证
+- 明确分离的确定性 Demo 模式与真实模型模式
 
-GPT-5.6 模型调用、Tutor、练习、Agent 与受控外部搜索会在后续里程碑逐步加入。未完成的功能不会用假数据冒充成功状态。
+Tutor、练习、Agent 与受控外部搜索会在后续里程碑逐步加入。未完成的功能不会用假数据冒充成功状态。
 
 ## 本地运行
 
@@ -73,6 +79,8 @@ python -m pytest
 ```
 
 默认使用不调用外部模型的 `demo` 模式。`.env` 不应提交；真实模型密钥只允许由服务端环境变量读取。
+
+真实 GPT-5.6 模式需要在本地 `.env` 中设置 `STARTFRAME_MODE=real` 和 `OPENAI_API_KEY`。不要把 Key 粘贴到聊天、前端代码、文档或 Git 提交中。没有 Key 时，真实模式会返回明确的可恢复错误，不会静默切换或伪装成 Demo。
 
 ## 项目目录
 

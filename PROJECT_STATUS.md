@@ -10,7 +10,8 @@
 - Acceptance scenarios and Codex prompts: complete
 - Milestone 0 application foundation: complete
 - Milestone 1 source ingestion and grounding: complete
-- Milestone 2 learner setup, coverage and knowledge map: in progress
+- Milestone 2 learner setup, coverage and knowledge map: complete
+- Milestone 3 production focus-session shell: in progress
 - Production UI language: English
 
 ## What the prototype is
@@ -28,7 +29,13 @@
 - PDF, Markdown, TXT and pasted-text parsing with real source locations
 - Stable source/chunk IDs, checksums, local retrieval, retry and source deletion
 - Source inventory, preview, empty/error/partial-success/offline/recovery UI states
+- English learner setup with local draft recovery and optimistic server versioning
+- Grounded source coverage with candidate gaps that never authorize search
+- A 2–5 concept dependency map, adjustable route and one 60–120 second start action
+- Shared server-side GPT-5.6 Responses API gateway with Pydantic Structured Outputs
+- Server validation of every generated source/chunk reference before persistence or rendering
+- Explicit Demo/live-model separation, AI activity metadata and recoverable no-key/model errors
 
 ## Next action
 
-Implement Milestone 2 learner setup, grounded source coverage, knowledge map and a 60–120 second start action in deterministic Demo and real GPT-5.6 modes.
+Implement Milestone 3 focus-session shell, server-backed start-action draft, pause/resume overlay, timer preference and responsive learning workspace.

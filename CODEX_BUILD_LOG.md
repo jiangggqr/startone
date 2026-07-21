@@ -18,7 +18,7 @@ Record one section after each verified milestone.
 - Status: complete
 - Date: 2026-07-20
 - Codex thread/session: current StartFrame Agent task
-- Git commit: pending at time of this log entry
+- Git commit: `54258dd`
 - Goal: create a runnable, testable foundation without uploads or model calls
 - Codex contribution: implemented FastAPI entry point, environment settings, SQLite schema initialization, security headers, health endpoint, static responsive shell and automated tests
 - Human product decision: all user-visible product content must be English; Chinese remains internal specification language only
@@ -54,7 +54,7 @@ Record one section after each verified milestone.
 - Status: complete
 - Date: 2026-07-20
 - Codex thread/session: current StartFrame Agent task
-- Git commit: pending at time of this log entry
+- Git commit: `04447e6`
 - Goal: accept PDF, Markdown, TXT and pasted text while preserving real, server-validated locations
 - Codex contribution: added anonymous workspace isolation, version-2 SQLite source schema, UUID/checksum blob storage, structural parsers, stable chunk IDs, local source retrieval, source APIs, retry/cancel/delete behaviors, an English upload inventory and a verifiable preview UI
 - Human product decisions: every user-visible product string is English; the visual system uses flat backgrounds and does not use large-area gradients
@@ -63,3 +63,19 @@ Record one section after each verified milestone.
 - Browser verification: real pasted-text creation → parsing → inventory → two-paragraph preview passed; delete-confirmation cancel returned focus to the Remove trigger; 390 px viewport had 390 px document width with no horizontal overflow; browser console reported zero errors
 - Problems and corrections: the in-app browser does not support automated native file selection, so PDF/Markdown/TXT multipart upload is covered by API integration tests while the complete pasted-source UI path is covered in-browser; stale Milestone 0 data copy and an overly prominent disabled future action were corrected
 - Remaining limitations: source coverage and session setup begin in Milestone 2; no OpenAI call exists in Milestone 1; the current environment does not yet contain `OPENAI_API_KEY`
+
+## Milestone 2 — Learner setup, coverage and knowledge map
+
+- Status: complete
+- Date: 2026-07-21
+- Codex thread/session: current StartFrame Agent task
+- Git commit: Milestone 2 focused commit (this commit)
+- Goal: turn ready uploaded sources into an English session setup, grounded coverage review, 2–5 concept map, adjustable route and one 60–120 second start action
+- Codex contribution: added schema version 3, optimistic setup persistence, candidate SourceGap records, typed coverage/map schemas, a shared server-side Responses API gateway, deterministic Demo generation, real GPT-5.6 configuration, source-reference validation, AI activity metadata, Demo material loading and the complete pre-learning browser flow
+- Human product decisions: the production UI and generated learning content stay in English; all major backgrounds are flat colors; the OpenAI key is configured only in local/deployment environment variables and is never pasted into chat or committed
+- Files changed: AI and learning modules, settings, database migration, API routes, static UI, tests, environment template, dependency list and milestone records
+- Verification: 14 automated tests passed; OpenAI SDK 2.46.0 generated strict response formats for both Pydantic output types; Demo setup → coverage → map → route adjustment → confirmation passed; real mode without a key returned an explicit recoverable error; invalid model source references were rejected before persistence; malformed setup requests used the product error envelope
+- Browser verification: loaded both real Demo Markdown sources, reviewed exact heading/line citations, saved English setup, generated coverage and a five-concept route, shortened/restored/confirmed the route, saved/restored the first-action draft, opened a source from the map and returned focus to the exact trigger; 390 px viewport had 390 px document width with no horizontal overflow; browser console reported zero errors; visual inspection confirmed solid backgrounds and no large-area gradients
+- Official API alignment: implementation uses the Responses API `responses.parse` path, `gpt-5.6` server default, low reasoning effort, `store=False`, a privacy-preserving safety identifier and Pydantic Structured Outputs; the OpenAI SDK was inspected locally to confirm these parameters
+- Problems and corrections: local ports 8000 and 8010 were already occupied, so browser verification used 8020; a source-reference preview initially lacked a direct return path, so it now returns to coverage/map and restores focus to the invoking citation control
+- Remaining limitations: the environment has no `OPENAI_API_KEY`, so the live GPT-5.6 smoke test is deferred to final hardening; the start-action answer is currently restored from local storage and becomes a versioned server draft in Milestone 3; no external search tool is exposed in this milestone

@@ -93,6 +93,7 @@ Python 3.11+、FastAPI、Uvicorn、SQLite、静态 HTML/CSS/JS。除非记录新
 - Milestone 2 首次建立真实 GPT-5.6 Structured Outputs 路径，用于来源覆盖、知识地图和启动动作，同时保留确定性 Demo 路径
 - Milestone 4–6 复用同一服务端 AI gateway 实现 Tutor、练习、反馈、Agent 和搜索
 - 模型名通过配置提供，默认 `gpt-5.6`；真实模式无 Key 时必须明确失败，不得降级成未标记 Demo
+- `OPENAI_API_KEY` 只由开发者在本地或部署环境的 `.env`/secret 配置中提供，不通过聊天传递，不写入客户端、日志、文档或 Git 提交
 
 ### 来源类型与定位
 
