@@ -6,7 +6,7 @@ StartFrame Agent
 
 ## Tagline
 
-Turn your own learning materials into one grounded next step at a time.
+Start faster. Build real understanding. Finish one concept at a time.
 
 ## Category
 
@@ -14,11 +14,11 @@ Education
 
 ## Short description
 
-StartFrame Agent turns a learner's PDFs, Markdown notes, text files, or pasted material into a source-verifiable knowledge map and a low-friction learning session. A contextual Tutor and Guided Mastery Loop teach and assess one active concept. Factual learning evidence then lets a bounded planning Agent select exactly one next action. External search is unavailable until four independent gates are satisfied.
+StartFrame Agent helps learners overcome the gap between intending to learn and actually finishing. It turns source material into a verifiable knowledge structure, starts with one low-friction action, teaches and checks one active concept at a time, and uses factual learning evidence to keep progress moving. It is built first for dense AI and technical learning, while the method works across text-based subjects.
 
 ## Inspiration
 
-Many learning tools assume that the learner has already started: they wait for a good question, a clean plan, and enough working memory to decide what to do next. The harder moment is often earlier. A learner already has course material but cannot decide on the right goal, turn it into a manageable first action, or tell whether understanding is improving.
+Many learning tools assume that the learner has already started: they wait for a good question, a clean plan, and enough working memory to decide what to do next. The harder problem spans the whole journey: starting despite friction, seeing how ideas connect, returning after attention breaks, and knowing whether the learning is actually complete.
 
 StartFrame Agent was designed around that initiation-to-mastery gap. It is ADHD-informed without making medical, diagnostic, or treatment claims.
 

@@ -20,6 +20,7 @@
 - Milestone 7 production hardening: complete, including isolated live GPT-5.6 core-flow verification
 - Milestone 8 submission readiness: local 1.0.0 release package and live smoke test complete; external publication steps pending
 - Production UI language: English
+- Product positioning: focus-first learning; AI and technical learning are the launch focus, but the source-grounded MVP is not restricted to one subject
 
 ## What the prototype is
 
@@ -92,6 +93,7 @@
 - Long-source analysis samples representative excerpts across the entire document, reports coverage and route-building as separate visible stages, caps a failed model attempt at one request, and resumes from any completed stage
 - Model timeout, connection, authentication, access, rate-limit and invalid-request failures use distinct recoverable messages; interrupted operations are closed on server restart instead of remaining stuck as running
 - Model-facing citations use short aliases that are mapped back to real source/chunk IDs and revalidated before persistence; impossible generated prerequisite links are removed deterministically before the full map integrity check
+- Homepage value proposition now leads with fast initiation, a coherent knowledge structure, sustained concept-by-concept progress and learning completion; material upload is the mechanism, not the product promise
 
 ## Next action
 

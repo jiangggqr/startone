@@ -5,7 +5,7 @@
 The public deployment needs no learner account. GPT-5.6 credentials stay on the server and never appear in the browser.
 
 1. Open the public app URL.
-2. Select **Upload material and start a session**.
+2. Select **Upload material and start learning**.
 3. Upload `sample_data/transformer_notes.md` and `sample_data/matrix_prerequisite.md`, or upload your own readable PDF, Markdown, or TXT file.
 4. Confirm that both file status and the next action appear inside the upload panel, then select **Build my learning path**.
 5. Review the AI-selected learning focus, knowledge framework, concept route, and grounded references. No setup form is required.

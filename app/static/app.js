@@ -419,7 +419,7 @@ async function beginSession() {
     runtimeStatus.textContent = `${error.message} Nothing was changed. Try again.`;
   } finally {
     buttons.forEach((button) => {
-      const label = button.id === "empty-start" ? "Start your first session" : "Upload material and start a session";
+      const label = button.id === "empty-start" ? "Start your first session" : "Upload material and start learning";
       setButtonBusy(button, false, "", label);
     });
   }

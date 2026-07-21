@@ -6,7 +6,7 @@ Use English narration or complete English captions. Do not include copyrighted m
 
 **On screen:** Landing page, then the uploaded-material card.
 
-**Narration:** “Learners often already have the right material. The hard part is turning it into a manageable first action, staying oriented, and knowing what to do after a mistake. StartFrame Agent is a source-grounded, ADHD-informed learning app for that gap.”
+**Narration:** “Wanting to learn is not the same as getting started, seeing how the ideas fit together, or finishing. StartFrame Agent helps learners start faster, build real understanding, and keep moving one concept at a time. It is built first for dense AI and technical learning, with a source-grounded method that works across subjects.”
 
 ## 0:18–0:42 — Sources and automatic planning
 

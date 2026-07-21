@@ -227,3 +227,14 @@ Record one section after each verified milestone.
 - Real verification: the same PDF completed source coverage in 18.9 seconds and a five-concept knowledge map in 13.9 seconds; the server-side key and generated content were not printed
 - Full live verification: the isolated current product flow passed automatic learning-path generation, path confirmation, starting response, Tutor, Quiz, structured feedback, recommendation-free `LearningEvidence`, and exactly-one-action Agent selection with `gpt-5.6-luna`
 - Browser verification: a saved map restored correctly with five grounded concepts, one dominant start action and source-location controls; all visible text was English, `body` background image was `none`, and desktop document width matched the viewport
+
+## Product-positioning refinement — focus-first, AI-first
+
+- Status: complete
+- Date: 2026-07-21
+- Trigger: the homepage headline described converting existing material into a session but did not state the actual outcome: starting faster, building a knowledge structure, sustaining attention and finishing learning
+- Decision: position StartFrame as **AI-first, not AI-only**. AI and technical learning are the launch wedge and demonstration focus, while the current source-grounded learning loop remains usable for other text-based subjects
+- Scope boundary: do not claim AI-only differentiation until the product includes code execution/debugging, formula and architecture-diagram understanding, an AI prerequisite knowledge base, technical freshness checks and AI-specific evaluations
+- UI correction: replaced the material-conversion headline with “Start faster. Build real understanding. Finish what you set out to learn.”; changed the learner-facing ADHD label to “Focus-friendly”; and identified AI and technical learning as the initial focus without restricting uploads
+- Artifact alignment: updated the production homepage, low-fidelity prototype, full specification, scope decision, README, judge instructions, Devpost copy and video script
+- Verification: 49 automated tests passed; JavaScript and diff checks passed; browser inspection confirmed the new English copy, flat background, no horizontal overflow and removal of the previous headline

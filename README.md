@@ -1,6 +1,6 @@
 # StartFrame Agent
 
-StartFrame Agent turns a learner's own PDFs, Markdown notes, text files, or pasted material into one grounded next step at a time. It combines a contextual Tutor and Guided Mastery Loop with a bounded Adaptive Planning Agent, while keeping uploaded material primary and external search under explicit learner control.
+StartFrame Agent helps learners start faster, build a coherent knowledge structure, and finish learning one concept at a time. It is built first for dense AI and technical material, while its source-grounded Tutor, Guided Mastery Loop, and bounded Adaptive Planning Agent can work across text-based subjects.
 
 Built for the **Education** track of OpenAI Build Week with Codex and GPT-5.6.
 
@@ -17,7 +17,7 @@ cp .env.example .env
 python -m uvicorn app.main:app --reload --port 8000
 ```
 
-Open `http://127.0.0.1:8000`, select **Upload material and start a session**, upload either file in `sample_data/`, and select **Build my learning path**. There is no goal, prior-knowledge, time, or energy form. A complete walkthrough is in [`submission/JUDGE_TESTING_GUIDE.md`](submission/JUDGE_TESTING_GUIDE.md).
+Open `http://127.0.0.1:8000`, select **Upload material and start learning**, upload either file in `sample_data/`, and select **Build my learning path**. There is no goal, prior-knowledge, time, or energy form. A complete walkthrough is in [`submission/JUDGE_TESTING_GUIDE.md`](submission/JUDGE_TESTING_GUIDE.md).
 
 - Public app: pending final deployment
 - API health: `/api/health`
