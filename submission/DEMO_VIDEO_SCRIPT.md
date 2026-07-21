@@ -26,11 +26,11 @@ Use English narration or complete English captions. Do not include copyrighted m
 
 **Narration:** “The contextual Tutor explains, asks smaller questions, and guides only the active concept. Quiz, free recall, progressive hints, immediate feedback, specific encouragement, and targeted remediation form the separate Guided Mastery Loop.”
 
-## 1:28–1:55 — Feedback, evidence, and Agent
+## 1:28–1:55 — Immediate feedback and the next step
 
-**On screen:** Submit an incomplete answer, show the five feedback sections, complete the boundary, and show one Agent decision with alternatives.
+**On screen:** Submit a Quiz answer, show the immediate correct/not-quite result and concise explanation, select Continue, and show one next action.
 
-**Narration:** “The loop records factual LearningEvidence: coverage, misconceptions, hint depth, time, Tutor confusion signals, and remedial outcome. It contains no recommendation. Only then does the planning Agent select exactly one bounded global next action, with a short reason and a penalty-free override.”
+**Narration:** “Feedback is immediate and intentionally small: the result, the answer, and why. Behind the interface, the loop records factual LearningEvidence with no recommendation. Continue asks the planning Agent for exactly one bounded next action, without turning the product into a system dashboard.”
 
 ## 1:55–2:20 — Four-gate search
 

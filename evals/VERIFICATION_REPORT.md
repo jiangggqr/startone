@@ -1,8 +1,8 @@
 # StartFrame Agent verification report
 
-Date: 2026-07-21  
+Date: 2026-07-22
 Application verification: deterministic fixtures plus isolated real GPT-5.6 smoke flow
-Automated result: `43 passed`
+Automated result: `50 passed`
 Browser widths exercised: 390 px, 640 px zoom-equivalent, and desktop  
 Live GPT-5.6 status: passed an isolated real-mode core flow on 2026-07-21
 
@@ -13,11 +13,11 @@ Live GPT-5.6 status: passed an isolated real-mode core flow on 2026-07-21
 | C01 Grounded upload | Pass | Markdown/PDF/pasted parsing tests plus inline citations resolve exact saved locations. |
 | C02 Partial file failure | Pass | Mixed-upload and blank-page PDF tests preserve usable sources and return recovery details. |
 | C03 No fabricated location | Pass | Invalid model references fail before persistence; the UI renders only validated references. |
-| C04 Start action | Pass | Generated actions are schema-bounded to 60–120 seconds and require one saved checkable response. |
+| C04 Direct start | Pass | The knowledge framework opens the first beginner-friendly explanation without a setup form or pre-test. |
 | C05 Tutor boundary | Pass | Tutor persistence, gap-signal, source validation, and no-tool real contract tests pass. |
 | C06 Quiz quality | Pass | Four-option misconception contract passes; answer keys and explanations remain server-only before submission. |
 | C07 Recall paraphrase | Pass | Deterministic evaluator accepts meaning-level paraphrases and records key-point coverage. |
-| C08 Feedback quality | Pass | Automated and browser flows verify all five feedback sections and behavior-specific encouragement. |
+| C08 Feedback quality | Pass | The server preserves structured feedback while the browser renders correct/not-quite, answer review, one rationale and Continue. |
 | C09 Evidence purity | Pass | Database/API evidence fields contain observations only; recommendation field scans pass. |
 | C10 Agent single action | Pass | Deterministic and strict function-call tests return exactly one bounded action. |
 | C11 Prerequisite return | Pass | Inserted prerequisite stores and executes `return_to_concept_id`. |
@@ -62,12 +62,15 @@ Live GPT-5.6 status: passed an isolated real-mode core flow on 2026-07-21
 
 - Upload or pasted material is the only learning entry; the app has no topic-only substitute or setup form.
 - Automated coverage verifies upload → AI-selected knowledge framework → direct first explanation → Tutor/Quiz/recall visibility.
+- Quiz browser coverage verifies one centered question, one quiet source-origin line, optional inline hints, no repeated file/page rows or system-boundary copy, and immediate answer-level explanation.
+- Continue from feedback completes recommendation-free evidence, requests one Agent action automatically, and skips the former learner-facing Evidence review task.
 - Source-location reports are workspace-owned, tied to an exact chunk, exportable, and do not alter learning progress.
 - History search/filter, session copy/delete, JSON/Markdown export, AI activity, full workspace deletion, larger text, reduced motion, and new-session defaults are user-accessible.
 - API responses are `no-store`; CSP, frame denial, MIME sniff prevention, referrer policy, permissions policy, opener isolation, secure-cookie support, and conditional HSTS are enabled.
 - Public-release defaults enforce 20 sessions and 50 sources per anonymous workspace; quota failures preserve existing data and return a recoverable English error envelope.
 - Export excludes API keys, server paths, hidden answer keys, internal prompts, and model response IDs.
 - The browser check loaded the standard two-source fixture; at 390 px the document width equaled the viewport, no visible control was below 24×24 CSS px, no Chinese UI was present, and the computed body background image was `none`.
+- The 2026-07-22 desktop browser pass completed a real Quiz, revealed one hint without a success banner, submitted an incorrect answer, verified the correct answer and rationale, and reached one concise next action. Width matched the 1280 px viewport; no Chinese text or gradient was present.
 - Secret scan, Python compilation, dependency integrity, diff hygiene, English UI scan, no-gradient scan, and deployment YAML parsing pass.
 
 ## Live GPT-5.6 verification

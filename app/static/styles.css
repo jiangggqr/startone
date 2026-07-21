@@ -1991,10 +1991,8 @@ dialog::backdrop {
 }
 
 .activity-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(17rem, 0.38fr);
-  gap: 1rem;
-  align-items: start;
+  width: min(52rem, 100%);
+  margin: 0 auto;
 }
 
 .activity-card {
@@ -2007,6 +2005,12 @@ dialog::backdrop {
 
 .activity-heading h2 {
   margin: 0.6rem 0 0;
+}
+
+.practice-origin {
+  margin: -0.65rem 0 1.15rem;
+  color: var(--muted);
+  font-size: 0.88rem;
 }
 
 .activity-prompt {
@@ -2066,57 +2070,35 @@ dialog::backdrop {
   margin-top: 1rem;
 }
 
-.submission-receipt {
-  margin-top: 1.2rem;
-  padding: 1rem;
-  border-left: 4px solid var(--teal);
-  border-radius: 0.5rem;
-  color: #244b48;
-  background: #f1f8f7;
-}
-
-.submission-receipt p {
-  margin-bottom: 0;
-}
-
-.hint-panel {
-  position: sticky;
-  top: 5.5rem;
+.activity-hints {
+  margin-top: 0.85rem;
 }
 
 .hint-list {
   display: grid;
   gap: 0.7rem;
-  margin: 1rem 0;
+  margin: 0 0 0.65rem;
 }
 
-.hint-item,
-.hint-placeholder {
+.hint-list:empty {
+  display: none;
+}
+
+.hint-item {
   padding: 0.8rem;
   border: 1px solid var(--border);
   border-radius: 0.75rem;
   background: var(--surface-alt);
 }
 
-.hint-item strong,
-.hint-placeholder strong {
+.hint-item strong {
   display: block;
 }
 
-.hint-item p,
-.hint-placeholder p {
+.hint-item p {
   margin: 0.25rem 0 0;
   color: var(--muted);
   font-size: 0.9rem;
-}
-
-.hint-placeholder {
-  color: var(--muted);
-  background: var(--surface);
-}
-
-.activity-boundary {
-  margin-top: 1.2rem;
 }
 
 .feedback-view,
@@ -2132,64 +2114,81 @@ dialog::backdrop {
   margin-bottom: 1rem;
 }
 
-.feedback-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.65fr);
-  gap: 1rem;
-  align-items: start;
-}
-
 .feedback-main,
-.evidence-panel,
 .evidence-ready-shell {
   padding: clamp(1.15rem, 3vw, 2rem);
 }
 
-.feedback-section {
-  margin-top: 0.9rem;
-  padding: 1rem;
+.feedback-main {
+  width: min(52rem, 100%);
+  margin: 0 auto;
+}
+
+.feedback-result-heading {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.feedback-result-heading h2,
+.feedback-result-heading p {
+  margin: 0;
+}
+
+.feedback-result-mark {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 2px solid #258369;
+  border-radius: 50%;
+  color: #17624f;
+  font-size: 1.45rem;
+  font-weight: 800;
+}
+
+.feedback-result-mark[data-result="review"] {
+  border-color: #b87322;
+  color: #8a5313;
+}
+
+.quiz-answer-review {
+  display: grid;
+  gap: 0.7rem;
+  margin-bottom: 1.25rem;
+}
+
+.quiz-answer-review[hidden] {
+  display: none;
+}
+
+.quiz-answer-review > div {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.85rem 1rem;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface);
+  border-radius: 0.75rem;
+  background: var(--surface-alt);
 }
 
-.feedback-section h3,
-.feedback-section p,
-.feedback-section ul {
+.quiz-answer-review span {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.feedback-explanation {
+  margin: 1rem 0;
+}
+
+.feedback-explanation h3,
+.feedback-explanation p {
   margin-top: 0;
-}
-
-.feedback-section ul {
-  margin-bottom: 0;
-  padding-left: 1.25rem;
-}
-
-.feedback-mastered {
-  border-left: 5px solid #258369;
-  background: #f3fbf8;
-}
-
-.feedback-missing {
-  border-left: 5px solid #c68131;
-  background: #fffaf1;
 }
 
 .feedback-encouragement {
-  border-left: 5px solid var(--primary);
-  background: var(--primary-soft);
-}
-
-.next-micro-action {
-  margin-top: 1rem;
-  padding: 1.2rem;
-  border: 2px solid #7285d8;
-  border-radius: var(--radius-md);
-  background: #f7f8ff;
-}
-
-.next-micro-action h3,
-.next-micro-action p {
-  margin-top: 0;
+  color: var(--muted);
 }
 
 .feedback-actions {
@@ -2197,11 +2196,6 @@ dialog::backdrop {
   flex-wrap: wrap;
   gap: 0.7rem;
   align-items: center;
-}
-
-.evidence-panel {
-  position: sticky;
-  top: 5.6rem;
 }
 
 .evidence-ready-view {
@@ -2215,47 +2209,17 @@ dialog::backdrop {
 }
 
 .evidence-ready-shell {
-  width: min(52rem, 100%);
-}
-
-.evidence-ready-list {
-  display: grid;
-  gap: 0.75rem;
-  margin: 1.25rem 0;
-}
-
-.evidence-ready-item {
-  display: grid;
-  grid-template-columns: minmax(8rem, 0.35fr) 1fr;
-  gap: 1rem;
-  padding: 0.9rem 1rem;
-  border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  background: var(--surface-alt);
-}
-
-.evidence-ready-item p {
-  margin: 0;
+  width: min(36rem, 100%);
+  text-align: center;
 }
 
 .agent-view {
   padding: 2.5rem 0 5rem;
 }
 
-.agent-layout {
-  display: grid;
-  grid-template-columns: minmax(18rem, 0.72fr) minmax(0, 1.28fr);
-  gap: 1rem;
-  align-items: start;
-}
-
-.agent-evidence {
-  position: sticky;
-  top: 5.6rem;
-}
-
-.agent-evidence h2 {
-  margin-top: 0;
+.next-step-shell {
+  width: min(52rem, 100%);
+  margin: 0 auto;
 }
 
 .agent-decision-column {
@@ -2265,17 +2229,13 @@ dialog::backdrop {
 
 .agent-primary {
   position: relative;
-  border: 2px solid #aab8f5;
+  border: 1px solid var(--border);
   background: var(--surface);
 }
 
 .agent-primary h2 {
   margin: 0.25rem 0 0.75rem;
   font-size: clamp(1.65rem, 3vw, 2.35rem);
-}
-
-.agent-primary .recommended-label {
-  top: -0.85rem;
 }
 
 .agent-alternatives {
@@ -2476,8 +2436,7 @@ dialog::backdrop {
     grid-template-columns: 1fr;
   }
 
-  .tutor-context,
-  .hint-panel {
+  .tutor-context {
     position: static;
   }
 
@@ -2485,9 +2444,6 @@ dialog::backdrop {
     grid-template-columns: 1fr;
   }
 
-  .agent-layout {
-    grid-template-columns: minmax(16rem, 0.65fr) minmax(0, 1fr);
-  }
 }
 
 @media (max-width: 900px) {
@@ -2682,18 +2638,6 @@ dialog::backdrop {
     display: block;
   }
 
-  .agent-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .agent-decision-column {
-    order: -1;
-  }
-
-  .agent-evidence {
-    position: static;
-  }
-
   .agent-view .focus-topbar h1 {
     font-size: clamp(2rem, 10vw, 2.7rem);
   }
@@ -2761,6 +2705,10 @@ dialog::backdrop {
     background: var(--primary-soft);
   }
 
+  .feedback-mobile-nav {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
   .summary-grid,
   .conflict-grid {
     grid-template-columns: 1fr;
@@ -2780,26 +2728,9 @@ dialog::backdrop {
     display: block;
   }
 
-  .feedback-layout {
-    display: block;
-  }
-
-  .evidence-panel {
-    position: static;
-    margin-top: 1rem;
-  }
-
   .feedback-actions,
   .feedback-actions .button {
     width: 100%;
-  }
-
-  .evidence-ready-item {
-    grid-template-columns: 1fr;
-  }
-
-  .hint-panel {
-    margin-top: 1rem;
   }
 
   .tutor-context {

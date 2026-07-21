@@ -58,6 +58,11 @@ def test_homepage_serves_accessible_app_shell(tmp_path: Path) -> None:
     assert "Verifiable preview" not in response.text
     assert "Suggested outcome" not in response.text
     assert "Recommended route" not in response.text
+    assert "Practice boundary" not in response.text
+    assert "Structured feedback" not in response.text
+    assert "Evidence is ready for one planning decision" not in response.text
+    assert 'id="activity-sources"' not in response.text
+    assert 'id="evidence-ready-list"' not in response.text
     assert "Demo mode" not in response.text
     assert "Enter a topic only" not in response.text
     assert 'id="setup-view"' not in response.text

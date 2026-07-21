@@ -405,7 +405,7 @@
       <section class="workflow-view activity-view" id="activity-view" aria-labelledby="activity-title" hidden>
         <div class="activity-topbar">
           <div>
-            <p class="eyebrow" id="activity-type-label">Active concept practice</p>
+            <p class="eyebrow" id="activity-type-label">Practice</p>
             <h1 id="activity-title" tabindex="-1">Practice</h1>
             <p class="focus-breadcrumb" id="activity-breadcrumb"></p>
           </div>
@@ -421,13 +421,12 @@
             <div class="activity-heading">
               <div>
                 <span class="status-chip" id="activity-kind-chip">One question</span>
-                <h2 id="activity-prompt-title">Practice prompt</h2>
+                <h2 id="activity-prompt-title">Question</h2>
               </div>
-              <span class="origin-badge" id="activity-origin-label">Uploaded material</span>
             </div>
             <p class="activity-prompt" id="activity-prompt"></p>
+            <p class="practice-origin" id="activity-origin-label">Based on your material</p>
             <p class="completion-line" id="remedial-completion" hidden></p>
-            <div class="focus-sources" id="activity-sources"></div>
 
             <form id="activity-form">
               <fieldset class="quiz-options" id="quiz-options">
@@ -439,28 +438,16 @@
               </div>
               <div class="form-message" id="activity-message" role="status" aria-live="polite" hidden></div>
               <p class="save-state" id="activity-draft-status" role="status" aria-live="polite">Not saved yet</p>
+              <div class="activity-hints" id="activity-hints">
+                <div class="hint-list" id="hint-list"></div>
+                <button class="button button-quiet" id="reveal-hint" type="button">Need a hint?</button>
+              </div>
               <div class="activity-submit-row">
                 <button class="button button-secondary" id="activity-return" type="button">Return to explanation</button>
                 <button class="button button-primary" id="submit-activity" type="submit">Submit answer</button>
               </div>
             </form>
-            <div class="submission-receipt" id="submission-receipt" role="status" hidden>
-              <strong>Answer saved</strong>
-              <p>Your exact response, hint depth, and time are stored. Structured feedback is prepared in the next mastery step; no Agent decision has been made.</p>
-            </div>
           </section>
-
-          <aside class="hint-panel card-panel" aria-labelledby="hint-title">
-            <p class="eyebrow">Optional support · no penalty</p>
-            <h2 id="hint-title">Progressive hints</h2>
-            <div class="hint-list" id="hint-list"></div>
-            <button class="button button-secondary full-width" id="reveal-hint" type="button">Reveal hint 1 of 3</button>
-            <p class="micro-copy" id="hint-depth-copy">0 of 3 hints used. Each click reveals only one additional level.</p>
-            <div class="boundary-note activity-boundary">
-              <strong>Practice boundary</strong>
-              <p>The answer key and evaluation points stay server-side before feedback. This activity cannot change the route or search the internet.</p>
-            </div>
-          </aside>
         </div>
 
         <nav class="mobile-session-nav activity-mobile-nav" aria-label="Practice navigation">
@@ -474,145 +461,86 @@
       <section class="workflow-view feedback-view" id="feedback-view" aria-labelledby="feedback-title" hidden>
         <div class="feedback-topbar">
           <div>
-            <p class="eyebrow">Guided Mastery Loop · feedback</p>
-            <h1 id="feedback-title" tabindex="-1">What your answer shows</h1>
+            <p class="eyebrow">Answer feedback</p>
+            <h1 id="feedback-title" tabindex="-1">Result</h1>
             <p class="focus-breadcrumb" id="feedback-breadcrumb"></p>
           </div>
           <div class="focus-top-actions">
-            <span class="save-state" id="feedback-save-status" role="status" aria-live="polite">Feedback and evidence saved</span>
+            <span class="save-state" id="feedback-save-status" role="status" aria-live="polite">Saved</span>
             <button class="button button-quiet" id="feedback-pause" type="button">Pause session</button>
           </div>
         </div>
 
-        <div class="feedback-layout">
-          <section class="feedback-main card-panel" aria-labelledby="feedback-sections-title">
-            <div class="panel-heading">
-              <div><p class="eyebrow">Active concept only</p><h2 id="feedback-sections-title">Structured feedback</h2></div>
-              <span class="origin-badge" id="feedback-origin-label">Uploaded material</span>
+        <section class="feedback-main card-panel" aria-labelledby="feedback-sections-title">
+          <div class="feedback-result-heading">
+            <span class="feedback-result-mark" id="feedback-result-mark" aria-hidden="true">✓</span>
+            <div>
+              <p class="eyebrow" id="feedback-result-label">Result</p>
+              <h2 id="feedback-sections-title">Correct</h2>
             </div>
-            <div class="feedback-section feedback-mastered">
-              <h3>1. Mastered points</h3>
-              <ul id="feedback-mastered-list"></ul>
-            </div>
-            <div class="feedback-section feedback-missing">
-              <h3>2. Missing or unclear points</h3>
-              <ul id="feedback-missing-list"></ul>
-              <div id="feedback-misconception-wrap" hidden>
-                <strong>Observed misconception</strong>
-                <ul id="feedback-misconception-list"></ul>
-              </div>
-            </div>
-            <div class="feedback-section">
-              <h3>3. Compact correction</h3>
-              <p id="feedback-correction"></p>
-            </div>
-            <div class="feedback-section feedback-encouragement">
-              <h3>4. Specific encouragement</h3>
-              <p id="feedback-encouragement"></p>
-            </div>
-            <div class="next-micro-action" aria-labelledby="next-micro-title">
-              <p class="eyebrow">5. Next micro-action</p>
-              <h3 id="next-micro-title">Keep this concept small</h3>
-              <p id="feedback-next-action"></p>
-              <div class="feedback-actions">
-                <button class="button button-primary" id="start-remedial" type="button">Start 60-second remedial practice</button>
-                <button class="button button-secondary" id="complete-feedback" type="button">Finish this mastery check</button>
-              </div>
-            </div>
-            <div class="form-message" id="feedback-message" role="status" aria-live="polite" hidden></div>
-          </section>
+          </div>
+          <div class="quiz-answer-review" id="quiz-answer-review" hidden>
+            <div><span>Your answer</span><strong id="feedback-selected-answer"></strong></div>
+            <div id="feedback-correct-answer-row"><span>Correct answer</span><strong id="feedback-correct-answer"></strong></div>
+          </div>
+          <div class="feedback-explanation">
+            <h3>Why</h3>
+            <p id="feedback-correction"></p>
+          </div>
+          <p class="feedback-encouragement" id="feedback-encouragement"></p>
+          <p class="practice-origin" id="feedback-origin-label">Explanation based on your material</p>
+          <div class="feedback-actions">
+            <button class="button button-primary" id="complete-feedback" type="button">Continue</button>
+          </div>
+          <div class="form-message" id="feedback-message" role="status" aria-live="polite" hidden></div>
+        </section>
 
-          <aside class="evidence-panel card-panel" aria-labelledby="evidence-title">
-            <p class="eyebrow">Recorded observation</p>
-            <h2 id="evidence-title">LearningEvidence</h2>
-            <dl class="context-list">
-              <div><dt>Activity</dt><dd id="evidence-activity"></dd></div>
-              <div><dt>Outcome</dt><dd id="evidence-outcome"></dd></div>
-              <div><dt>Key points covered</dt><dd id="evidence-coverage"></dd></div>
-              <div><dt>Hints used</dt><dd id="evidence-hints"></dd></div>
-              <div><dt>Elapsed</dt><dd id="evidence-elapsed"></dd></div>
-              <div id="evidence-remedial-row" hidden><dt>Remedial result</dt><dd id="evidence-remedial"></dd></div>
-            </dl>
-            <div class="focus-sources" id="feedback-sources"></div>
-            <div class="boundary-note">
-              <strong>Evidence boundary</strong>
-              <p>This record contains performance observations only. It has no recommendation, Agent decision, or permission to search.</p>
-            </div>
-          </aside>
-        </div>
-
-        <nav class="mobile-session-nav" aria-label="Feedback navigation">
+        <nav class="mobile-session-nav feedback-mobile-nav" aria-label="Feedback navigation">
           <button type="button" id="mobile-feedback-concept">Concept</button>
           <button type="button" aria-current="page">Feedback</button>
-          <button type="button" id="mobile-feedback-evidence">Evidence</button>
           <button type="button" id="mobile-feedback-pause">Pause</button>
         </nav>
       </section>
 
       <section class="workflow-view evidence-ready-view" id="evidence-ready-view" aria-labelledby="evidence-ready-title" hidden>
         <div class="evidence-ready-shell card-panel">
-          <p class="eyebrow">Mastery boundary reached</p>
-          <h1 id="evidence-ready-title" tabindex="-1">Evidence is ready for one planning decision</h1>
-          <p class="hero-lead">Your learning performance is saved as observations only. The Adaptive Planning Agent will choose exactly one next action in the next step.</p>
-          <div class="evidence-ready-list" id="evidence-ready-list"></div>
-          <div class="boundary-note">
-            <strong>No decision has been made yet</strong>
-            <p>Feedback and remediation belong to Guided Mastery. LearningEvidence does not recommend what should happen next, and no external search has run.</p>
-          </div>
+          <p class="eyebrow">One moment</p>
+          <h1 id="evidence-ready-title" tabindex="-1">Preparing your next step…</h1>
+          <p class="hero-lead">Your progress is saved.</p>
           <p class="upload-message" id="evidence-ready-message" role="status" aria-live="polite" hidden></p>
-          <div class="dialog-actions">
-            <button class="button button-secondary" id="evidence-ready-pause" type="button">Pause with this exact restart point</button>
-            <button class="button button-primary" id="run-agent" type="button">Ask Planning Agent for one next action</button>
-          </div>
+          <button class="button button-primary" id="run-agent" type="button" hidden>Try again</button>
         </div>
       </section>
 
       <section class="workflow-view agent-view" id="agent-view" aria-labelledby="agent-title" hidden>
-        <div class="focus-topbar">
-          <div>
-            <p class="eyebrow">Adaptive Planning Agent · one decision only</p>
-            <h1 id="agent-title" tabindex="-1">Your next action</h1>
-          </div>
-          <div class="focus-top-actions">
-            <span class="save-state" id="agent-save-status" role="status" aria-live="polite">Decision saved</span>
-            <button class="button button-quiet" id="agent-pause" type="button">Pause session</button>
-          </div>
-        </div>
-
-        <div class="agent-layout">
-          <aside class="card-panel agent-evidence" aria-labelledby="agent-evidence-title">
-            <p class="eyebrow">LearningEvidence snapshot</p>
-            <h2 id="agent-evidence-title">What the decision can use</h2>
-            <dl class="context-list" id="agent-evidence-list"></dl>
-            <div class="boundary-note">
-              <strong>Strict boundary</strong>
-              <p>Learning performance comes only from LearningEvidence. Time, route, prerequisites, and source coverage only constrain what is feasible.</p>
+        <div class="next-step-shell">
+          <div class="focus-topbar">
+            <div>
+              <p class="eyebrow">Next step</p>
+              <h1 id="agent-title" tabindex="-1">Keep learning</h1>
             </div>
-          </aside>
-
-          <section class="agent-decision-column" aria-label="Planning decision">
+            <div class="focus-top-actions">
+              <span class="save-state" id="agent-save-status" role="status" aria-live="polite">Saved</span>
+              <button class="button button-quiet" id="agent-pause" type="button">Pause session</button>
+            </div>
+          </div>
+          <section class="agent-decision-column" aria-label="Next learning step">
             <section class="primary-action-card agent-primary" aria-labelledby="agent-action-title">
-              <span class="recommended-label">One recommended action</span>
-              <p class="eyebrow" id="agent-estimate">Estimated time</p>
+              <p class="eyebrow" id="agent-estimate">Next</p>
               <h2 id="agent-action-title">Next action</h2>
               <p id="agent-reason"></p>
-              <button class="button button-primary full-width" id="accept-agent" type="button">Accept this action</button>
+              <button class="button button-primary full-width" id="accept-agent" type="button">Continue</button>
             </section>
             <p class="upload-message" id="agent-message" role="status" aria-live="polite" hidden></p>
             <details class="card-panel agent-alternatives" id="agent-alternatives-panel">
-              <summary>Choose another valid path</summary>
-              <p class="micro-copy">Changing the choice has no penalty. Only server-validated alternatives are shown.</p>
+              <summary>Choose another path</summary>
               <fieldset id="agent-alternatives">
-                <legend>Valid alternatives</legend>
+                <legend>Other options</legend>
               </fieldset>
               <label for="agent-override-reason">Optional reason</label>
               <textarea id="agent-override-reason" rows="3" maxlength="500" placeholder="For example: I want to stop for today."></textarea>
-              <button class="button button-secondary full-width" id="apply-agent-override" type="button">Use selected path</button>
+              <button class="button button-secondary full-width" id="apply-agent-override" type="button">Use this path</button>
             </details>
-            <div class="boundary-note">
-              <strong>Agent does not teach or search here</strong>
-              <p>The Agent selects one action. External search still needs a named source gap and a separate confirmation before it can run.</p>
-            </div>
           </section>
         </div>
       </section>
@@ -807,7 +735,7 @@
       <div class="dialog-content">
         <p class="eyebrow">Delete all data</p>
         <h2 id="workspace-delete-title">Delete this entire anonymous workspace?</h2>
-        <p id="workspace-delete-description">This permanently deletes every session, uploaded file, draft, Tutor message, practice attempt, LearningEvidence record, Agent decision, and search record in this browser workspace. It cannot be undone.</p>
+        <p id="workspace-delete-description">This permanently deletes every session, uploaded file, draft, Tutor message, practice attempt, progress record, next-step history, and search record in this browser workspace. It cannot be undone.</p>
         <p class="form-message" id="workspace-delete-message" role="alert" hidden></p>
         <div class="dialog-actions">
           <button class="button button-secondary" id="cancel-workspace-delete" type="button">Keep all data</button>

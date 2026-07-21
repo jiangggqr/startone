@@ -395,6 +395,19 @@ source_refs[]
 
 `next_micro_action` is restricted to the active concept and must not encode an Agent action, route change, search request or session end.
 
+For a submitted Quiz, the public feedback response additionally includes a post-submission `quiz_result` projection:
+
+```text
+is_correct
+selected_option_id
+selected_option_text
+correct_option_id
+correct_option_text
+explanation
+```
+
+This projection is never present on the pre-submission activity response. It exists only to render a familiar correct / not-quite answer review; answer keys remain server-side before submission.
+
 ### AgentDecisionOutput
 
 ```text
@@ -475,6 +488,8 @@ Implemented endpoint groups. FastAPI's generated schema at `/api/docs` is author
 - `GET /api/agent-decisions/{decision_id}`
 - `POST /api/agent-decisions/{decision_id}/accept`
 - `POST /api/agent-decisions/{decision_id}/override`
+
+The production client does not expose a separate Evidence review step. After the learner selects Continue on feedback, it completes the feedback boundary, requests one Agent decision automatically, and renders only the concise next-action result. The API separation remains mandatory so `LearningEvidence` cannot contain or silently become a recommendation.
 
 ### Search
 

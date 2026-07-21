@@ -106,11 +106,14 @@ def get_feedback(database_path: Path, workspace_id: str, feedback_id: str) -> di
         row = connection.execute(
             """
             SELECT f.*, a.type AS activity_type, a.strategy, a.remedial_round,
+                   a.output_json AS activity_output_json,
+                   attempt.selected_option_id,
                    c.title AS concept_title, s.name AS session_name, s.state AS session_state,
                    s.version AS session_version, s.is_paused, s.resume_state,
                    s.active_activity_id, s.last_saved_at
             FROM feedbacks f
             JOIN activities a ON a.id = f.activity_id
+            JOIN attempts attempt ON attempt.id = f.attempt_id
             JOIN concepts c ON c.id = f.concept_id
             JOIN learning_sessions s ON s.id = f.session_id
             WHERE f.id = ? AND f.workspace_id = ? AND s.workspace_id = ?
@@ -139,6 +142,7 @@ def get_feedback(database_path: Path, workspace_id: str, feedback_id: str) -> di
     ref_details = _source_details(database_path, workspace_id, str(row["session_id"]), refs)
     public_evidence = _public_evidence(dict(evidence)) if evidence else None
     outcome = str(evidence["outcome"] if evidence else "unresolved")
+    quiz_result = _quiz_result(dict(row))
     return {
         "feedback": {
             "id": row["id"],
@@ -154,6 +158,7 @@ def get_feedback(database_path: Path, workspace_id: str, feedback_id: str) -> di
             **output,
             "source_refs": refs,
             "source_ref_details": ref_details,
+            "quiz_result": quiz_result,
             "created_at": row["created_at"],
         },
         "evidence": public_evidence,
@@ -183,6 +188,34 @@ def get_feedback(database_path: Path, workspace_id: str, feedback_id: str) -> di
             "agent_decision_created": False,
             "can_search": False,
         },
+    }
+
+
+def _quiz_result(row: dict[str, Any]) -> dict[str, Any] | None:
+    """Expose answer review only after a Quiz attempt has feedback."""
+
+    if row["activity_type"] != "quiz":
+        return None
+    activity_output = json.loads(str(row["activity_output_json"]))
+    selected_id = str(row["selected_option_id"])
+    correct_id = str(activity_output["correct_option_id"])
+    options = {str(item["id"]): str(item["text"]) for item in activity_output["options"]}
+    explanations = {
+        str(item["option_id"]): str(item["explanation"])
+        for item in activity_output["explanation_by_option"]
+    }
+    selected_explanation = explanations.get(selected_id, "")
+    correct_explanation = explanations.get(correct_id, "")
+    explanation = correct_explanation
+    if selected_id != correct_id and selected_explanation:
+        explanation = f"{selected_explanation} {correct_explanation}".strip()
+    return {
+        "is_correct": selected_id == correct_id,
+        "selected_option_id": selected_id,
+        "selected_option_text": options.get(selected_id, ""),
+        "correct_option_id": correct_id,
+        "correct_option_text": options.get(correct_id, ""),
+        "explanation": explanation,
     }
 
 

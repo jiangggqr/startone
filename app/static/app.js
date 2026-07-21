@@ -217,7 +217,6 @@ const activityKindChip = document.querySelector("#activity-kind-chip");
 const activityOriginLabel = document.querySelector("#activity-origin-label");
 const activityPrompt = document.querySelector("#activity-prompt");
 const remedialCompletion = document.querySelector("#remedial-completion");
-const activitySources = document.querySelector("#activity-sources");
 const activityForm = document.querySelector("#activity-form");
 const quizOptions = document.querySelector("#quiz-options");
 const recallAnswerWrap = document.querySelector("#recall-answer-wrap");
@@ -230,10 +229,8 @@ const submitActivityButton = document.querySelector("#submit-activity");
 const closeActivityButton = document.querySelector("#close-activity");
 const activityReturnButton = document.querySelector("#activity-return");
 const activityPauseButton = document.querySelector("#activity-pause");
-const submissionReceipt = document.querySelector("#submission-receipt");
 const hintList = document.querySelector("#hint-list");
 const revealHintButton = document.querySelector("#reveal-hint");
-const hintDepthCopy = document.querySelector("#hint-depth-copy");
 const mobileActivityConcept = document.querySelector("#mobile-activity-concept");
 const mobileActivityHints = document.querySelector("#mobile-activity-hints");
 const mobileActivityPause = document.querySelector("#mobile-activity-pause");
@@ -243,37 +240,26 @@ const feedbackBreadcrumb = document.querySelector("#feedback-breadcrumb");
 const feedbackSaveStatus = document.querySelector("#feedback-save-status");
 const feedbackPauseButton = document.querySelector("#feedback-pause");
 const feedbackOriginLabel = document.querySelector("#feedback-origin-label");
-const feedbackMasteredList = document.querySelector("#feedback-mastered-list");
-const feedbackMissingList = document.querySelector("#feedback-missing-list");
-const feedbackMisconceptionWrap = document.querySelector("#feedback-misconception-wrap");
-const feedbackMisconceptionList = document.querySelector("#feedback-misconception-list");
+const feedbackResultMark = document.querySelector("#feedback-result-mark");
+const feedbackResultLabel = document.querySelector("#feedback-result-label");
+const feedbackSectionsTitle = document.querySelector("#feedback-sections-title");
+const quizAnswerReview = document.querySelector("#quiz-answer-review");
+const feedbackSelectedAnswer = document.querySelector("#feedback-selected-answer");
+const feedbackCorrectAnswerRow = document.querySelector("#feedback-correct-answer-row");
+const feedbackCorrectAnswer = document.querySelector("#feedback-correct-answer");
 const feedbackCorrection = document.querySelector("#feedback-correction");
 const feedbackEncouragement = document.querySelector("#feedback-encouragement");
-const feedbackNextAction = document.querySelector("#feedback-next-action");
-const startRemedialButton = document.querySelector("#start-remedial");
 const completeFeedbackButton = document.querySelector("#complete-feedback");
 const feedbackMessage = document.querySelector("#feedback-message");
-const feedbackSources = document.querySelector("#feedback-sources");
-const evidenceActivity = document.querySelector("#evidence-activity");
-const evidenceOutcome = document.querySelector("#evidence-outcome");
-const evidenceCoverage = document.querySelector("#evidence-coverage");
-const evidenceHints = document.querySelector("#evidence-hints");
-const evidenceElapsed = document.querySelector("#evidence-elapsed");
-const evidenceRemedialRow = document.querySelector("#evidence-remedial-row");
-const evidenceRemedial = document.querySelector("#evidence-remedial");
 const mobileFeedbackConcept = document.querySelector("#mobile-feedback-concept");
-const mobileFeedbackEvidence = document.querySelector("#mobile-feedback-evidence");
 const mobileFeedbackPause = document.querySelector("#mobile-feedback-pause");
 const evidenceReadyTitle = document.querySelector("#evidence-ready-title");
-const evidenceReadyList = document.querySelector("#evidence-ready-list");
-const evidenceReadyPause = document.querySelector("#evidence-ready-pause");
 const evidenceReadyMessage = document.querySelector("#evidence-ready-message");
 const runAgentButton = document.querySelector("#run-agent");
 
 const agentTitle = document.querySelector("#agent-title");
 const agentSaveStatus = document.querySelector("#agent-save-status");
 const agentPauseButton = document.querySelector("#agent-pause");
-const agentEvidenceList = document.querySelector("#agent-evidence-list");
 const agentEstimate = document.querySelector("#agent-estimate");
 const agentActionTitle = document.querySelector("#agent-action-title");
 const agentReason = document.querySelector("#agent-reason");
@@ -518,10 +504,10 @@ function resumeLabel(session) {
   if (session.state === "search_confirmation") return "Review search confirmation";
   if (session.state === "search_running") return "View search progress";
   if (session.state === "search_results") return "Review external sources";
-  if (session.state === "agent_decision") return "Review next action";
+  if (session.state === "agent_decision") return "Continue learning";
   if (["practicing", "remedial_practice"].includes(session.state)) return "Resume current practice";
   if (session.state === "feedback_shown") return "Resume saved feedback";
-  if (session.state === "evidence_ready") return "Review learning evidence";
+  if (session.state === "evidence_ready") return "Continue learning";
   if (session.state === "learning_concept") return "Resume current concept";
   if (session.state === "start_action") return "Start learning";
   if (session.state === "path_drafting") return "Review learning path";
@@ -1684,32 +1670,23 @@ function renderActivity(body) {
   const isQuiz = type === "quiz";
   const isRemedial = type === "remedial";
   const typeName = isQuiz ? "Quiz" : isRemedial ? "Remedial practice" : "Free recall";
-  activityTypeLabel.textContent = `${typeName} · active concept only`;
-  activityTitle.textContent = `${activity.concept_title} ${typeName}`;
-  activityBreadcrumb.textContent = `${body.session.name} › ${activity.concept_title} › ${typeName}`;
+  activityTypeLabel.textContent = typeName;
+  activityTitle.textContent = typeName;
+  activityBreadcrumb.textContent = activity.concept_title;
   activityKindChip.textContent = isQuiz
     ? "One question · single select"
     : isRemedial
       ? `One smaller step · round ${activity.remedial_round}`
       : "2–3 sentences · meaning over exact wording";
   activityOriginLabel.textContent = activity.source_origin === "ai_supplement"
-    ? "AI supplemental explanation"
+    ? "Includes an AI supplemental explanation"
     : activity.source_origin === "external"
-      ? "External supplement"
-      : "Uploaded material";
-  activityOriginLabel.className = `origin-badge ${activity.source_origin === "ai_supplement" ? "origin-ai" : activity.source_origin === "external" ? "origin-external" : ""}`;
+      ? "Includes an external supplement"
+      : "Based on your material";
   activityPrompt.textContent = activity.prompt;
   remedialCompletion.hidden = !isRemedial;
   remedialCompletion.textContent = isRemedial ? `Done when: ${body.remedial.completion_condition}` : "";
   activitySaveStatus.textContent = body.session.last_saved_at ? "Saved" : "Ready to save";
-
-  activitySources.replaceChildren();
-  activity.source_refs.forEach((reference) => {
-    const row = element("div", "focus-source-row");
-    row.append(element("span", activityOriginLabel.className, activityOriginLabel.textContent));
-    row.append(referenceButton(reference, activity.source_ref_details));
-    activitySources.append(row);
-  });
 
   const serverContent = body.draft?.content || "";
   const localContent = window.localStorage.getItem(draftLocalKey(type));
@@ -1755,32 +1732,23 @@ function renderActivity(body) {
     item.append(element("strong", "", `Hint ${hint.level}`), element("p", "", hint.text));
     hintList.append(item);
   });
-  for (let level = body.hints.depth + 1; level <= body.hints.total; level += 1) {
-    const item = element("div", "hint-placeholder");
-    item.append(element("strong", "", `Hint ${level} · locked`));
-    item.append(element("p", "", level === body.hints.depth + 1 ? "Reveal this level when you want one more step." : "Reveal earlier levels first."));
-    hintList.append(item);
-  }
   revealHintButton.disabled = !body.hints.can_reveal_more;
+  revealHintButton.hidden = !body.hints.can_reveal_more;
   revealHintButton.textContent = body.hints.can_reveal_more
-    ? `Reveal hint ${body.hints.depth + 1} of 3`
-    : body.hints.depth >= 3
-      ? "All three hints are visible"
-      : "Hints locked after submission";
-  hintDepthCopy.textContent = `${body.hints.depth} of 3 hints used. Revealing support is not counted as failure.`;
+    ? body.hints.depth ? "Need another hint?" : "Need a hint?"
+    : "";
 
   const submitted = activity.status === "submitted";
   submitActivityButton.disabled = submitted && body.submission?.feedback_ready;
   submitActivityButton.textContent = submitted
-    ? body.submission?.feedback_ready ? "Feedback ready" : "Prepare structured feedback"
-    : isQuiz ? "Submit Quiz answer" : isRemedial ? "Submit remedial answer" : "Submit free recall";
+    ? body.submission?.feedback_ready ? "Answer submitted" : "Show result"
+    : "Submit answer";
   closeActivityButton.textContent = isRemedial ? "Return to feedback" : "Return to concept";
   activityReturnButton.textContent = isRemedial ? "Return to feedback" : "Return to explanation";
-  submissionReceipt.hidden = !submitted;
   activityMessage.hidden = true;
   if (submitted) {
-    activityDraftStatus.textContent = "Answer and hint depth saved on server";
-    activitySaveStatus.textContent = "Submitted and saved";
+    activityDraftStatus.textContent = "Answer saved";
+    activitySaveStatus.textContent = "Saved";
   }
 }
 
@@ -1803,19 +1771,21 @@ async function revealNextHint() {
     state.activity = updated;
     if (updated.draft) state.drafts[type] = updated.draft;
     renderActivity(updated);
-    activityMessage.hidden = false;
-    setMessage(activityMessage, `Hint ${updated.hints.depth} is now visible. Your current answer was preserved.`, "success");
+    const latestHint = hintList.lastElementChild;
+    if (latestHint) {
+      latestHint.setAttribute("tabindex", "-1");
+      latestHint.focus({ preventScroll: true });
+    }
   } catch (error) {
     setMessage(activityMessage, `${error.message} Your answer and existing hints remain saved.`, "error");
   } finally {
     if (state.activity) {
       const canReveal = state.activity.hints.can_reveal_more;
       revealHintButton.disabled = !canReveal;
+      revealHintButton.hidden = !canReveal;
       revealHintButton.textContent = canReveal
-        ? `Reveal hint ${state.activity.hints.depth + 1} of 3`
-        : state.activity.hints.depth >= 3
-          ? "All three hints are visible"
-          : "Hints locked after submission";
+        ? state.activity.hints.depth ? "Need another hint?" : "Need a hint?"
+        : "";
     }
   }
 }
@@ -1836,7 +1806,7 @@ async function submitCurrentActivity(event) {
     (type === "quiz" ? quizOptions : recallAnswer).focus();
     return;
   }
-  setButtonBusy(submitActivityButton, true, "Saving answer…", "Submit answer");
+  setButtonBusy(submitActivityButton, true, "Checking…", "Submit answer");
   try {
     const saved = await saveDraftNow(type, content, activityDraftStatus, body.hints.depth);
     if (!saved) return;
@@ -1852,21 +1822,20 @@ async function submitCurrentActivity(event) {
     state.activity = submitted;
     state.session = submitted.session;
     renderActivity(submitted);
-    setMessage(activityMessage, "Answer saved. Preparing grounded feedback…", "success");
     await prepareFeedback(submitted.submission.id);
   } catch (error) {
     setMessage(activityMessage, `${error.message} Your draft and hint depth remain saved; submit again when ready.`, "error");
   } finally {
     if (state.activity?.activity.status === "active") {
-      setButtonBusy(submitActivityButton, false, "", type === "quiz" ? "Submit Quiz answer" : "Submit free recall");
+      setButtonBusy(submitActivityButton, false, "", "Submit answer");
     } else if (state.activity?.activity.status === "submitted" && !state.feedback) {
-      setButtonBusy(submitActivityButton, false, "", "Prepare structured feedback");
+      setButtonBusy(submitActivityButton, false, "", "Show result");
     }
   }
 }
 
 async function prepareFeedback(attemptId) {
-  setButtonBusy(submitActivityButton, true, "Preparing feedback…", "Prepare structured feedback");
+  setButtonBusy(submitActivityButton, true, "Checking…", "Show result");
   try {
     const body = await api(`/api/attempts/${attemptId}/feedback`, { method: "POST" });
     state.feedback = body;
@@ -1875,7 +1844,7 @@ async function prepareFeedback(attemptId) {
     showView("feedback", `feedback/${body.feedback.id}`, feedbackTitle);
   } catch (error) {
     setMessage(activityMessage, `${error.message} Your submitted answer is saved; retry feedback when ready.`, "error");
-    setButtonBusy(submitActivityButton, false, "", "Retry structured feedback");
+    setButtonBusy(submitActivityButton, false, "", "Try again");
   }
 }
 
@@ -1906,141 +1875,82 @@ async function showFeedback(existing = null) {
 function renderFeedback(body) {
   const feedback = body.feedback;
   const evidence = body.evidence;
-  feedbackTitle.textContent = `${feedback.concept_title} feedback`;
-  feedbackBreadcrumb.textContent = `${body.session.name} › ${feedback.concept_title} › ${feedback.activity_type.replaceAll("_", " ")} feedback`;
-  feedbackSaveStatus.textContent = feedback.status === "completed" ? "Evidence boundary completed" : "Feedback and evidence saved";
+  const quizResult = feedback.quiz_result;
+  const mastered = evidence?.outcome === "mastered";
+  const resultTitle = quizResult
+    ? quizResult.is_correct ? "Correct" : "Not quite"
+    : mastered ? "Nice work" : evidence?.outcome === "partial" ? "Good start" : "Let’s clarify this";
+  feedbackTitle.textContent = resultTitle;
+  feedbackBreadcrumb.textContent = feedback.concept_title;
+  feedbackSaveStatus.textContent = "Saved";
+  feedbackResultMark.textContent = mastered ? "✓" : "→";
+  feedbackResultMark.dataset.result = mastered ? "correct" : "review";
+  feedbackResultLabel.textContent = feedback.activity_type === "quiz" ? "Quiz result" : "Practice result";
+  feedbackSectionsTitle.textContent = resultTitle;
   feedbackOriginLabel.textContent = feedback.source_origin === "ai_supplement"
-    ? "AI supplemental explanation"
-    : feedback.source_origin === "external" ? "External supplement" : "Uploaded material";
-  feedbackOriginLabel.className = `origin-badge ${feedback.source_origin === "ai_supplement" ? "origin-ai" : feedback.source_origin === "external" ? "origin-external" : ""}`;
-  renderFeedbackList(feedbackMasteredList, feedback.mastered_points, "No mastered point was verified from this attempt yet.");
-  renderFeedbackList(feedbackMissingList, feedback.missing_or_unclear_points, "No missing point was observed in this attempt.");
-  feedbackMisconceptionWrap.hidden = feedback.misconceptions.length === 0;
-  renderFeedbackList(feedbackMisconceptionList, feedback.misconceptions, "");
-  feedbackCorrection.textContent = feedback.compact_correction;
+    ? "Explanation includes an AI supplement"
+    : feedback.source_origin === "external" ? "Explanation includes an external supplement" : "Explanation based on your material";
+  quizAnswerReview.hidden = !quizResult;
+  if (quizResult) {
+    feedbackSelectedAnswer.textContent = quizResult.selected_option_text;
+    feedbackCorrectAnswerRow.hidden = quizResult.is_correct;
+    feedbackCorrectAnswer.textContent = quizResult.correct_option_text;
+  }
+  feedbackCorrection.textContent = quizResult?.explanation || feedback.compact_correction;
   feedbackEncouragement.textContent = feedback.encouragement;
-  feedbackNextAction.textContent = feedback.next_micro_action;
   feedbackMessage.hidden = true;
-
-  const remedialAvailable = body.remediation.available;
-  startRemedialButton.hidden = !remedialAvailable;
-  startRemedialButton.textContent = `Start 60-second ${body.remediation.recommended_strategy.replaceAll("_", " ")}`;
-  completeFeedbackButton.className = remedialAvailable ? "button button-secondary" : "button button-primary";
-  completeFeedbackButton.textContent = feedback.status === "completed" ? "Evidence ready" : "Finish this mastery check";
-  completeFeedbackButton.disabled = feedback.status === "completed";
-
-  if (evidence) {
-    evidenceActivity.textContent = evidence.activity_type.replaceAll("_", " ");
-    evidenceOutcome.textContent = evidence.outcome.replaceAll("_", " ");
-    const covered = evidence.key_point_coverage.filter((item) => item.status === "covered").length;
-    evidenceCoverage.textContent = `${covered} of ${evidence.key_point_coverage.length}`;
-    evidenceHints.textContent = String(evidence.hint_depth);
-    evidenceElapsed.textContent = formatDuration(evidence.elapsed_seconds);
-    evidenceRemedialRow.hidden = !evidence.remedial_result;
-    evidenceRemedial.textContent = evidence.remedial_result?.replaceAll("_", " ") || "";
-  }
-
-  feedbackSources.replaceChildren();
-  feedback.source_refs.forEach((reference) => {
-    const row = element("div", "focus-source-row");
-    row.append(element("span", feedbackOriginLabel.className, feedbackOriginLabel.textContent));
-    row.append(referenceButton(reference, feedback.source_ref_details || []));
-    feedbackSources.append(row);
-  });
-}
-
-function renderFeedbackList(target, items, emptyText) {
-  target.replaceChildren();
-  if (items.length === 0 && emptyText) {
-    target.append(element("li", "muted", emptyText));
-    return;
-  }
-  items.forEach((item) => target.append(element("li", "", item)));
-}
-
-async function startRemedialPractice() {
-  const body = state.feedback;
-  if (!body) return;
-  setButtonBusy(startRemedialButton, true, "Preparing one smaller step…", startRemedialButton.textContent);
-  try {
-    const activity = await api(`/api/feedback/${body.feedback.id}/remedial-activity`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ version: body.session.version }),
-    });
-    window.localStorage.removeItem(draftLocalKey("remedial"));
-    state.activity = activity;
-    state.session = activity.session;
-    renderActivity(activity);
-    showView("activity", `activity/${activity.activity.id}`, activityTitle);
-  } catch (error) {
-    setMessage(feedbackMessage, `${error.message} Your feedback and evidence remain saved.`, "error");
-  } finally {
-    if (state.feedback) setButtonBusy(startRemedialButton, false, "", `Start 60-second ${state.feedback.remediation.recommended_strategy.replaceAll("_", " ")}`);
-  }
+  completeFeedbackButton.textContent = "Continue";
+  completeFeedbackButton.disabled = false;
 }
 
 async function completeFeedbackStep() {
   const body = state.feedback;
   if (!body) return;
-  setButtonBusy(completeFeedbackButton, true, "Saving evidence boundary…", "Finish this mastery check");
+  setButtonBusy(completeFeedbackButton, true, "Preparing your next step…", "Continue");
   try {
     const evidenceBody = await api(`/api/feedback/${body.feedback.id}/complete`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ version: body.session.version }),
     });
-    await showEvidenceReady(evidenceBody);
+    await showEvidenceReady(evidenceBody, true);
   } catch (error) {
-    setMessage(feedbackMessage, `${error.message} Your feedback and evidence remain saved.`, "error");
-    setButtonBusy(completeFeedbackButton, false, "", "Finish this mastery check");
+    setMessage(feedbackMessage, `${error.message} Your answer remains saved.`, "error");
+    setButtonBusy(completeFeedbackButton, false, "", "Try again");
   }
 }
 
-async function showEvidenceReady(existing = null) {
+async function showEvidenceReady(existing = null, continueAutomatically = true) {
   const body = existing || await api(`/api/sessions/${state.sessionId}/evidence`);
   state.evidence = body;
   state.session = body.session;
   renderEvidenceReady(body);
   showView("evidence", `evidence/${state.sessionId}`, evidenceReadyTitle);
-  if (body.session.is_paused && !pauseDialog.open) pauseDialog.showModal();
+  if (body.session.is_paused) {
+    if (!pauseDialog.open) pauseDialog.showModal();
+    return;
+  }
+  if (continueAutomatically) await runPlanningAgent();
 }
 
-function renderEvidenceReady(body) {
-  setButtonBusy(runAgentButton, false, "", "Ask Planning Agent for one next action");
+function renderEvidenceReady() {
+  evidenceReadyTitle.textContent = "Preparing your next step…";
+  runAgentButton.hidden = true;
+  setButtonBusy(runAgentButton, false, "", "Try again");
   setMessage(evidenceReadyMessage, "");
-  evidenceReadyList.replaceChildren();
-  body.learning_evidence.forEach((item) => {
-    const card = element("article", "evidence-ready-item");
-    const label = element("div");
-    label.append(
-      element("strong", "", item.activity_type.replaceAll("_", " ")),
-      element("p", "micro-copy", item.timestamp),
-    );
-    const covered = item.key_point_coverage.filter((point) => point.status === "covered").length;
-    const detail = element("div");
-    detail.append(
-      element("strong", "", item.outcome.replaceAll("_", " ")),
-      element("p", "", `${covered}/${item.key_point_coverage.length} key points covered · ${item.hint_depth} hints · ${formatDuration(item.elapsed_seconds)}`),
-    );
-    if (item.remedial_result) detail.append(element("p", "micro-copy", `Remedial result: ${item.remedial_result.replaceAll("_", " ")}`));
-    card.append(label, detail);
-    evidenceReadyList.append(card);
-  });
-  if (body.learning_evidence.length === 0) {
-    evidenceReadyList.append(element("p", "muted", "No evidence record is available yet."));
-  }
 }
 
 async function runPlanningAgent() {
-  setMessage(evidenceReadyMessage, "Preparing one server-validated next action from LearningEvidence only.");
-  setButtonBusy(runAgentButton, true, "Planning one next action…", "Ask Planning Agent for one next action");
+  runAgentButton.hidden = true;
+  setMessage(evidenceReadyMessage, "");
   try {
     const body = await api(`/api/sessions/${state.sessionId}/agent-decisions`, { method: "POST" });
     await showAgentDecision(body);
   } catch (error) {
-    setMessage(evidenceReadyMessage, `${error.message} ${error.body?.saved_state || "Your evidence remains saved."}`, "error");
-    setButtonBusy(runAgentButton, false, "", "Retry Planning Agent");
+    evidenceReadyTitle.textContent = "We couldn’t prepare the next step";
+    setMessage(evidenceReadyMessage, `${error.message} Your progress remains saved.`, "error");
+    runAgentButton.hidden = false;
+    setButtonBusy(runAgentButton, false, "", "Try again");
   }
 }
 
@@ -2053,38 +1963,15 @@ async function showAgentDecision(existing = null) {
   if (body.session.is_paused && !pauseDialog.open) pauseDialog.showModal();
 }
 
-function appendAgentEvidence(label, value) {
-  const row = element("div");
-  row.append(element("dt", "", label), element("dd", "", value));
-  agentEvidenceList.append(row);
-}
-
 function renderAgentDecision(body) {
   const decision = body.decision;
-  const evidence = body.evidence_summary;
-  agentTitle.textContent = `Next action for ${decision.concept_title}`;
+  agentTitle.textContent = "Keep learning";
   agentActionTitle.textContent = decision.action_label;
   agentReason.textContent = decision.reason_for_user;
   agentEstimate.textContent = decision.estimated_minutes
-    ? `Estimated time · about ${decision.estimated_minutes} minutes`
-    : "Estimated time · finish now";
-  agentSaveStatus.textContent = decision.status === "proposed"
-    ? "Decision saved · not applied"
-    : `${decision.selected_action_label} · applied`;
-
-  agentEvidenceList.replaceChildren();
-  appendAgentEvidence("Concept", evidence.concept_title);
-  appendAgentEvidence("Latest activity", evidence.latest_activity_type.replaceAll("_", " "));
-  appendAgentEvidence("Latest outcome", evidence.latest_outcome.replaceAll("_", " "));
-  appendAgentEvidence(
-    "Key-point coverage",
-    `${evidence.covered_key_points}/${evidence.total_key_points}`,
-  );
-  appendAgentEvidence("Hints observed", String(evidence.hint_depth));
-  appendAgentEvidence("Evidence records", String(evidence.evidence_count));
-  if (evidence.remedial_result) {
-    appendAgentEvidence("Remedial result", evidence.remedial_result.replaceAll("_", " "));
-  }
+    ? `About ${decision.estimated_minutes} minutes`
+    : "Finish for now";
+  agentSaveStatus.textContent = "Saved";
 
   agentAlternatives.replaceChildren();
   agentAlternatives.append(element("legend", "", "Valid alternatives"));
@@ -2099,15 +1986,15 @@ function renderAgentDecision(body) {
     const estimate = alternative.estimated_minutes
       ? `About ${alternative.estimated_minutes} minutes`
       : "Finish now";
-    const detail = element("small", "", `${estimate}. ${alternative.reason_for_user}`);
+    const detail = element("small", "", estimate);
     label.append(input, title, detail);
     agentAlternatives.append(label);
   });
   const isProposed = decision.status === "proposed";
   agentOverrideReason.value = "";
   agentAlternativesPanel.open = false;
-  setButtonBusy(acceptAgentButton, false, "", "Accept this action");
-  setButtonBusy(applyAgentOverrideButton, false, "", "Use selected path");
+  setButtonBusy(acceptAgentButton, false, "", "Continue");
+  setButtonBusy(applyAgentOverrideButton, false, "", "Use this path");
   applyAgentOverrideButton.disabled = body.allowed_alternatives.length === 0;
   acceptAgentButton.hidden = !isProposed;
   agentAlternativesPanel.hidden = !isProposed || body.allowed_alternatives.length === 0;
@@ -2121,7 +2008,7 @@ function renderAgentDecision(body) {
 async function acceptAgentDecision() {
   const body = state.agent;
   if (!body) return;
-  setButtonBusy(acceptAgentButton, true, "Applying action…", "Accept this action");
+  setButtonBusy(acceptAgentButton, true, "Continuing…", "Continue");
   try {
     const result = await api(`/api/agent-decisions/${body.decision.id}/accept`, {
       method: "POST",
@@ -2131,7 +2018,7 @@ async function acceptAgentDecision() {
     await handleAgentExecution(result);
   } catch (error) {
     setMessage(agentMessage, `${error.message} ${error.body?.saved_state || "The decision was not changed."}`, "error");
-    setButtonBusy(acceptAgentButton, false, "", "Accept this action");
+    setButtonBusy(acceptAgentButton, false, "", "Continue");
   }
 }
 
@@ -2139,7 +2026,7 @@ async function applyAgentOverride() {
   const body = state.agent;
   const selected = agentAlternatives.querySelector("input[name='agent-alternative']:checked");
   if (!body || !selected) return;
-  setButtonBusy(applyAgentOverrideButton, true, "Applying selected path…", "Use selected path");
+  setButtonBusy(applyAgentOverrideButton, true, "Continuing…", "Use this path");
   try {
     const result = await api(`/api/agent-decisions/${body.decision.id}/override`, {
       method: "POST",
@@ -2153,7 +2040,7 @@ async function applyAgentOverride() {
     await handleAgentExecution(result);
   } catch (error) {
     setMessage(agentMessage, `${error.message} ${error.body?.saved_state || "The original decision remains available."}`, "error");
-    setButtonBusy(applyAgentOverrideButton, false, "", "Use selected path");
+    setButtonBusy(applyAgentOverrideButton, false, "", "Use this path");
   }
 }
 
@@ -2407,7 +2294,7 @@ function showFinishedSummary(summary) {
   document.querySelector("#summary-title").textContent = summary.title || "Session complete";
   summaryRestartAction.textContent = summary.restart_action;
   summaryConcept.textContent = summary.current_concept || state.agent?.evidence_summary?.concept_title || "Saved learning session";
-  summaryNote.textContent = summary.saved_focus_note || "Your LearningEvidence and planning choice are saved. Stopping has no penalty.";
+  summaryNote.textContent = summary.saved_focus_note || "Your progress and next step are saved. You can stop and return at any time.";
   summaryCompleted.textContent = summary.completed_concepts?.length ? summary.completed_concepts.join(" · ") : "No concept has been marked complete yet.";
   summaryReview.textContent = summary.still_to_review?.length ? summary.still_to_review.join(" · ") : "No remaining route concept.";
   summaryStats.textContent = `${summary.evidence_count || 0} evidence records${summary.latest_outcome ? ` · latest outcome: ${summary.latest_outcome.replaceAll("_", " ")}` : ""} · stopping has no penalty`;
@@ -2716,26 +2603,16 @@ activityReturnButton.addEventListener("click", closeCurrentActivity);
 activityPauseButton.addEventListener("click", () => pauseActiveSession());
 mobileActivityConcept.addEventListener("click", closeCurrentActivity);
 mobileActivityHints.addEventListener("click", () => {
-  const heading = document.querySelector("#hint-title");
-  heading.setAttribute("tabindex", "-1");
-  heading.scrollIntoView({ behavior: "smooth", block: "start" });
-  heading.focus({ preventScroll: true });
+  revealHintButton.scrollIntoView({ behavior: "smooth", block: "center" });
+  revealHintButton.focus({ preventScroll: true });
 });
 mobileActivityPause.addEventListener("click", () => pauseActiveSession());
-startRemedialButton.addEventListener("click", startRemedialPractice);
 completeFeedbackButton.addEventListener("click", completeFeedbackStep);
 feedbackPauseButton.addEventListener("click", () => pauseActiveSession());
 mobileFeedbackPause.addEventListener("click", () => pauseActiveSession());
-mobileFeedbackEvidence.addEventListener("click", () => {
-  const heading = document.querySelector("#evidence-title");
-  heading.scrollIntoView({ behavior: "smooth", block: "start" });
-  heading.setAttribute("tabindex", "-1");
-  heading.focus({ preventScroll: true });
-});
 mobileFeedbackConcept.addEventListener("click", () => {
-  setMessage(feedbackMessage, "Finish this feedback step first; your current concept remains unchanged.", "info");
+  setMessage(feedbackMessage, "Select Continue to move on.", "info");
 });
-evidenceReadyPause.addEventListener("click", () => pauseActiveSession());
 runAgentButton.addEventListener("click", runPlanningAgent);
 agentPauseButton.addEventListener("click", () => pauseActiveSession());
 acceptAgentButton.addEventListener("click", acceptAgentDecision);

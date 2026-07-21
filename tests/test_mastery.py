@@ -51,6 +51,13 @@ def test_feedback_records_factual_evidence_and_runs_local_remediation(tmp_path: 
             assert feedback["feedback"]["compact_correction"]
             assert feedback["feedback"]["encouragement"]
             assert feedback["feedback"]["next_micro_action"]
+            quiz_result = feedback["feedback"]["quiz_result"]
+            assert quiz_result["is_correct"] is False
+            assert quiz_result["selected_option_id"] == "a"
+            assert quiz_result["correct_option_id"] == "b"
+            assert quiz_result["selected_option_text"]
+            assert quiz_result["correct_option_text"]
+            assert quiz_result["explanation"]
             assert feedback["remediation"]["available"] is True
             assert feedback["remediation"]["recommended_strategy"] == "smaller_question"
             assert feedback["boundaries"]["agent_decision_created"] is False

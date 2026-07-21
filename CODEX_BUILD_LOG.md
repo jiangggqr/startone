@@ -248,3 +248,13 @@ Record one section after each verified milestone.
 - Implementation: added a versioned direct-start endpoint; starts the first route concept without a draft or baseline answer; concept map outputs now carry teaching key points and a concrete example; legacy saved maps receive a grounded source-based explanation fallback; upload and focus UI were simplified; Tutor, Quiz, recall, feedback, LearningEvidence, Agent and four-gate search boundaries remain unchanged
 - Artifact alignment: updated the production UI, full specification, information architecture, end-to-end flow, screen specification, data/API contract, final decisions, prototype, README, judge guide, submission copy, video script and verification report
 - Verification: 50 automated tests passed; Python compilation and JavaScript syntax passed; browser inspection confirmed upload → concise framework → direct first explanation, expandable inline source text, no pre-test view, no preview panel, English-only copy, flat backgrounds and exact desktop viewport width
+
+## Quiz-flow simplification — immediate answer feedback
+
+- Status: complete
+- Date: 2026-07-22
+- Trigger: learner review found repeated uploaded-material rows, practice-boundary copy, locked hint cards, the five-part feedback layout, next-micro-action card and separate Evidence handoff distracting and difficult to interpret
+- Decision: keep Quiz as a one-question learning check, but show only the question, answers, one optional inline hint and Submit; after submission show correct/not-quite, the answer check, one rationale and Continue
+- System boundary: source references, structured feedback, `LearningEvidence` and the exactly-one-action Agent remain fully enforced on the server; only their learner-facing presentation is compressed. A quiet source-origin line remains without file/page repetition
+- Flow correction: Continue completes the evidence boundary and requests the Agent automatically; the separate Evidence review/"Ask Agent" task is replaced by a minimal loading state, and the next-step screen shows one action with optional alternatives in a disclosure
+- Verification: 50 automated tests passed; JavaScript syntax, Python compilation, diff hygiene, English-only and no-gradient scans passed; the browser completed Quiz → inline hint → incorrect answer → answer-level explanation → automatic next-step preparation, with exact 1280 px viewport width and no technical boundary panels

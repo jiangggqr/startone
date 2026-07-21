@@ -43,12 +43,11 @@ Codex 不应把原型 HTML 直接复制成生产应用。它应：
 - 简洁知识框架与直接开始的第一个概念讲解
 - 专注学习工作区
 - Contextual Tutor
-- Quiz
+- 单题 Quiz、按需原位提示和简短答案解释
 - 自由复述和提示
-- 即时反馈与具体鼓励
+- 正确 / 不完全正确的即时反馈
 - 错误驱动补救练习
-- LearningEvidence
-- Agent 下一步
+- 后台 LearningEvidence 与简洁的 Agent 下一步
 - 受控网络搜索
 - 讲解内的轻量来源引用
 - 总结和恢复

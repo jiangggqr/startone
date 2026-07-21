@@ -11,11 +11,11 @@ The public deployment needs no learner account. GPT-5.6 credentials stay on the 
 5. Review the AI-selected learning focus, knowledge framework, concept route, and grounded references. No setup form is required.
 6. Review the concise knowledge framework and click **Start learning the first concept**. Confirm that the explanation appears immediately, with no setup form or pre-test.
 7. In the focus workspace, inspect the concept explanation, open Tutor, then try a Quiz or free recall.
-8. Submit an answer, review the five-part feedback, and optionally complete a targeted remedial exercise.
-9. Finish the feedback boundary to create factual `LearningEvidence`, then ask the Adaptive Planning Agent for one next action.
+8. Submit an answer and review the immediate correct/not-quite result, answer check, and concise explanation.
+9. Select Continue. StartFrame records factual `LearningEvidence` and requests the Adaptive Planning Agent automatically, then shows one concise next action.
 10. Pause or refresh at any point to verify exact recovery.
 
-Expected result: every explanation and activity shows `uploaded`, `external`, or `AI supplemental` origin; `LearningEvidence` contains observations only; the Agent presents one global action and never teaches or grades.
+Expected result: explanations show source provenance, Quiz uses only a quiet origin line rather than file-location rows, `LearningEvidence` contains observations only, and the next-step screen presents one global action without exposing system architecture.
 
 ## Controlled-search verification
 

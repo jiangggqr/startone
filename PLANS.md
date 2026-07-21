@@ -34,19 +34,19 @@ Implement source-aware chat, quick actions, free questions, graduated guidance, 
 
 Implement one-question Quiz, misconception-based distractors, free recall, progressive hints, attempt persistence and source references. No Agent decision in this milestone.
 
-**Status:** Complete and verified on 2026-07-21. Quiz answer keys, misconception targets and recall evaluation points remain server-only; answers and 0–3 hint depth recover across refresh and pause; attempts persist with grounded source references and no evidence, Agent action or search side effect.
+**Status:** Complete and verified on 2026-07-22. Quiz answer keys, misconception targets and recall evaluation points remain server-only; answers and 0–3 hint depth recover across refresh and pause. The learner sees one question, an optional inline hint, immediate correct/not-quite review and no repeated file-location or system-boundary panels.
 
 ## Milestone 4C — Feedback, encouragement, remedial practice and LearningEvidence
 
 Implement structured immediate feedback, specific encouragement, misconception detection, remedial activity and normalized evidence with no recommendation fields.
 
-**Status:** Complete and verified on 2026-07-21. Every submitted Quiz, recall or remedial attempt produces fixed structured feedback and one factual evidence record; Tutor close aggregates a factual boundary record; remediation stays inside the active concept; pause/refresh recovery covers all new states; evidence contains no recommendation fields and creates no Agent decision or search side effect.
+**Status:** Complete and verified on 2026-07-22. Every submitted Quiz, recall or remedial attempt still produces structured feedback and one factual evidence record, but the UI compresses it into a familiar result, answer review, short explanation and Continue. Evidence remains recommendation-free and is not exposed as a separate learner task.
 
 ## Milestone 5 — Adaptive Planning Agent
 
 Implement bounded action enum, exactly one next decision, learner-facing reason, estimate, override path, prerequisite insertion/return and server-validated transitions.
 
-**Status:** Complete and verified on 2026-07-21. The Agent reads validated `LearningEvidence` as its sole learning-performance basis, proposes exactly one of eight bounded actions, exposes only server-valid alternatives, supports penalty-free override and executes only controlled state transitions. A strict GPT-5.6 function-call contract and deterministic test policy remain internally separated; `request_search` stops at confirmation and performs no search.
+**Status:** Complete and verified on 2026-07-22. The Agent reads validated `LearningEvidence` as its sole learning-performance basis and proposes exactly one bounded action. Continue from feedback now requests that decision automatically; the learner sees one concise next step while valid alternatives remain in a secondary disclosure. `request_search` still stops at explicit confirmation and performs no search on its own.
 
 ## Milestone 6 — Controlled external search
 

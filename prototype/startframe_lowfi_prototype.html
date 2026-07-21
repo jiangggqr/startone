@@ -102,7 +102,7 @@
         <div class="frame"><div class="frame-bar"><span>StartFrame Agent · Product Blueprint</span><span>上传材料优先 · 搜索受控 · 一次一个下一步</span></div><div class="frame-body stack">
           <div class="callout"><strong>一句话定义</strong>用户上传自己的学习材料，系统把材料转化为可核查的知识地图和短学习任务；Tutor 负责当前知识点的讲解与练习，规划 Agent 根据学习证据只选择一个下一步。</div>
           <div class="flow">
-            <span class="step">上传材料</span><span class="arr">→</span><span class="step">AI 选择学习重点</span><span class="arr">→</span><span class="step">确认知识地图</span><span class="arr">→</span><span class="step">2 分钟基础信号</span><span class="arr">→</span><span class="step">概念解释</span><span class="arr">→</span><span class="step">Tutor / Quiz / 复述</span><span class="arr">→</span><span class="step">反馈与补救</span><span class="arr">→</span><span class="step">LearningEvidence</span><span class="arr">→</span><span class="step">Agent 下一步</span><span class="arr">→</span><span class="step">总结与恢复</span>
+            <span class="step">上传材料</span><span class="arr">→</span><span class="step">知识框架</span><span class="arr">→</span><span class="step">概念解释</span><span class="arr">→</span><span class="step">Tutor / Quiz / 复述</span><span class="arr">→</span><span class="step">简短反馈</span><span class="arr">→</span><span class="step">下一个动作</span><span class="arr">→</span><span class="step">总结与恢复</span>
           </div>
           <div class="grid-2">
             <div class="card"><h3>Guided Mastery Loop</h3><p>Tutor、Quiz、复述、提示、反馈、鼓励、补救练习都围绕<strong>当前概念</strong>工作，并产生客观学习证据。</p><p class="small muted">不改变全局路线，不直接启动网络搜索。</p></div>
@@ -181,11 +181,8 @@
       </section>
 
       <section class="screen" id="quiz" data-title="09 Quiz：识别误解">
-        <div class="screen-head"><div><h2>09 Quiz：识别误解</h2><p>一次一题；错误选项来自真实常见误解，而不是随机填充。</p></div></div>
-        <div class="frame"><div class="frame-bar"><span>Self-attention · Quiz 1/2</span><span>约 90 秒</span></div><div class="frame-body grid-2">
-          <div class="stack"><div class="tabs" role="tablist" aria-label="练习类型"><button class="tab active" role="tab" aria-selected="true">选择题</button><button class="tab" role="tab" aria-selected="false" data-go="recall">自由复述</button></div><h3>Self-attention 中，计算相关程度之后最关键的下一步是什么？</h3><p><span class="source-label source-uploaded">用户上传材料</span> transformer_notes.md · 第 9–13 行</p><fieldset class="stack"><legend class="small">选择一个答案</legend><label class="option"><input type="radio" name="q">A. 删除相关程度较低的所有词</label><label class="option"><input type="radio" name="q" checked>B. 按相关程度对其他位置的信息加权汇总</label><label class="option"><input type="radio" name="q">C. 只保留当前位置原来的表示</label><label class="option"><input type="radio" name="q">D. 把序列重新排序</label></fieldset><div class="row between"><button data-go="focus">退出练习</button><button class="primary" data-go="feedback">提交答案</button></div></div>
-          <div class="stack"><div class="card"><h3>提示（可选）</h3><div class="hint open"><strong>提示 1：方向</strong><p class="small">思考“知道哪些位置相关”之后，怎样把这些位置的信息用于当前位置。</p></div><div class="hint locked"><strong>提示 2：结构</strong><p class="small">比较 → 权重 → ______</p></div><div class="hint locked"><strong>提示 3：关键词</strong><p class="small">加权、汇总、新表示</p></div></div><div class="callout small"><strong>记录</strong>系统保存作答时间、是否修改答案、提示深度和选择的误解类型。</div></div>
-        </div></div>
+        <div class="screen-head"><div><h2>09 Quiz</h2><p>页面只保留一道题和一个明确动作。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>Self-attention · Quiz</span><span>已保存</span></div><div class="frame-body"><div class="card stack" style="max-width:760px;margin:auto"><span class="badge">一道选择题</span><h2>Self-attention 计算相关程度后，下一步是什么？</h2><p class="small muted">基于你的材料</p><fieldset class="stack"><legend>选择一个答案</legend><label class="option"><input type="radio" name="q">A. 删除其他位置</label><label class="option"><input type="radio" name="q" checked>B. 按相关程度加权汇总信息</label><label class="option"><input type="radio" name="q">C. 只保留当前位置</label><label class="option"><input type="radio" name="q">D. 重新排序序列</label></fieldset><button>需要提示？</button><div class="row between"><button data-go="focus">返回讲解</button><button class="primary" data-go="feedback">提交答案</button></div></div></div></div>
       </section>
 
       <section class="screen" id="recall" data-title="10 自由复述与分层提示">
@@ -197,11 +194,8 @@
       </section>
 
       <section class="screen" id="feedback" data-title="11 即时反馈与具体鼓励">
-        <div class="screen-head"><div><h2>11 即时反馈与具体鼓励</h2><p>先指出已经掌握的内容，再说明缺口和可执行的下一步；不评价人格。</p></div></div>
-        <div class="frame"><div class="frame-bar"><span>Self-attention · 复述反馈</span><span><span class="source-label source-uploaded">用户上传材料</span> 第 7–13 行</span></div><div class="frame-body grid-2">
-          <div class="stack"><div class="feedback-block"><h4>你已经掌握</h4><p>你说出了两个核心动作：判断当前位置与其他位置的关系，以及把重要信息加入当前位置。</p></div><div class="feedback-block"><h4>需要补充或澄清</h4><p>“放进来”可以更准确地表述为：按照相关程度对其他位置的信息进行加权汇总。</p></div><div class="feedback-block"><h4>简练修正答案</h4><p>Self-attention 比较当前位置与其他位置的相关程度，再按这些相关程度汇总信息，形成包含上下文的新表示。</p></div><div class="feedback-block"><h4>具体鼓励</h4><p>你已经抓住了“先判断关系，再加入信息”的结构。现在只需要把“怎样加入”说得更准确。</p></div></div>
-          <div class="stack"><div class="primary-action"><span class="badge">推荐下一步</span><h3>做一个 60 秒小练习，补全“加权汇总”</h3><p class="small">原因：核心结构已掌握，只剩一个表达与理解缺口。</p><button class="primary" data-go="remedial">开始补救练习</button></div><div class="card"><h3>其他选择</h3><div class="row"><button data-go="recall">再次复述</button><button data-go="focus">回看讲解</button><button data-go="agent">让 Agent 评估下一步</button></div></div><div class="callout small"><strong>反馈生成规则</strong>不得只显示“正确/错误”；不得用“你很聪明”等泛化人格评价；不得声称诊断用户能力。</div></div>
-        </div></div>
+        <div class="screen-head"><div><h2>11 简短即时反馈</h2><p>不展开后台字段，只帮助用户理解本题。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>Self-attention · Quiz</span><span>已保存</span></div><div class="frame-body"><div class="card stack" style="max-width:760px;margin:auto"><div class="row"><span class="dot done">✓</span><h2>回答正确</h2></div><div class="result"><span class="small muted">你的答案</span><p><strong>按相关程度加权汇总其他位置的信息。</strong></p></div><div><h3>为什么</h3><p>相关程度会转换为权重，决定每个位置的信息对新表示贡献多少。</p></div><p class="small muted">解释基于你的材料</p><button class="primary" data-go="agent">继续</button></div></div></div>
       </section>
 
       <section class="screen" id="remedial" data-title="12 错误驱动的补救练习">
@@ -213,12 +207,9 @@
         </div></div>
       </section>
 
-      <section class="screen" id="agent" data-title="13 LearningEvidence 与 Agent 决策">
-        <div class="screen-head"><div><h2>13 LearningEvidence 与 Agent 决策</h2><p>证据只描述发生了什么；Agent 才根据证据选择全局下一步。</p></div></div>
-        <div class="frame"><div class="frame-bar"><span>当前概念完成检查</span><span>Agent 只选择一个动作</span></div><div class="frame-body grid-2">
-          <div class="card"><h3>LearningEvidence</h3><div class="evidence"><span>Quiz</span><strong>1/1 正确</strong></div><div class="evidence"><span>复述要点覆盖</span><strong>2/3</strong></div><div class="evidence"><span>提示深度</span><strong>1/3</strong></div><div class="evidence"><span>Tutor 信号</span><strong>曾不清楚“汇总”</strong></div><div class="evidence"><span>补救练习</span><strong>回答正确</strong></div><div class="evidence"><span>本概念用时</span><strong>9 分 20 秒</strong></div><div class="evidence"><span>来源缺口</span><strong>无明确缺口</strong></div><p class="small muted">这里不能包含 next_action、recommendation 或“应该继续”等结论。</p></div>
-          <div class="stack"><div class="card"><h3>当前允许的其他路径</h3><div class="radio-list"><label class="radio-item"><input type="radio" checked name="a">继续下一个概念：Q / K / V</label><label class="radio-item"><input type="radio" name="a">再做一次复述</label><label class="radio-item"><input type="radio" name="a">换一种练习</label><label class="radio-item"><input type="radio" name="a">简化当前概念</label><label class="radio-item"><input type="radio" name="a">复习上一概念</label><label class="radio-item"><input type="radio" name="a">结束本次会话</label></div><p class="small muted">当前没有命名来源缺口，因此不提供搜索；当前证据也不需要插入前置知识。</p></div><div class="primary-action"><h3>Agent 唯一推荐：继续 Q / K / V</h3><p>你已经能说明核心流程，补救练习也解决了“加权汇总”的缺口。下一概念依赖于当前理解。</p><p class="small">预计下一步 6 分钟</p><div class="row"><button data-go="summary">结束并生成总结</button><button class="primary" data-go="focus">继续 Q / K / V</button></div></div></div>
-        </div></div>
+      <section class="screen" id="agent" data-title="13 简洁下一步">
+        <div class="screen-head"><div><h2>13 下一步</h2><p>学习证据和 Agent 判断在后台完成，界面只显示结果。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>已保存</span><span>下一步</span></div><div class="frame-body"><div class="primary-action" style="max-width:760px;margin:auto"><p class="small muted">约 6 分钟</p><h2>继续学习 Q / K / V</h2><p>你已掌握当前概念，下一概念将建立在它之上。</p><button class="primary" data-go="focus">继续</button><details style="margin-top:12px"><summary>选择其他路径</summary><div class="row" style="margin-top:8px"><button data-go="recall">再练一次</button><button data-go="summary">暂停学习</button></div></details></div></div></div>
       </section>
 
       <section class="screen" id="search" data-title="14 受控外部搜索">

@@ -57,16 +57,16 @@
 - Real GPT-5.6 Tutor contract path with no tools exposed; deterministic Tutor remains test-only
 - One-question Quiz with server-only answer keys and misconception-based distractors
 - Free recall with server-only key points, acceptable paraphrases and misconception patterns
-- Progressive 0–3 hint disclosure with saved depth, answer autosave and explicit conflict recovery
+- Progressive 0–3 hint disclosure with saved depth, answer autosave and explicit conflict recovery; only requested hints are rendered
 - Persistent activity attempts with source references, pause/refresh recovery and no premature evidence or Agent decision
 - Strict GPT-5.6 Quiz/recall Structured Output contracts with deterministic test activities
-- Full-screen practice flows with English-only copy, flat backgrounds and a verified 390 px layout
-- Fixed five-part feedback: mastered points, missing/unclear points, compact correction, specific encouragement and one current-concept micro-action
+- Full-screen practice flows with English-only copy, flat backgrounds, one centered task and no repeated source-location or system-boundary panels
+- Backend five-part feedback compressed in the learner UI to correct/not-quite, answer review, one concise rationale and Continue
 - Server-validated factual `LearningEvidence` for Quiz, recall, remedial and Tutor-close boundaries with no recommendation columns
 - Targeted remedial practice with five bounded strategy types and no immediate strategy repetition after an unsuccessful result
 - Durable `feedback_shown`, `remedial_practice` and `evidence_ready` states with pause/refresh recovery
 - Strict GPT-5.6 feedback/remedial Structured Output contracts with no model tools and a deterministic test evaluator
-- Responsive English feedback, evidence and remedial screens using flat solid backgrounds
+- Recommendation-free evidence stays internal; the learner is not asked to review or approve the evidence boundary
 - Exactly-one Adaptive Planning Agent decisions from validated `LearningEvidence` only
 - Eight-action bounded enum with server-validated targets, tools, prerequisites and state transitions
 - Penalty-free user override with only valid alternatives and no hidden reasoning display
@@ -74,7 +74,7 @@
 - Named-gap validation and `request_search` gating that stops before any external request
 - Strict real GPT-5.6 function calling with one forced tool call, disabled parallel calls and a deterministic test policy
 - Durable `agent_decision`, `search_confirmation` and `session_summary` transitions with pause/refresh recovery
-- Responsive English Agent screen with one visually dominant recommendation and flat solid backgrounds
+- Responsive English next-step screen with one visually dominant recommendation; evidence and Agent architecture are not exposed as learning content
 - A separate search confirmation that visibly proves all four gates and states that no search has run before confirmation
 - Execution-time revalidation of session permission, named gap, accepted Agent request and exact-scope user confirmation
 - Required real-mode Responses API web search with cited public HTTPS result filtering and server-only credentials
@@ -95,11 +95,15 @@
 - Model-facing citations use short aliases that are mapped back to real source/chunk IDs and revalidated before persistence; impossible generated prerequisite links are removed deterministically before the full map integrity check
 - Homepage value proposition now leads with fast initiation, a coherent knowledge structure, sustained concept-by-concept progress and learning completion; material upload is the mechanism, not the product promise
 - Explanation-first flow removes the suggested-outcome card, duplicate recommended-route card, route-adjustment controls, the pre-learning response test and the full-panel source preview; one click from the knowledge framework now opens the first concept lesson
+- Quiz refinement removes repeated uploaded-file rows, practice-boundary copy, locked-hint cards and hint-success banners; post-answer feedback now follows a familiar result, answer and explanation pattern
+- Continue from feedback completes the evidence boundary and requests the Agent automatically, replacing the separate Evidence review/"Ask Agent" task with a brief loading state and one concise next action
 
 ## Latest verification
 
-- 50 automated tests pass after the explanation-first flow change
-- Browser verification confirms the simplified upload page, concise knowledge framework, direct first-concept start, visible explanation sections, expandable inline source excerpt, English-only UI, no gradients and no horizontal overflow at 1280 px
+- 50 automated tests pass after the minimized Quiz-flow change
+- JavaScript syntax, Python compilation, diff hygiene, English-only UI and no-gradient checks pass
+- Browser verification completed a real Quiz, revealed an inline hint without a banner, submitted an incorrect answer, displayed the selected answer, correct answer and concise rationale, then continued directly to one next action without an Evidence review page
+- Desktop document width matches the 1280 px viewport; the computed body background image is `none`
 
 ## Next action
 

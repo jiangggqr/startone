@@ -36,19 +36,19 @@
 
 ### ActivityCard
 
-类型：Quiz、Recall、Remedial。包含来源、时间估计、提示和提交状态。
+类型：Quiz、Recall、Remedial。Quiz 默认只包含题目、选项、一行来源类型、可选提示和提交状态；不显示文件位置列表或系统边界。
 
 ### HintLadder
 
-`locked`、`available`、`revealed`。一次只揭示一级并记录深度。
+后台状态为 `locked`、`available`、`revealed`。界面只显示已揭示内容和一个“Need a hint?”入口，不渲染未解锁卡。一次只揭示一级并记录深度。
 
 ### FeedbackPanel
 
-固定五部分，不因题型改变核心结构。
+后台保持固定结构化输出；用户界面按题型压缩。Quiz 只显示结果、答案核对、一段原因和 Continue。
 
 ### EvidenceSummary
 
-只显示学习事实，不显示推荐。
+只记录学习事实，不包含推荐。该组件不作为默认学习者页面，仅用于设置中的透明记录或内部验证。
 
 Tutor 证据只在检查边界、明确困惑或关闭会话时聚合，不按消息逐条制造 Evidence。
 
