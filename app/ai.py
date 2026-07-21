@@ -123,6 +123,35 @@ class RecallActivityOutput(StrictModel):
     source_refs: list[SourceReference] = Field(min_length=1, max_length=4)
 
 
+class FeedbackOutput(StrictModel):
+    mastered_points: list[str] = Field(max_length=6)
+    missing_or_unclear_points: list[str] = Field(max_length=6)
+    misconceptions: list[str] = Field(max_length=6)
+    compact_correction: str = Field(min_length=1, max_length=1200)
+    next_micro_action: str = Field(min_length=1, max_length=500)
+    encouragement: str = Field(min_length=1, max_length=500)
+    source_origin: Literal["uploaded", "external", "ai_supplement"]
+    source_refs: list[SourceReference] = Field(min_length=1, max_length=4)
+
+
+class RemedialActivityOutput(StrictModel):
+    strategy: Literal[
+        "simpler_explanation",
+        "smaller_question",
+        "concrete_example",
+        "contrast_question",
+        "rephrase_task",
+    ]
+    title: str = Field(min_length=1, max_length=200)
+    prompt: str = Field(min_length=1, max_length=1000)
+    completion_condition: str = Field(min_length=1, max_length=500)
+    expected_key_points: list[str] = Field(min_length=1, max_length=4)
+    misconception_patterns: list[str] = Field(max_length=6)
+    hint_levels: list[str] = Field(min_length=3, max_length=3)
+    source_origin: Literal["uploaded", "external", "ai_supplement"]
+    source_refs: list[SourceReference] = Field(min_length=1, max_length=4)
+
+
 class ModelGatewayError(Exception):
     def __init__(self, error_code: str, user_message: str) -> None:
         super().__init__(user_message)

@@ -33,7 +33,7 @@ The Chinese files are internal product and implementation specifications. All pr
 
 The prototype is a behavior and layout reference, not production application code.
 
-## Implemented through Milestone 4B
+## Implemented through Milestone 4C
 
 - Python 3.11+ FastAPI/Uvicorn service and versioned SQLite schema
 - Anonymous workspace Cookie isolation and private UUID-based upload storage
@@ -49,11 +49,15 @@ The prototype is a behavior and layout reference, not production application cod
 - One-question Quiz with misconception-based distractors and a server-only answer key
 - Free recall with server-only evaluation key points, paraphrases, and misconception patterns
 - Three progressive hint levels, activity-linked drafts, refresh/pause recovery, and persisted attempts
+- Fixed five-part immediate feedback with misconception-specific correction and concrete encouragement
+- Targeted remedial practice that changes strategy instead of repeating an unsuccessful format
+- Factual `LearningEvidence` for Quiz, recall, remediation, and Tutor boundaries, with no recommendation fields
+- Durable feedback, remediation, and evidence-ready states with pause and refresh recovery
 - A shared server-side GPT-5.6 Responses API gateway with strict Pydantic Structured Outputs
 - Clearly separated deterministic Demo mode and real-model mode
 - Responsive desktop/tablet/mobile layouts, accessible semantic controls, and flat solid backgrounds
 
-Quiz and recall submission currently records the raw attempt, hint depth, and time without creating evidence or an Agent decision. Immediate structured feedback, encouragement, remediation, and normalized `LearningEvidence` are the active Milestone 4C work. Adaptive Agent decisions and controlled external search follow in Milestones 5 and 6.
+Quiz, recall, Tutor checks, immediate feedback, encouragement, remediation, and normalized `LearningEvidence` now form a complete Guided Mastery boundary. No Agent decision or external search is created by that loop. The Adaptive Planning Agent and controlled external search follow in Milestones 5 and 6.
 
 ## Run locally
 

@@ -43,6 +43,14 @@ from app.learning import (
     load_demo_materials,
     update_session_setup,
 )
+from app.mastery import (
+    complete_feedback,
+    create_remedial_activity,
+    generate_feedback,
+    get_evidence,
+    get_feedback,
+    get_feedback_for_attempt,
+)
 from app.sources import (
     SourceError,
     cancel_source,
@@ -737,6 +745,66 @@ def create_app(
             activity_id,
             payload.version,
             payload.elapsed_seconds,
+        )
+
+    @application.post("/api/attempts/{attempt_id}/feedback", status_code=201)
+    async def prepare_attempt_feedback(attempt_id: str, request: Request) -> dict:
+        return generate_feedback(
+            resolved_settings,
+            _workspace_id(request),
+            attempt_id,
+            client_factory=ai_client_factory,
+        )
+
+    @application.get("/api/attempts/{attempt_id}/feedback")
+    async def attempt_feedback(attempt_id: str, request: Request) -> dict:
+        return get_feedback_for_attempt(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            attempt_id,
+        )
+
+    @application.get("/api/feedback/{feedback_id}")
+    async def feedback_detail(feedback_id: str, request: Request) -> dict:
+        return get_feedback(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            feedback_id,
+        )
+
+    @application.post("/api/feedback/{feedback_id}/complete")
+    async def finish_feedback(
+        feedback_id: str,
+        payload: SessionVersionRequest,
+        request: Request,
+    ) -> dict:
+        return complete_feedback(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            feedback_id,
+            payload.version,
+        )
+
+    @application.post("/api/feedback/{feedback_id}/remedial-activity", status_code=201)
+    async def start_remedial_activity(
+        feedback_id: str,
+        payload: SessionVersionRequest,
+        request: Request,
+    ) -> dict:
+        return create_remedial_activity(
+            resolved_settings,
+            _workspace_id(request),
+            feedback_id,
+            payload.version,
+            client_factory=ai_client_factory,
+        )
+
+    @application.get("/api/sessions/{session_id}/evidence")
+    async def session_evidence(session_id: str, request: Request) -> dict:
+        return get_evidence(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            session_id,
         )
 
     @application.post("/api/activities/{activity_id}/close")

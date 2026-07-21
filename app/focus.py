@@ -12,7 +12,7 @@ from app.db import connect
 from app.sources import SourceError, get_session
 
 
-ALLOWED_DRAFT_TYPES = {"start_action", "focus_note", "tutor", "quiz", "recall"}
+ALLOWED_DRAFT_TYPES = {"start_action", "focus_note", "tutor", "quiz", "recall", "remedial"}
 
 
 def save_draft(
@@ -232,7 +232,10 @@ def pause_session(
     _require_session_version(session, expected_session_version)
     if session.get("is_paused"):
         return session
-    if session["state"] not in {"start_action", "learning_concept", "practicing"}:
+    if session["state"] not in {
+        "start_action", "learning_concept", "practicing", "feedback_shown",
+        "remedial_practice", "evidence_ready",
+    }:
         raise SourceError("invalid_session_transition", "This session cannot be paused from its current step.", status_code=409)
     elapsed, remaining = _timer_values(session)
     with connect(database_path) as connection:
@@ -261,7 +264,9 @@ def resume_session(
     if not session.get("is_paused"):
         return session
     resume_state = str(session.get("resume_state") or session["state"])
-    timer_sql = "CURRENT_TIMESTAMP" if resume_state in {"learning_concept", "practicing"} else "NULL"
+    timer_sql = "CURRENT_TIMESTAMP" if resume_state in {
+        "learning_concept", "practicing", "feedback_shown", "remedial_practice", "evidence_ready",
+    } else "NULL"
     with connect(database_path) as connection:
         connection.execute(
             f"""
@@ -458,7 +463,10 @@ def _require_mutable_learning_state(session: dict[str, Any]) -> None:
             status_code=409,
             saved_state="Your existing drafts and progress remain saved.",
         )
-    if session["state"] not in {"start_action", "learning_concept", "practicing"}:
+    if session["state"] not in {
+        "start_action", "learning_concept", "practicing", "feedback_shown",
+        "remedial_practice", "evidence_ready",
+    }:
         raise SourceError(
             "draft_not_available",
             "This draft is not available at the current session step.",

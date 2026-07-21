@@ -129,6 +129,10 @@ def get_activity(database_path: Path, workspace_id: str, activity_id: str) -> di
             "SELECT * FROM attempts WHERE activity_id = ? AND workspace_id = ?",
             (activity_id, workspace_id),
         ).fetchone()
+        feedback = connection.execute(
+            "SELECT id FROM feedbacks WHERE activity_id = ? AND workspace_id = ?",
+            (activity_id, workspace_id),
+        ).fetchone()
     output = json.loads(str(activity["output_json"]))
     refs = json.loads(str(activity["source_refs_json"]))
     details = _source_details(database_path, workspace_id, str(activity["session_id"]), refs)
@@ -149,6 +153,10 @@ def get_activity(database_path: Path, workspace_id: str, activity_id: str) -> di
             "source_refs": refs,
             "source_ref_details": details,
             "created_at": activity["created_at"],
+            "parent_activity_id": activity.get("parent_activity_id"),
+            "parent_feedback_id": activity.get("parent_feedback_id"),
+            "strategy": activity.get("strategy"),
+            "remedial_round": activity.get("remedial_round", 0),
         },
         "session": {
             "id": activity["session_id"],
@@ -169,7 +177,7 @@ def get_activity(database_path: Path, workspace_id: str, activity_id: str) -> di
             "can_reveal_more": depth < 3 and activity["status"] == "active",
         },
         "draft": _public_draft(dict(draft)) if draft else None,
-        "submission": _public_attempt(dict(attempt)) if attempt else None,
+        "submission": _public_attempt(dict(attempt), str(feedback["id"]) if feedback else None) if attempt else None,
         "timer": {"elapsed_seconds": elapsed, "remaining_seconds": remaining},
         "generation": {
             "mode": activity["generation_mode"],
@@ -179,7 +187,7 @@ def get_activity(database_path: Path, workspace_id: str, activity_id: str) -> di
         "boundaries": {
             "active_concept_only": True,
             "correct_answer_hidden_before_feedback": True,
-            "creates_learning_evidence": False,
+            "creates_learning_evidence": bool(feedback),
             "creates_agent_decision": False,
             "can_search": False,
         },
@@ -192,8 +200,16 @@ def get_activity(database_path: Path, workspace_id: str, activity_id: str) -> di
                 for option in output["options"]
             ],
         }
-    else:
+    elif activity["type"] == "recall":
         payload["recall"] = {"prompt": output["prompt"]}
+    else:
+        payload["remedial"] = {
+            "title": output["title"],
+            "prompt": output["prompt"],
+            "completion_condition": output["completion_condition"],
+            "strategy": output["strategy"],
+            "round": activity.get("remedial_round", 1),
+        }
     return payload
 
 
@@ -348,6 +364,7 @@ def close_activity(
         activity, session = _owned_active_activity(connection, workspace_id, activity_id)
         _require_practice_state(session, activity_id)
         _require_version(int(session["version"]), expected_session_version, "session_version_conflict")
+        return_feedback_id = activity.get("parent_feedback_id") if activity["type"] == "remedial" else None
         connection.execute(
             """
             UPDATE activities
@@ -358,16 +375,32 @@ def close_activity(
             """,
             (activity_id,),
         )
-        connection.execute(
-            """
-            UPDATE learning_sessions
-            SET state = 'learning_concept', active_activity_id = NULL,
-                version = version + 1, last_saved_at = CURRENT_TIMESTAMP,
-                updated_at = CURRENT_TIMESTAMP
-            WHERE id = ? AND workspace_id = ?
-            """,
-            (activity["session_id"], workspace_id),
-        )
+        if return_feedback_id:
+            parent = connection.execute(
+                "SELECT activity_id FROM feedbacks WHERE id = ? AND workspace_id = ?",
+                (return_feedback_id, workspace_id),
+            ).fetchone()
+            connection.execute(
+                """
+                UPDATE learning_sessions
+                SET state = 'feedback_shown', active_activity_id = ?,
+                    version = version + 1, last_saved_at = CURRENT_TIMESTAMP,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ? AND workspace_id = ?
+                """,
+                (parent["activity_id"] if parent else None, activity["session_id"], workspace_id),
+            )
+        else:
+            connection.execute(
+                """
+                UPDATE learning_sessions
+                SET state = 'learning_concept', active_activity_id = NULL,
+                    version = version + 1, last_saved_at = CURRENT_TIMESTAMP,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ? AND workspace_id = ?
+                """,
+                (activity["session_id"], workspace_id),
+            )
         _record_event(
             connection,
             workspace_id,
@@ -375,6 +408,10 @@ def close_activity(
             "activity_closed",
             {"activity_id": activity_id, "activity_type": activity["type"], "status_before_close": activity["status"]},
         )
+    if return_feedback_id:
+        from app.mastery import get_feedback
+
+        return get_feedback(database_path, workspace_id, str(return_feedback_id))
     return get_focus_workspace(database_path, workspace_id, str(activity["session_id"]))
 
 
@@ -678,7 +715,7 @@ def _require_practice_state(session: dict[str, Any], activity_id: str) -> None:
             status_code=409,
             saved_state="Your answer and revealed hints remain saved.",
         )
-    if session["state"] != "practicing" or str(session.get("active_activity_id")) != activity_id:
+    if session["state"] not in {"practicing", "remedial_practice"} or str(session.get("active_activity_id")) != activity_id:
         raise SourceError("activity_not_active", "This practice is no longer the active session step.", status_code=409)
 
 
@@ -780,7 +817,7 @@ def _public_draft(draft: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _public_attempt(attempt: dict[str, Any]) -> dict[str, Any]:
+def _public_attempt(attempt: dict[str, Any], feedback_id: str | None = None) -> dict[str, Any]:
     return {
         "id": attempt["id"],
         "activity_id": attempt["activity_id"],
@@ -788,8 +825,9 @@ def _public_attempt(attempt: dict[str, Any]) -> dict[str, Any]:
         "hint_depth": attempt["hint_depth"],
         "elapsed_seconds": attempt["elapsed_seconds"],
         "submitted_at": attempt["submitted_at"],
-        "feedback_ready": False,
-        "learning_evidence_created": False,
+        "feedback_ready": feedback_id is not None,
+        "feedback_id": feedback_id,
+        "learning_evidence_created": feedback_id is not None,
         "agent_decision_created": False,
     }
 

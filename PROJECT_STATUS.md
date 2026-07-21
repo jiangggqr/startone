@@ -14,7 +14,7 @@
 - Milestone 3 production focus-session shell: complete
 - Milestone 4A contextual Tutor: complete
 - Milestone 4B Quiz and free recall: complete
-- Milestone 4C feedback, remediation and LearningEvidence: in progress
+- Milestone 4C feedback, remediation and LearningEvidence: complete
 - Production UI language: English
 
 ## What the prototype is
@@ -56,7 +56,13 @@
 - Persistent activity attempts with source references, pause/refresh recovery and no premature evidence or Agent decision
 - Strict GPT-5.6 Quiz/recall Structured Output contracts with deterministic, visibly labeled Demo activities
 - Full-screen practice flows with English-only copy, flat backgrounds and a verified 390 px layout
+- Fixed five-part feedback: mastered points, missing/unclear points, compact correction, specific encouragement and one current-concept micro-action
+- Server-validated factual `LearningEvidence` for Quiz, recall, remedial and Tutor-close boundaries with no recommendation columns
+- Targeted remedial practice with five bounded strategy types and no immediate strategy repetition after an unsuccessful result
+- Durable `feedback_shown`, `remedial_practice` and `evidence_ready` states with pause/refresh recovery
+- Strict GPT-5.6 feedback/remedial Structured Output contracts with no model tools and a deterministic Demo evaluator
+- Responsive English feedback, evidence and remedial screens using flat solid backgrounds
 
 ## Next action
 
-Implement Milestone 4C structured immediate feedback, specific encouragement, misconception detection, remedial practice and normalized `LearningEvidence`. Evidence must remain factual and contain no recommendation fields.
+Implement Milestone 5 Adaptive Planning Agent. It must read validated `LearningEvidence`, select exactly one bounded next action, expose a learner-facing reason and create no teaching or scoring content.

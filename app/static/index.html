@@ -548,6 +548,7 @@
               <span class="origin-badge" id="activity-origin-label">Uploaded material</span>
             </div>
             <p class="activity-prompt" id="activity-prompt"></p>
+            <p class="completion-line" id="remedial-completion" hidden></p>
             <div class="focus-sources" id="activity-sources"></div>
 
             <form id="activity-form">
@@ -555,7 +556,7 @@
                 <legend>Choose one answer</legend>
               </fieldset>
               <div id="recall-answer-wrap" hidden>
-                <label for="recall-answer">Your 2–3 sentence explanation</label>
+                <label for="recall-answer" id="activity-answer-label">Your 2–3 sentence explanation</label>
                 <textarea id="recall-answer" rows="8" maxlength="20000" placeholder="Explain it in your own words. An incomplete attempt is still useful."></textarea>
               </div>
               <div class="form-message" id="activity-message" role="status" aria-live="polite" hidden></div>
@@ -590,6 +591,101 @@
           <button type="button" id="mobile-activity-hints">Hints</button>
           <button type="button" id="mobile-activity-pause">Pause</button>
         </nav>
+      </section>
+
+      <section class="workflow-view feedback-view" id="feedback-view" aria-labelledby="feedback-title" hidden>
+        <div class="feedback-topbar">
+          <div>
+            <p class="eyebrow">Guided Mastery Loop · feedback</p>
+            <h1 id="feedback-title" tabindex="-1">What your answer shows</h1>
+            <p class="focus-breadcrumb" id="feedback-breadcrumb"></p>
+          </div>
+          <div class="focus-top-actions">
+            <span class="save-state" id="feedback-save-status" role="status" aria-live="polite">Feedback and evidence saved</span>
+            <button class="button button-quiet" id="feedback-pause" type="button">Pause session</button>
+          </div>
+        </div>
+
+        <div class="feedback-layout">
+          <section class="feedback-main card-panel" aria-labelledby="feedback-sections-title">
+            <div class="panel-heading">
+              <div><p class="eyebrow">Active concept only</p><h2 id="feedback-sections-title">Structured feedback</h2></div>
+              <span class="origin-badge" id="feedback-origin-label">Uploaded material</span>
+            </div>
+            <div class="feedback-section feedback-mastered">
+              <h3>1. Mastered points</h3>
+              <ul id="feedback-mastered-list"></ul>
+            </div>
+            <div class="feedback-section feedback-missing">
+              <h3>2. Missing or unclear points</h3>
+              <ul id="feedback-missing-list"></ul>
+              <div id="feedback-misconception-wrap" hidden>
+                <strong>Observed misconception</strong>
+                <ul id="feedback-misconception-list"></ul>
+              </div>
+            </div>
+            <div class="feedback-section">
+              <h3>3. Compact correction</h3>
+              <p id="feedback-correction"></p>
+            </div>
+            <div class="feedback-section feedback-encouragement">
+              <h3>4. Specific encouragement</h3>
+              <p id="feedback-encouragement"></p>
+            </div>
+            <div class="next-micro-action" aria-labelledby="next-micro-title">
+              <p class="eyebrow">5. Next micro-action</p>
+              <h3 id="next-micro-title">Keep this concept small</h3>
+              <p id="feedback-next-action"></p>
+              <div class="feedback-actions">
+                <button class="button button-primary" id="start-remedial" type="button">Start 60-second remedial practice</button>
+                <button class="button button-secondary" id="complete-feedback" type="button">Finish this mastery check</button>
+              </div>
+            </div>
+            <div class="form-message" id="feedback-message" role="status" aria-live="polite" hidden></div>
+          </section>
+
+          <aside class="evidence-panel card-panel" aria-labelledby="evidence-title">
+            <p class="eyebrow">Recorded observation</p>
+            <h2 id="evidence-title">LearningEvidence</h2>
+            <dl class="context-list">
+              <div><dt>Activity</dt><dd id="evidence-activity"></dd></div>
+              <div><dt>Outcome</dt><dd id="evidence-outcome"></dd></div>
+              <div><dt>Key points covered</dt><dd id="evidence-coverage"></dd></div>
+              <div><dt>Hints used</dt><dd id="evidence-hints"></dd></div>
+              <div><dt>Elapsed</dt><dd id="evidence-elapsed"></dd></div>
+              <div id="evidence-remedial-row" hidden><dt>Remedial result</dt><dd id="evidence-remedial"></dd></div>
+            </dl>
+            <div class="focus-sources" id="feedback-sources"></div>
+            <div class="boundary-note">
+              <strong>Evidence boundary</strong>
+              <p>This record contains performance observations only. It has no recommendation, Agent decision, or permission to search.</p>
+            </div>
+          </aside>
+        </div>
+
+        <nav class="mobile-session-nav" aria-label="Feedback navigation">
+          <button type="button" id="mobile-feedback-concept">Concept</button>
+          <button type="button" aria-current="page">Feedback</button>
+          <button type="button" id="mobile-feedback-evidence">Evidence</button>
+          <button type="button" id="mobile-feedback-pause">Pause</button>
+        </nav>
+      </section>
+
+      <section class="workflow-view evidence-ready-view" id="evidence-ready-view" aria-labelledby="evidence-ready-title" hidden>
+        <div class="evidence-ready-shell card-panel">
+          <p class="eyebrow">Mastery boundary reached</p>
+          <h1 id="evidence-ready-title" tabindex="-1">Evidence is ready for one planning decision</h1>
+          <p class="hero-lead">Your learning performance is saved as observations only. The Adaptive Planning Agent will choose exactly one next action in the next step.</p>
+          <div class="evidence-ready-list" id="evidence-ready-list"></div>
+          <div class="boundary-note">
+            <strong>No decision has been made yet</strong>
+            <p>Feedback and remediation belong to Guided Mastery. LearningEvidence does not recommend what should happen next, and no external search has run.</p>
+          </div>
+          <div class="dialog-actions">
+            <button class="button button-secondary" id="evidence-ready-pause" type="button">Pause with this exact restart point</button>
+            <button class="button button-primary" id="run-agent-placeholder" type="button" disabled>Planning Agent comes next</button>
+          </div>
+        </div>
       </section>
 
       <section class="workflow-view summary-view" id="summary-view" aria-labelledby="summary-title" hidden>

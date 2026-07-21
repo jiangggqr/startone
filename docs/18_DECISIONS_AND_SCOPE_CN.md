@@ -131,7 +131,7 @@ Milestone 3 进一步固定以下实现决定：
 - Tutor 输出使用严格 `TutorResponseOutput`，来源引用保存前按 workspace、session、source、chunk 验证
 - 上传材料中的说明显示 `uploaded`；不在材料中的示例必须显示 `ai_supplement`，但仍携带它所依据的已验证来源引用
 - 真实 Tutor 调用不提供任何工具，尤其不提供搜索；只选取当前概念来源和与本次问题匹配的少量片段，不默认发送全部材料
-- Tutor 消息可记录事实性的 `confusion_signal` 与 `prerequisite_gap_signal`；关闭时只记录信号数量。`LearningEvidence` 在 Milestone 4C 的检查边界统一生成，当前阶段不按消息制造 Evidence
+- Tutor 消息可记录事实性的 `confusion_signal` 与 `prerequisite_gap_signal`；不按每条消息制造 Evidence。Milestone 4C 在 Tutor 关闭边界仅聚合关闭以来的新 Tutor 输出，生成一条 `activity_type=tutor_check`、`outcome=unresolved` 的事实记录，不把未评分对话误报为掌握或失败
 
 ### Quiz 与自由复述活动
 
@@ -140,6 +140,16 @@ Milestone 3 进一步固定以下实现决定：
 - 每个活动恰好有 3 级渐进提示，一次只揭示一级；答案草稿、提示深度、活动版本和会话计时可在刷新、暂停和恢复后继续
 - 活动题目只引用当前概念经过验证的来源；真实模型调用使用严格 `QuizActivityOutput` 或 `RecallActivityOutput`，不提供任何工具
 - Milestone 4B 的提交只持久化原始尝试、提示深度和用时，不生成 `LearningEvidence`、Agent 决策或搜索请求；这些尝试由 Milestone 4C 的统一反馈边界评估
+
+### Feedback、补救与 LearningEvidence
+
+- 每个已提交的 Quiz、自由复述或补救尝试由独立反馈边界评估；反馈固定显示已掌握、缺失/不清楚、简短纠正、具体鼓励和一个当前概念内微动作
+- Feedback 的 `next_micro_action` 只用于当前 Guided Mastery Loop，不进入 `LearningEvidence`，也不代表 Agent 的全局下一步动作
+- `LearningEvidence.outcome` 固定为 `mastered | partial | needs_support | unresolved`；其中 `unresolved` 用于未经评分的 Tutor 检查边界
+- `LearningEvidence` 数据表和公开结构只保存活动类型、概念、结果、要点覆盖、误解标签、提示深度、用时、Tutor 困惑信号、补救结果、来源缺口信号和时间；明确不设 `next_action`、`recommendation`、`should_continue` 或 `search_needed` 字段
+- 补救策略固定为 `simpler_explanation | smaller_question | concrete_example | contrast_question | rephrase_task`，只针对最近一次具体缺口；系统按已用策略切换形式，不连续重复同一策略
+- 反馈生成后会话进入 `feedback_shown`；可选补救进入 `remedial_practice`；用户完成反馈边界后进入 `evidence_ready`。三个状态都支持暂停和精确恢复
+- Milestone 4C 不创建 Agent 决策，不提供搜索工具，也不执行外部搜索；`evidence_ready` 只表示下一阶段可以由 Agent 读取证据
 
 ### 备用“仅输入主题”模式
 

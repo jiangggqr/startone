@@ -40,7 +40,7 @@ Implement one-question Quiz, misconception-based distractors, free recall, progr
 
 Implement structured immediate feedback, specific encouragement, misconception detection, remedial activity and normalized evidence with no recommendation fields.
 
-**Status:** In progress.
+**Status:** Complete and verified on 2026-07-21. Every submitted Quiz, recall or remedial attempt produces fixed structured feedback and one factual evidence record; Tutor close aggregates a factual boundary record; remediation stays inside the active concept; pause/refresh recovery covers all new states; evidence contains no recommendation fields and creates no Agent decision or search side effect.
 
 ## Milestone 5 — Adaptive Planning Agent
 

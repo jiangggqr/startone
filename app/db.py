@@ -6,7 +6,7 @@ import sqlite3
 from pathlib import Path
 
 
-SCHEMA_VERSION = 6
+SCHEMA_VERSION = 7
 
 SOURCE_SCHEMA = """
 CREATE TABLE IF NOT EXISTS workspaces (
@@ -300,6 +300,58 @@ CREATE INDEX idx_attempts_session_submitted
     ON attempts(session_id, submitted_at DESC);
 """
 
+MASTERY_SCHEMA = """
+ALTER TABLE activities ADD COLUMN parent_activity_id TEXT REFERENCES activities(id);
+ALTER TABLE activities ADD COLUMN strategy TEXT;
+ALTER TABLE activities ADD COLUMN remedial_round INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE tutor_threads ADD COLUMN last_evidence_message_rowid INTEGER NOT NULL DEFAULT 0;
+
+CREATE TABLE feedbacks (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    session_id TEXT NOT NULL REFERENCES learning_sessions(id) ON DELETE CASCADE,
+    concept_id TEXT NOT NULL REFERENCES concepts(id) ON DELETE CASCADE,
+    activity_id TEXT NOT NULL REFERENCES activities(id) ON DELETE CASCADE,
+    attempt_id TEXT NOT NULL UNIQUE REFERENCES attempts(id) ON DELETE CASCADE,
+    output_json TEXT NOT NULL,
+    source_origin TEXT NOT NULL CHECK(source_origin IN ('uploaded', 'external', 'ai_supplement')),
+    source_refs_json TEXT NOT NULL,
+    generation_mode TEXT NOT NULL CHECK(generation_mode IN ('demo', 'real')),
+    model TEXT,
+    status TEXT NOT NULL DEFAULT 'shown' CHECK(status IN ('shown', 'completed')),
+    version INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    completed_at TEXT
+);
+CREATE INDEX idx_feedbacks_session_created
+    ON feedbacks(session_id, created_at DESC);
+
+ALTER TABLE activities ADD COLUMN parent_feedback_id TEXT REFERENCES feedbacks(id);
+
+CREATE TABLE learning_evidence (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    session_id TEXT NOT NULL REFERENCES learning_sessions(id) ON DELETE CASCADE,
+    concept_id TEXT NOT NULL REFERENCES concepts(id) ON DELETE CASCADE,
+    activity_id TEXT REFERENCES activities(id) ON DELETE CASCADE,
+    attempt_id TEXT REFERENCES attempts(id) ON DELETE CASCADE,
+    origin_id TEXT NOT NULL,
+    activity_type TEXT NOT NULL CHECK(activity_type IN ('tutor_check', 'quiz', 'recall', 'remedial')),
+    outcome TEXT NOT NULL CHECK(outcome IN ('mastered', 'partial', 'needs_support', 'unresolved')),
+    key_point_coverage_json TEXT NOT NULL DEFAULT '[]',
+    misconception_tags_json TEXT NOT NULL DEFAULT '[]',
+    hint_depth INTEGER NOT NULL DEFAULT 0 CHECK(hint_depth BETWEEN 0 AND 7),
+    elapsed_seconds INTEGER NOT NULL DEFAULT 0,
+    tutor_confusion_signals_json TEXT NOT NULL DEFAULT '[]',
+    remedial_result TEXT CHECK(remedial_result IN ('improved', 'not_improved')),
+    source_gap_signal TEXT,
+    timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(workspace_id, origin_id)
+);
+CREATE INDEX idx_learning_evidence_session_time
+    ON learning_evidence(session_id, timestamp DESC);
+"""
+
 
 def connect(database_path: Path) -> sqlite3.Connection:
     """Open a configured SQLite connection with safety pragmas enabled."""
@@ -345,6 +397,9 @@ def initialize_database(database_path: Path) -> None:
         if 6 not in applied:
             connection.executescript(ACTIVITY_SCHEMA)
             connection.execute("INSERT INTO schema_migrations(version) VALUES (6)")
+        if 7 not in applied:
+            connection.executescript(MASTERY_SCHEMA)
+            connection.execute("INSERT INTO schema_migrations(version) VALUES (7)")
 
 
 def ensure_workspace(database_path: Path, workspace_id: str) -> None:

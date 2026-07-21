@@ -1847,6 +1847,125 @@ dialog::backdrop {
   margin-top: 1.2rem;
 }
 
+.feedback-view,
+.evidence-ready-view {
+  padding-top: 1.5rem;
+}
+
+.feedback-topbar {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.feedback-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.65fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.feedback-main,
+.evidence-panel,
+.evidence-ready-shell {
+  padding: clamp(1.15rem, 3vw, 2rem);
+}
+
+.feedback-section {
+  margin-top: 0.9rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.feedback-section h3,
+.feedback-section p,
+.feedback-section ul {
+  margin-top: 0;
+}
+
+.feedback-section ul {
+  margin-bottom: 0;
+  padding-left: 1.25rem;
+}
+
+.feedback-mastered {
+  border-left: 5px solid #258369;
+  background: #f3fbf8;
+}
+
+.feedback-missing {
+  border-left: 5px solid #c68131;
+  background: #fffaf1;
+}
+
+.feedback-encouragement {
+  border-left: 5px solid var(--primary);
+  background: var(--primary-soft);
+}
+
+.next-micro-action {
+  margin-top: 1rem;
+  padding: 1.2rem;
+  border: 2px solid #7285d8;
+  border-radius: var(--radius-md);
+  background: #f7f8ff;
+}
+
+.next-micro-action h3,
+.next-micro-action p {
+  margin-top: 0;
+}
+
+.feedback-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  align-items: center;
+}
+
+.evidence-panel {
+  position: sticky;
+  top: 5.6rem;
+}
+
+.evidence-ready-view {
+  display: grid;
+  min-height: calc(100vh - 7rem);
+  place-items: center;
+}
+
+.evidence-ready-view[hidden] {
+  display: none;
+}
+
+.evidence-ready-shell {
+  width: min(52rem, 100%);
+}
+
+.evidence-ready-list {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+}
+
+.evidence-ready-item {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.35fr) 1fr;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--surface-alt);
+}
+
+.evidence-ready-item p {
+  margin: 0;
+}
+
 @media (max-width: 1199px) and (min-width: 768px) {
   .focus-grid {
     grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.55fr);
@@ -2009,12 +2128,14 @@ dialog::backdrop {
   }
 
   .focus-view,
-  .activity-view {
+  .activity-view,
+  .feedback-view {
     padding-bottom: 5rem;
   }
 
   .focus-topbar,
   .activity-topbar,
+  .feedback-topbar,
   .activity-heading,
   .activity-submit-row,
   .practice-launcher {
@@ -2102,6 +2223,24 @@ dialog::backdrop {
 
   .activity-layout {
     display: block;
+  }
+
+  .feedback-layout {
+    display: block;
+  }
+
+  .evidence-panel {
+    position: static;
+    margin-top: 1rem;
+  }
+
+  .feedback-actions,
+  .feedback-actions .button {
+    width: 100%;
+  }
+
+  .evidence-ready-item {
+    grid-template-columns: 1fr;
   }
 
   .hint-panel {

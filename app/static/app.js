@@ -18,6 +18,8 @@ const state = {
   focus: null,
   tutor: null,
   activity: null,
+  feedback: null,
+  evidence: null,
   activityReturnTrigger: null,
   tutorReturnTrigger: null,
   conflict: null,
@@ -34,6 +36,8 @@ const views = {
   focus: document.querySelector("#focus-view"),
   tutor: document.querySelector("#tutor-view"),
   activity: document.querySelector("#activity-view"),
+  feedback: document.querySelector("#feedback-view"),
+  evidence: document.querySelector("#evidence-ready-view"),
   summary: document.querySelector("#summary-view"),
 };
 
@@ -190,11 +194,13 @@ const activityBreadcrumb = document.querySelector("#activity-breadcrumb");
 const activityKindChip = document.querySelector("#activity-kind-chip");
 const activityOriginLabel = document.querySelector("#activity-origin-label");
 const activityPrompt = document.querySelector("#activity-prompt");
+const remedialCompletion = document.querySelector("#remedial-completion");
 const activitySources = document.querySelector("#activity-sources");
 const activityForm = document.querySelector("#activity-form");
 const quizOptions = document.querySelector("#quiz-options");
 const recallAnswerWrap = document.querySelector("#recall-answer-wrap");
 const recallAnswer = document.querySelector("#recall-answer");
+const activityAnswerLabel = document.querySelector("#activity-answer-label");
 const activityMessage = document.querySelector("#activity-message");
 const activitySaveStatus = document.querySelector("#activity-save-status");
 const activityDraftStatus = document.querySelector("#activity-draft-status");
@@ -209,6 +215,36 @@ const hintDepthCopy = document.querySelector("#hint-depth-copy");
 const mobileActivityConcept = document.querySelector("#mobile-activity-concept");
 const mobileActivityHints = document.querySelector("#mobile-activity-hints");
 const mobileActivityPause = document.querySelector("#mobile-activity-pause");
+
+const feedbackTitle = document.querySelector("#feedback-title");
+const feedbackBreadcrumb = document.querySelector("#feedback-breadcrumb");
+const feedbackSaveStatus = document.querySelector("#feedback-save-status");
+const feedbackPauseButton = document.querySelector("#feedback-pause");
+const feedbackOriginLabel = document.querySelector("#feedback-origin-label");
+const feedbackMasteredList = document.querySelector("#feedback-mastered-list");
+const feedbackMissingList = document.querySelector("#feedback-missing-list");
+const feedbackMisconceptionWrap = document.querySelector("#feedback-misconception-wrap");
+const feedbackMisconceptionList = document.querySelector("#feedback-misconception-list");
+const feedbackCorrection = document.querySelector("#feedback-correction");
+const feedbackEncouragement = document.querySelector("#feedback-encouragement");
+const feedbackNextAction = document.querySelector("#feedback-next-action");
+const startRemedialButton = document.querySelector("#start-remedial");
+const completeFeedbackButton = document.querySelector("#complete-feedback");
+const feedbackMessage = document.querySelector("#feedback-message");
+const feedbackSources = document.querySelector("#feedback-sources");
+const evidenceActivity = document.querySelector("#evidence-activity");
+const evidenceOutcome = document.querySelector("#evidence-outcome");
+const evidenceCoverage = document.querySelector("#evidence-coverage");
+const evidenceHints = document.querySelector("#evidence-hints");
+const evidenceElapsed = document.querySelector("#evidence-elapsed");
+const evidenceRemedialRow = document.querySelector("#evidence-remedial-row");
+const evidenceRemedial = document.querySelector("#evidence-remedial");
+const mobileFeedbackConcept = document.querySelector("#mobile-feedback-concept");
+const mobileFeedbackEvidence = document.querySelector("#mobile-feedback-evidence");
+const mobileFeedbackPause = document.querySelector("#mobile-feedback-pause");
+const evidenceReadyTitle = document.querySelector("#evidence-ready-title");
+const evidenceReadyList = document.querySelector("#evidence-ready-list");
+const evidenceReadyPause = document.querySelector("#evidence-ready-pause");
 
 function element(tag, className, text) {
   const node = document.createElement(tag);
@@ -332,7 +368,9 @@ function renderSessions(sessions) {
 
 function resumeLabel(session) {
   if (session.is_paused) return "Resume paused session";
-  if (session.state === "practicing") return "Resume current practice";
+  if (["practicing", "remedial_practice"].includes(session.state)) return "Resume current practice";
+  if (session.state === "feedback_shown") return "Resume saved feedback";
+  if (session.state === "evidence_ready") return "Review learning evidence";
   if (session.state === "learning_concept") return "Resume current concept";
   if (session.state === "start_action") return "Open start action";
   if (session.state === "path_drafting") return "Review learning path";
@@ -345,8 +383,14 @@ async function resumeSession(sessionId) {
   window.localStorage.setItem("startframe_session_id", sessionId);
   try {
     const session = await getCurrentSession();
-    if (session.state === "practicing") {
+    if (["practicing", "remedial_practice"].includes(session.state)) {
       await showActivity();
+      if (session.is_paused) pauseDialog.showModal();
+    } else if (session.state === "feedback_shown") {
+      await showFeedback();
+      if (session.is_paused) pauseDialog.showModal();
+    } else if (session.state === "evidence_ready") {
+      await showEvidenceReady();
       if (session.is_paused) pauseDialog.showModal();
     } else if (session.state === "learning_concept") {
       if (session.tutor_open) await showTutor();
@@ -390,6 +434,8 @@ async function showSources(returnTo = null) {
           ? "← Back to Tutor"
         : returnTo === "activity"
           ? "← Back to practice"
+        : returnTo === "feedback"
+          ? "← Back to feedback"
       : "← Back to library";
   showView("sources", `sources/${state.sessionId}`, sourceTitle);
   await Promise.all([loadSources(), getCurrentSession()]);
@@ -589,6 +635,8 @@ function renderPreview() {
 async function openSourceReference(reference, trigger) {
   const returnTo = window.location.hash.startsWith("#activity/")
     ? "activity"
+    : window.location.hash.startsWith("#feedback/")
+    ? "feedback"
     : window.location.hash.startsWith("#tutor/")
     ? "tutor"
     : window.location.hash.startsWith("#focus/")
@@ -613,6 +661,7 @@ async function leaveSourceView() {
   else if (returnTo === "focus") showView("focus", `focus/${state.sessionId}`, focusTitle);
   else if (returnTo === "tutor") showView("tutor", `tutor/${state.sessionId}`, tutorTitle);
   else if (returnTo === "activity") showView("activity", `activity/${state.activity?.activity?.id || ""}`, activityTitle);
+  else if (returnTo === "feedback") showView("feedback", `feedback/${state.feedback?.feedback?.id || ""}`, feedbackTitle);
   else await showHome();
   if (trigger?.isConnected) trigger.focus({ preventScroll: true });
 }
@@ -1407,6 +1456,10 @@ async function showActivity(existing = null) {
   state.session = body.session;
   if (body.draft) state.drafts[body.activity.type] = body.draft;
   renderActivity(body);
+  if (body.submission?.feedback_ready && body.submission.feedback_id) {
+    await showFeedback(await api(`/api/feedback/${body.submission.feedback_id}`));
+    return;
+  }
   showView("activity", `activity/${activityId}`, activityTitle);
   if (body.session.is_paused && !pauseDialog.open) pauseDialog.showModal();
 }
@@ -1424,7 +1477,7 @@ function applyActivityDraftContent(type, content) {
     quizOptions.querySelectorAll('input[name="quiz-answer"]').forEach((input) => {
       input.checked = input.value === content;
     });
-  } else if (type === "recall") {
+  } else if (type === "recall" || type === "remedial") {
     recallAnswer.value = content;
   }
 }
@@ -1435,11 +1488,16 @@ function renderActivity(body) {
   const activity = body.activity;
   const type = activity.type;
   const isQuiz = type === "quiz";
-  const typeName = isQuiz ? "Quiz" : "Free recall";
+  const isRemedial = type === "remedial";
+  const typeName = isQuiz ? "Quiz" : isRemedial ? "Remedial practice" : "Free recall";
   activityTypeLabel.textContent = `${typeName} · active concept only`;
   activityTitle.textContent = `${activity.concept_title} ${typeName}`;
   activityBreadcrumb.textContent = `${body.session.name} › ${activity.concept_title} › ${typeName}`;
-  activityKindChip.textContent = isQuiz ? "One question · single select" : "2–3 sentences · meaning over exact wording";
+  activityKindChip.textContent = isQuiz
+    ? "One question · single select"
+    : isRemedial
+      ? `One smaller step · round ${activity.remedial_round}`
+      : "2–3 sentences · meaning over exact wording";
   activityOriginLabel.textContent = activity.source_origin === "ai_supplement"
     ? "AI supplemental explanation"
     : activity.source_origin === "external"
@@ -1447,6 +1505,8 @@ function renderActivity(body) {
       : "Uploaded material";
   activityOriginLabel.className = `origin-badge ${activity.source_origin === "ai_supplement" ? "origin-ai" : activity.source_origin === "external" ? "origin-external" : ""}`;
   activityPrompt.textContent = activity.prompt;
+  remedialCompletion.hidden = !isRemedial;
+  remedialCompletion.textContent = isRemedial ? `Done when: ${body.remedial.completion_condition}` : "";
   activitySaveStatus.textContent = body.session.last_saved_at ? "Saved" : "Ready to save";
 
   activitySources.replaceChildren();
@@ -1482,8 +1542,12 @@ function renderActivity(body) {
       quizOptions.append(label);
     });
   } else {
+    activityAnswerLabel.textContent = isRemedial ? "Your one-sentence answer" : "Your 2–3 sentence explanation";
     recallAnswer.value = restoredContent;
     recallAnswer.disabled = activity.status !== "active";
+    recallAnswer.placeholder = isRemedial
+      ? "Answer only this smaller prompt. One sentence is enough."
+      : "Explain it in your own words. An incomplete attempt is still useful.";
   }
   activityDraftStatus.textContent = serverContent && restoredContent === serverContent
     ? "Draft saved on server"
@@ -1512,8 +1576,12 @@ function renderActivity(body) {
   hintDepthCopy.textContent = `${body.hints.depth} of 3 hints used. Revealing support is not counted as failure.`;
 
   const submitted = activity.status === "submitted";
-  submitActivityButton.disabled = submitted;
-  submitActivityButton.textContent = submitted ? "Answer submitted" : isQuiz ? "Submit Quiz answer" : "Submit free recall";
+  submitActivityButton.disabled = submitted && body.submission?.feedback_ready;
+  submitActivityButton.textContent = submitted
+    ? body.submission?.feedback_ready ? "Feedback ready" : "Prepare structured feedback"
+    : isQuiz ? "Submit Quiz answer" : isRemedial ? "Submit remedial answer" : "Submit free recall";
+  closeActivityButton.textContent = isRemedial ? "Return to feedback" : "Return to concept";
+  activityReturnButton.textContent = isRemedial ? "Return to feedback" : "Return to explanation";
   submissionReceipt.hidden = !submitted;
   activityMessage.hidden = true;
   if (submitted) {
@@ -1561,7 +1629,12 @@ async function revealNextHint() {
 async function submitCurrentActivity(event) {
   event.preventDefault();
   const body = state.activity;
-  if (!body || body.activity.status !== "active") return;
+  if (!body) return;
+  if (body.activity.status === "submitted" && body.submission) {
+    await prepareFeedback(body.submission.id);
+    return;
+  }
+  if (body.activity.status !== "active") return;
   const type = body.activity.type;
   const content = currentActivityContent().trim();
   if (!content) {
@@ -1585,13 +1658,181 @@ async function submitCurrentActivity(event) {
     state.activity = submitted;
     state.session = submitted.session;
     renderActivity(submitted);
-    setMessage(activityMessage, "Your answer is saved. No Agent decision or external search has occurred.", "success");
+    setMessage(activityMessage, "Answer saved. Preparing grounded feedback…", "success");
+    await prepareFeedback(submitted.submission.id);
   } catch (error) {
     setMessage(activityMessage, `${error.message} Your draft and hint depth remain saved; submit again when ready.`, "error");
   } finally {
     if (state.activity?.activity.status === "active") {
       setButtonBusy(submitActivityButton, false, "", type === "quiz" ? "Submit Quiz answer" : "Submit free recall");
+    } else if (state.activity?.activity.status === "submitted" && !state.feedback) {
+      setButtonBusy(submitActivityButton, false, "", "Prepare structured feedback");
     }
+  }
+}
+
+async function prepareFeedback(attemptId) {
+  setButtonBusy(submitActivityButton, true, "Preparing feedback…", "Prepare structured feedback");
+  try {
+    const body = await api(`/api/attempts/${attemptId}/feedback`, { method: "POST" });
+    state.feedback = body;
+    state.session = body.session;
+    renderFeedback(body);
+    showView("feedback", `feedback/${body.feedback.id}`, feedbackTitle);
+  } catch (error) {
+    setMessage(activityMessage, `${error.message} Your submitted answer is saved; retry feedback when ready.`, "error");
+    setButtonBusy(submitActivityButton, false, "", "Retry structured feedback");
+  }
+}
+
+async function showFeedback(existing = null) {
+  let body = existing;
+  if (!body) {
+    const hashId = window.location.hash.startsWith("#feedback/")
+      ? window.location.hash.split("/")[1]
+      : null;
+    if (hashId) body = await api(`/api/feedback/${hashId}`);
+    else if (state.feedback?.feedback) body = await api(`/api/feedback/${state.feedback.feedback.id}`);
+    else {
+      const session = state.session || await getCurrentSession();
+      const activity = await api(`/api/activities/${session.active_activity_id}`);
+      if (!activity.submission) throw new Error("The submitted answer could not be restored.");
+      body = activity.submission.feedback_id
+        ? await api(`/api/feedback/${activity.submission.feedback_id}`)
+        : await api(`/api/attempts/${activity.submission.id}/feedback`, { method: "POST" });
+    }
+  }
+  state.feedback = body;
+  state.session = body.session;
+  renderFeedback(body);
+  showView("feedback", `feedback/${body.feedback.id}`, feedbackTitle);
+  if (body.session.is_paused && !pauseDialog.open) pauseDialog.showModal();
+}
+
+function renderFeedback(body) {
+  const feedback = body.feedback;
+  const evidence = body.evidence;
+  feedbackTitle.textContent = `${feedback.concept_title} feedback`;
+  feedbackBreadcrumb.textContent = `${body.session.name} › ${feedback.concept_title} › ${feedback.activity_type.replaceAll("_", " ")} feedback`;
+  feedbackSaveStatus.textContent = feedback.status === "completed" ? "Evidence boundary completed" : "Feedback and evidence saved";
+  feedbackOriginLabel.textContent = feedback.source_origin === "ai_supplement"
+    ? "AI supplemental explanation"
+    : feedback.source_origin === "external" ? "External supplement" : "Uploaded material";
+  feedbackOriginLabel.className = `origin-badge ${feedback.source_origin === "ai_supplement" ? "origin-ai" : feedback.source_origin === "external" ? "origin-external" : ""}`;
+  renderFeedbackList(feedbackMasteredList, feedback.mastered_points, "No mastered point was verified from this attempt yet.");
+  renderFeedbackList(feedbackMissingList, feedback.missing_or_unclear_points, "No missing point was observed in this attempt.");
+  feedbackMisconceptionWrap.hidden = feedback.misconceptions.length === 0;
+  renderFeedbackList(feedbackMisconceptionList, feedback.misconceptions, "");
+  feedbackCorrection.textContent = feedback.compact_correction;
+  feedbackEncouragement.textContent = feedback.encouragement;
+  feedbackNextAction.textContent = feedback.next_micro_action;
+  feedbackMessage.hidden = true;
+
+  const remedialAvailable = body.remediation.available;
+  startRemedialButton.hidden = !remedialAvailable;
+  startRemedialButton.textContent = `Start 60-second ${body.remediation.recommended_strategy.replaceAll("_", " ")}`;
+  completeFeedbackButton.className = remedialAvailable ? "button button-secondary" : "button button-primary";
+  completeFeedbackButton.textContent = feedback.status === "completed" ? "Evidence ready" : "Finish this mastery check";
+  completeFeedbackButton.disabled = feedback.status === "completed";
+
+  if (evidence) {
+    evidenceActivity.textContent = evidence.activity_type.replaceAll("_", " ");
+    evidenceOutcome.textContent = evidence.outcome.replaceAll("_", " ");
+    const covered = evidence.key_point_coverage.filter((item) => item.status === "covered").length;
+    evidenceCoverage.textContent = `${covered} of ${evidence.key_point_coverage.length}`;
+    evidenceHints.textContent = String(evidence.hint_depth);
+    evidenceElapsed.textContent = formatDuration(evidence.elapsed_seconds);
+    evidenceRemedialRow.hidden = !evidence.remedial_result;
+    evidenceRemedial.textContent = evidence.remedial_result?.replaceAll("_", " ") || "";
+  }
+
+  feedbackSources.replaceChildren();
+  feedback.source_refs.forEach((reference) => {
+    const row = element("div", "focus-source-row");
+    row.append(element("span", feedbackOriginLabel.className, feedbackOriginLabel.textContent));
+    row.append(referenceButton(reference, feedback.source_ref_details || []));
+    feedbackSources.append(row);
+  });
+}
+
+function renderFeedbackList(target, items, emptyText) {
+  target.replaceChildren();
+  if (items.length === 0 && emptyText) {
+    target.append(element("li", "muted", emptyText));
+    return;
+  }
+  items.forEach((item) => target.append(element("li", "", item)));
+}
+
+async function startRemedialPractice() {
+  const body = state.feedback;
+  if (!body) return;
+  setButtonBusy(startRemedialButton, true, "Preparing one smaller step…", startRemedialButton.textContent);
+  try {
+    const activity = await api(`/api/feedback/${body.feedback.id}/remedial-activity`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ version: body.session.version }),
+    });
+    window.localStorage.removeItem(draftLocalKey("remedial"));
+    state.activity = activity;
+    state.session = activity.session;
+    renderActivity(activity);
+    showView("activity", `activity/${activity.activity.id}`, activityTitle);
+  } catch (error) {
+    setMessage(feedbackMessage, `${error.message} Your feedback and evidence remain saved.`, "error");
+  } finally {
+    if (state.feedback) setButtonBusy(startRemedialButton, false, "", `Start 60-second ${state.feedback.remediation.recommended_strategy.replaceAll("_", " ")}`);
+  }
+}
+
+async function completeFeedbackStep() {
+  const body = state.feedback;
+  if (!body) return;
+  setButtonBusy(completeFeedbackButton, true, "Saving evidence boundary…", "Finish this mastery check");
+  try {
+    const evidenceBody = await api(`/api/feedback/${body.feedback.id}/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ version: body.session.version }),
+    });
+    await showEvidenceReady(evidenceBody);
+  } catch (error) {
+    setMessage(feedbackMessage, `${error.message} Your feedback and evidence remain saved.`, "error");
+    setButtonBusy(completeFeedbackButton, false, "", "Finish this mastery check");
+  }
+}
+
+async function showEvidenceReady(existing = null) {
+  const body = existing || await api(`/api/sessions/${state.sessionId}/evidence`);
+  state.evidence = body;
+  state.session = body.session;
+  renderEvidenceReady(body);
+  showView("evidence", `evidence/${state.sessionId}`, evidenceReadyTitle);
+  if (body.session.is_paused && !pauseDialog.open) pauseDialog.showModal();
+}
+
+function renderEvidenceReady(body) {
+  evidenceReadyList.replaceChildren();
+  body.learning_evidence.forEach((item) => {
+    const card = element("article", "evidence-ready-item");
+    const label = element("div");
+    label.append(
+      element("strong", "", item.activity_type.replaceAll("_", " ")),
+      element("p", "micro-copy", item.timestamp),
+    );
+    const covered = item.key_point_coverage.filter((point) => point.status === "covered").length;
+    const detail = element("div");
+    detail.append(
+      element("strong", "", item.outcome.replaceAll("_", " ")),
+      element("p", "", `${covered}/${item.key_point_coverage.length} key points covered · ${item.hint_depth} hints · ${formatDuration(item.elapsed_seconds)}`),
+    );
+    if (item.remedial_result) detail.append(element("p", "micro-copy", `Remedial result: ${item.remedial_result.replaceAll("_", " ")}`));
+    card.append(label, detail);
+    evidenceReadyList.append(card);
+  });
+  if (body.learning_evidence.length === 0) {
+    evidenceReadyList.append(element("p", "muted", "No evidence record is available yet."));
   }
 }
 
@@ -1614,10 +1855,16 @@ async function closeCurrentActivity() {
       body: JSON.stringify({ version: state.session.version }),
     });
     state.activity = null;
-    state.focus = focusBody;
     state.session = focusBody.session;
-    renderFocus(focusBody);
-    showView("focus", `focus/${state.sessionId}`, focusTitle);
+    if (focusBody.feedback) {
+      state.feedback = focusBody;
+      renderFeedback(focusBody);
+      showView("feedback", `feedback/${focusBody.feedback.id}`, feedbackTitle);
+    } else {
+      state.focus = focusBody;
+      renderFocus(focusBody);
+      showView("focus", `focus/${state.sessionId}`, focusTitle);
+    }
     const trigger = state.activityReturnTrigger;
     state.activityReturnTrigger = null;
     if (trigger?.isConnected) trigger.focus({ preventScroll: true });
@@ -1657,32 +1904,26 @@ async function saveFocusNoteNow() {
 }
 
 async function pauseActiveSession({ showDialog = true } = {}) {
+  const isActivityState = ["practicing", "remedial_practice"].includes(state.session?.state);
   const draftType = state.session?.state === "start_action"
     ? "start_action"
-    : state.session?.state === "practicing"
+    : isActivityState
       ? state.activity?.activity?.type
-    : window.location.hash.startsWith("#tutor/")
-      ? "tutor"
-      : "focus_note";
-  const input = draftType === "start_action"
-    ? startAnswer
-    : draftType === "tutor"
-      ? tutorInput
-      : draftType === "quiz" || draftType === "recall"
-        ? null
-        : focusNote;
-  const status = draftType === "start_action"
-    ? startSaveStatus
-    : draftType === "tutor"
-      ? tutorDraftStatus
-      : draftType === "quiz" || draftType === "recall"
-        ? activityDraftStatus
-        : focusNoteStatus;
-  const content = draftType === "quiz" || draftType === "recall" ? currentActivityContent() : input.value;
-  const hintDepth = draftType === "quiz" || draftType === "recall" ? state.activity?.hints?.depth || 0 : 0;
-  if (content || state.drafts[draftType]) {
-    const saved = await saveDraftNow(draftType, content, status, hintDepth);
-    if (!saved) return null;
+      : window.location.hash.startsWith("#tutor/")
+        ? "tutor"
+        : state.session?.state === "learning_concept" ? "focus_note" : null;
+  if (draftType) {
+    const isActivityDraft = ["quiz", "recall", "remedial"].includes(draftType);
+    const input = draftType === "start_action" ? startAnswer : draftType === "tutor" ? tutorInput : focusNote;
+    const status = draftType === "start_action"
+      ? startSaveStatus
+      : draftType === "tutor" ? tutorDraftStatus : isActivityDraft ? activityDraftStatus : focusNoteStatus;
+    const content = isActivityDraft ? currentActivityContent() : input.value;
+    const hintDepth = isActivityDraft ? state.activity?.hints?.depth || 0 : 0;
+    if (content || state.drafts[draftType]) {
+      const saved = await saveDraftNow(draftType, content, status, hintDepth);
+      if (!saved) return null;
+    }
   }
   const body = await api(`/api/sessions/${state.sessionId}/pause`, {
     method: "POST",
@@ -1705,7 +1946,9 @@ async function resumeActiveSession() {
     });
     state.session = body.session;
     if (pauseDialog.open) pauseDialog.close();
-    if (state.session.state === "practicing") await showActivity();
+    if (["practicing", "remedial_practice"].includes(state.session.state)) await showActivity();
+    else if (state.session.state === "feedback_shown") await showFeedback();
+    else if (state.session.state === "evidence_ready") await showEvidenceReady();
     else if (state.session.state === "learning_concept" && state.session.tutor_open) await showTutor();
     else if (state.session.state === "learning_concept") await showFocus();
     else await showStartAction();
@@ -1770,7 +2013,7 @@ async function chooseConflictVersion(choice) {
       ? startAnswer
       : conflict.draftType === "tutor"
         ? tutorInput
-        : conflict.draftType === "quiz" || conflict.draftType === "recall"
+        : ["quiz", "recall", "remedial"].includes(conflict.draftType)
           ? null
           : focusNote;
     if (target) target.value = body.draft.content;
@@ -1856,8 +2099,9 @@ tutorForm.addEventListener("submit", (event) => {
 closeTutorButton.addEventListener("click", closeTutor);
 tutorPauseButton.addEventListener("click", () => pauseActiveSession());
 recallAnswer.addEventListener("input", () => {
-  if (!state.activity || state.activity.activity.type !== "recall") return;
-  queueDraftSave("recall", recallAnswer.value, activityDraftStatus, state.activity.hints.depth);
+  if (!state.activity || !["recall", "remedial"].includes(state.activity.activity.type)) return;
+  const type = state.activity.activity.type;
+  queueDraftSave(type, recallAnswer.value, activityDraftStatus, state.activity.hints.depth);
 });
 activityForm.addEventListener("submit", submitCurrentActivity);
 revealHintButton.addEventListener("click", revealNextHint);
@@ -1872,6 +2116,20 @@ mobileActivityHints.addEventListener("click", () => {
   heading.focus({ preventScroll: true });
 });
 mobileActivityPause.addEventListener("click", () => pauseActiveSession());
+startRemedialButton.addEventListener("click", startRemedialPractice);
+completeFeedbackButton.addEventListener("click", completeFeedbackStep);
+feedbackPauseButton.addEventListener("click", () => pauseActiveSession());
+mobileFeedbackPause.addEventListener("click", () => pauseActiveSession());
+mobileFeedbackEvidence.addEventListener("click", () => {
+  const heading = document.querySelector("#evidence-title");
+  heading.scrollIntoView({ behavior: "smooth", block: "start" });
+  heading.setAttribute("tabindex", "-1");
+  heading.focus({ preventScroll: true });
+});
+mobileFeedbackConcept.addEventListener("click", () => {
+  setMessage(feedbackMessage, "Finish this feedback step first; your current concept remains unchanged.", "info");
+});
+evidenceReadyPause.addEventListener("click", () => pauseActiveSession());
 
 ["dragenter", "dragover"].forEach((eventName) => {
   dropZone.addEventListener(eventName, (event) => {
@@ -1895,10 +2153,11 @@ window.addEventListener("offline", () => {
     else focusNoteStatus.textContent = "Offline · local copy kept";
     focusSaveStatus.textContent = "Offline";
   }
-  if (state.session?.state === "practicing") {
+  if (["practicing", "remedial_practice"].includes(state.session?.state)) {
     activityDraftStatus.textContent = "Offline · local copy kept";
     activitySaveStatus.textContent = "Offline";
   }
+  if (state.session?.state === "feedback_shown") feedbackSaveStatus.textContent = "Offline · saved feedback remains available";
 });
 window.addEventListener("online", () => {
   connectionBanner.hidden = true;
@@ -1908,7 +2167,7 @@ window.addEventListener("online", () => {
     saveDraftNow("tutor", tutorInput.value, tutorDraftStatus);
   } else if (state.session?.state === "learning_concept") {
     saveDraftNow("focus_note", focusNote.value, focusNoteStatus);
-  } else if (state.session?.state === "practicing" && state.activity) {
+  } else if (["practicing", "remedial_practice"].includes(state.session?.state) && state.activity) {
     saveDraftNow(
       state.activity.activity.type,
       currentActivityContent(),
@@ -1930,6 +2189,8 @@ async function initialize() {
     else if (hash.startsWith("#start/")) await showStartAction();
     else if (hash.startsWith("#tutor/")) await showTutor();
     else if (hash.startsWith("#activity/")) await showActivity();
+    else if (hash.startsWith("#feedback/")) await showFeedback();
+    else if (hash.startsWith("#evidence/")) await showEvidenceReady();
     else if (hash.startsWith("#focus/")) await showFocus();
     else if (hash.startsWith("#summary/")) {
       await showFocus();

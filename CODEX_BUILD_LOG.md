@@ -127,3 +127,19 @@ Record one section after each verified milestone.
 - Responsive verification: the complete recall screen and fixed Practice navigation were exercised at 390 px; visual inspection caught a clipped header badge, the activity header was changed to a stacked mobile layout, and the corrected screen was rechecked with flat solid backgrounds and no visible critical horizontal clipping
 - Problems and corrections: a stale browser-control tab stopped accepting clicks during repeated QA, so the same saved practice was reopened in a fresh tab and recovery was confirmed; the first mobile activity heading placed two non-wrapping badges in one row, which was corrected before completion
 - Remaining limitations: immediate correctness/coverage feedback, encouragement, remediation and `LearningEvidence` intentionally begin in Milestone 4C; the live GPT-5.6 smoke test remains pending a deployment-only API key
+
+## Milestone 4C — Feedback, remediation and LearningEvidence
+
+- Status: complete
+- Date: 2026-07-21
+- Codex thread/session: current StartFrame Agent task
+- Git commit: Milestone 4C focused commit (this commit)
+- Goal: close the Guided Mastery Loop with immediate structured feedback, specific encouragement, targeted remediation and normalized factual evidence while preserving the Agent/search boundary
+- Codex contribution: added schema version 7; strict feedback and remedial output models; deterministic and real GPT-5.6 generation paths; fixed five-part feedback; Quiz/recall/remedial evaluation; misconception tags; five rotating remedial strategies; Tutor-close aggregation; recommendation-free `LearningEvidence`; durable feedback/remedial/evidence-ready states; and responsive English screens
+- Human product decisions: Feedback's next micro-action remains local to the active concept; `LearningEvidence` has no recommendation fields; ungraded Tutor boundaries use `outcome=unresolved`; finishing feedback means evidence is ready, not that the Agent has already decided; no 4C operation can search
+- Files changed: mastery schema/service/API, typed AI models, activity/Tutor/focus state handling, feedback/remedial/evidence UI, automated tests, README and milestone records
+- Verification: 27 automated tests passed; fake Responses clients verified `gpt-5.6`, typed `FeedbackOutput` and `RemedialActivityOutput`, `store=False` and no `tools` argument; Quiz/recall/remedial evidence, Tutor-close evidence, idempotent feedback, pause locks and database column exclusions passed; Python compilation and JavaScript syntax passed
+- Browser verification: restored a previously submitted recall and generated complete feedback; completed the evidence boundary; built a fresh source-grounded session; submitted a misconception-based Quiz answer; reviewed all five feedback sections and factual evidence; paused/resumed the same feedback; started, restored and completed a one-sentence remedial task; and returned to structured remedial feedback without server errors
+- Responsive verification: the evidence-ready view was visually inspected at 390 px with no critical horizontal clipping; desktop feedback used a stable two-column layout with a sticky evidence panel; all backgrounds remained flat solid colors with no gradients
+- Problems and corrections: browser QA found that remedial input still said “2–3 sentence explanation” and omitted its completion condition; the view now uses a one-sentence label and shows the condition. The deterministic evaluator initially reused the three-point Self-attention recall heuristic for one-point remediation; it now evaluates the remedial rubric independently
+- Remaining limitations: the Adaptive Planning Agent is intentionally not created until Milestone 5; controlled external search remains unavailable until Milestone 6; the live GPT-5.6 smoke test still requires a server-side deployment key

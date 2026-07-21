@@ -238,6 +238,16 @@ def close_tutor(
         if not thread:
             raise SourceError("tutor_not_open", "There is no Tutor conversation to close.", status_code=409)
         _require_version(int(thread["version"]), expected_thread_version, "tutor_version_conflict")
+        new_messages = connection.execute(
+            """
+            SELECT rowid AS message_rowid, guidance_level, checking_question,
+                   confusion_signal, prerequisite_gap_signal
+            FROM tutor_messages
+            WHERE thread_id = ? AND role = 'tutor' AND rowid > ?
+            ORDER BY rowid
+            """,
+            (thread["id"], int(thread["last_evidence_message_rowid"] or 0)),
+        ).fetchall()
         signals = connection.execute(
             """
             SELECT
@@ -247,14 +257,45 @@ def close_tutor(
             """,
             (thread["id"],),
         ).fetchone()
+        evidence_id = None
+        latest_message_rowid = int(thread["last_evidence_message_rowid"] or 0)
+        if new_messages:
+            latest_message_rowid = int(new_messages[-1]["message_rowid"])
+            confusion_signals = list(dict.fromkeys(
+                str(row["confusion_signal"]).strip()
+                for row in new_messages
+                if row["confusion_signal"] and str(row["confusion_signal"]).strip()
+            ))
+            gap_signals = list(dict.fromkeys(
+                str(row["prerequisite_gap_signal"]).strip()
+                for row in new_messages
+                if row["prerequisite_gap_signal"] and str(row["prerequisite_gap_signal"]).strip()
+            ))
+            evidence_id = str(uuid.uuid4())
+            connection.execute(
+                """
+                INSERT INTO learning_evidence(
+                    id, workspace_id, session_id, concept_id, origin_id, activity_type,
+                    outcome, key_point_coverage_json, misconception_tags_json, hint_depth,
+                    elapsed_seconds, tutor_confusion_signals_json, source_gap_signal
+                ) VALUES (?, ?, ?, ?, ?, 'tutor_check', 'unresolved', '[]', '[]', ?, 0, ?, ?)
+                """,
+                (
+                    evidence_id, workspace_id, session_id, thread["concept_id"],
+                    f"tutor:{thread['id']}:{latest_message_rowid}",
+                    max(int(row["guidance_level"] or 0) for row in new_messages),
+                    json.dumps(confusion_signals), gap_signals[0] if gap_signals else None,
+                ),
+            )
         connection.execute(
             """
             UPDATE tutor_threads
             SET status = 'closed', version = version + 1,
+                last_evidence_message_rowid = ?,
                 updated_at = CURRENT_TIMESTAMP, closed_at = CURRENT_TIMESTAMP
             WHERE id = ?
             """,
-            (thread["id"],),
+            (latest_message_rowid, thread["id"]),
         )
         connection.execute(
             """
@@ -274,7 +315,8 @@ def close_tutor(
                 "thread_id": str(thread["id"]),
                 "confusion_signal_count": int(signals["confusion_count"] or 0),
                 "prerequisite_signal_count": int(signals["prerequisite_count"] or 0),
-                "learning_evidence_created": False,
+                "learning_evidence_created": evidence_id is not None,
+                "learning_evidence_id": evidence_id,
             },
         )
     return get_focus_workspace(database_path, workspace_id, session_id)
