@@ -194,7 +194,6 @@ def complete_start_action(
         ).fetchone()
         if not concept:
             raise SourceError("active_concept_missing", "The first concept is unavailable. Regenerate the learning map.", status_code=409)
-        activity_id = str(uuid.uuid4())
         connection.execute(
             "UPDATE concepts SET status = 'planned' WHERE session_id = ? AND workspace_id = ?",
             (session_id, workspace_id),
@@ -209,7 +208,7 @@ def complete_start_action(
             """
             UPDATE learning_sessions
             SET state = 'learning_concept', resume_state = NULL, is_paused = 0,
-                active_concept_id = ?, active_activity_id = ?,
+                active_concept_id = ?, active_activity_id = NULL,
                 timer_started_at = CURRENT_TIMESTAMP, elapsed_seconds = 0,
                 remaining_seconds = available_minutes * 60,
                 started_at = COALESCE(started_at, CURRENT_TIMESTAMP),
@@ -217,7 +216,7 @@ def complete_start_action(
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ? AND workspace_id = ?
             """,
-            (concept["id"], activity_id, session_id, workspace_id),
+            (concept["id"], session_id, workspace_id),
         )
         _record_event(connection, workspace_id, session_id, "start_action_completed", {"draft_id": draft["id"]})
     return get_focus_workspace(database_path, workspace_id, session_id)
@@ -233,7 +232,7 @@ def pause_session(
     _require_session_version(session, expected_session_version)
     if session.get("is_paused"):
         return session
-    if session["state"] not in {"start_action", "learning_concept"}:
+    if session["state"] not in {"start_action", "learning_concept", "practicing"}:
         raise SourceError("invalid_session_transition", "This session cannot be paused from its current step.", status_code=409)
     elapsed, remaining = _timer_values(session)
     with connect(database_path) as connection:
@@ -262,7 +261,7 @@ def resume_session(
     if not session.get("is_paused"):
         return session
     resume_state = str(session.get("resume_state") or session["state"])
-    timer_sql = "CURRENT_TIMESTAMP" if resume_state == "learning_concept" else "NULL"
+    timer_sql = "CURRENT_TIMESTAMP" if resume_state in {"learning_concept", "practicing"} else "NULL"
     with connect(database_path) as connection:
         connection.execute(
             f"""
@@ -459,7 +458,7 @@ def _require_mutable_learning_state(session: dict[str, Any]) -> None:
             status_code=409,
             saved_state="Your existing drafts and progress remain saved.",
         )
-    if session["state"] not in {"start_action", "learning_concept"}:
+    if session["state"] not in {"start_action", "learning_concept", "practicing"}:
         raise SourceError(
             "draft_not_available",
             "This draft is not available at the current session step.",

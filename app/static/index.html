@@ -425,6 +425,17 @@
                 <button class="button button-secondary full-width" id="save-focus-note" type="button">Save this focus note</button>
               </details>
             </section>
+            <section class="card-panel practice-launcher" aria-labelledby="practice-launcher-title">
+              <div>
+                <p class="eyebrow">Practice this concept</p>
+                <h2 id="practice-launcher-title">Choose one short retrieval activity</h2>
+                <p>Each activity stays grounded in the current source. Hints are optional and reveal one level at a time.</p>
+              </div>
+              <div class="practice-launcher-actions">
+                <button class="button button-secondary" id="start-quiz" type="button">Start one-question Quiz</button>
+                <button class="button button-secondary" id="start-recall" type="button">Start free recall</button>
+              </div>
+            </section>
           </article>
 
           <aside class="focus-session card-panel" id="focus-more-panel" aria-labelledby="session-status-title">
@@ -511,6 +522,74 @@
             </div>
           </aside>
         </div>
+      </section>
+
+      <section class="workflow-view activity-view" id="activity-view" aria-labelledby="activity-title" hidden>
+        <div class="activity-topbar">
+          <div>
+            <p class="eyebrow" id="activity-type-label">Active concept practice</p>
+            <h1 id="activity-title" tabindex="-1">Practice</h1>
+            <p class="focus-breadcrumb" id="activity-breadcrumb"></p>
+          </div>
+          <div class="focus-top-actions">
+            <span class="save-state" id="activity-save-status" role="status" aria-live="polite">Saved</span>
+            <button class="button button-quiet" id="activity-pause" type="button">Pause session</button>
+            <button class="button button-secondary" id="close-activity" type="button">Return to concept</button>
+          </div>
+        </div>
+
+        <div class="activity-layout">
+          <section class="activity-card card-panel" aria-labelledby="activity-prompt-title">
+            <div class="activity-heading">
+              <div>
+                <span class="status-chip" id="activity-kind-chip">One question</span>
+                <h2 id="activity-prompt-title">Practice prompt</h2>
+              </div>
+              <span class="origin-badge" id="activity-origin-label">Uploaded material</span>
+            </div>
+            <p class="activity-prompt" id="activity-prompt"></p>
+            <div class="focus-sources" id="activity-sources"></div>
+
+            <form id="activity-form">
+              <fieldset class="quiz-options" id="quiz-options">
+                <legend>Choose one answer</legend>
+              </fieldset>
+              <div id="recall-answer-wrap" hidden>
+                <label for="recall-answer">Your 2–3 sentence explanation</label>
+                <textarea id="recall-answer" rows="8" maxlength="20000" placeholder="Explain it in your own words. An incomplete attempt is still useful."></textarea>
+              </div>
+              <div class="form-message" id="activity-message" role="status" aria-live="polite" hidden></div>
+              <p class="save-state" id="activity-draft-status" role="status" aria-live="polite">Not saved yet</p>
+              <div class="activity-submit-row">
+                <button class="button button-secondary" id="activity-return" type="button">Return to explanation</button>
+                <button class="button button-primary" id="submit-activity" type="submit">Submit answer</button>
+              </div>
+            </form>
+            <div class="submission-receipt" id="submission-receipt" role="status" hidden>
+              <strong>Answer saved</strong>
+              <p>Your exact response, hint depth, and time are stored. Structured feedback is prepared in the next mastery step; no Agent decision has been made.</p>
+            </div>
+          </section>
+
+          <aside class="hint-panel card-panel" aria-labelledby="hint-title">
+            <p class="eyebrow">Optional support · no penalty</p>
+            <h2 id="hint-title">Progressive hints</h2>
+            <div class="hint-list" id="hint-list"></div>
+            <button class="button button-secondary full-width" id="reveal-hint" type="button">Reveal hint 1 of 3</button>
+            <p class="micro-copy" id="hint-depth-copy">0 of 3 hints used. Each click reveals only one additional level.</p>
+            <div class="boundary-note activity-boundary">
+              <strong>Practice boundary</strong>
+              <p>The answer key and evaluation points stay server-side before feedback. This activity cannot change the route or search the internet.</p>
+            </div>
+          </aside>
+        </div>
+
+        <nav class="mobile-session-nav activity-mobile-nav" aria-label="Practice navigation">
+          <button type="button" id="mobile-activity-concept">Concept</button>
+          <button type="button" aria-current="page">Practice</button>
+          <button type="button" id="mobile-activity-hints">Hints</button>
+          <button type="button" id="mobile-activity-pause">Pause</button>
+        </nav>
       </section>
 
       <section class="workflow-view summary-view" id="summary-view" aria-labelledby="summary-title" hidden>

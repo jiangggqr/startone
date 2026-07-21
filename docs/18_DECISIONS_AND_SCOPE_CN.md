@@ -133,6 +133,14 @@ Milestone 3 进一步固定以下实现决定：
 - 真实 Tutor 调用不提供任何工具，尤其不提供搜索；只选取当前概念来源和与本次问题匹配的少量片段，不默认发送全部材料
 - Tutor 消息可记录事实性的 `confusion_signal` 与 `prerequisite_gap_signal`；关闭时只记录信号数量。`LearningEvidence` 在 Milestone 4C 的检查边界统一生成，当前阶段不按消息制造 Evidence
 
+### Quiz 与自由复述活动
+
+- 新练习只能从未暂停的 `learning_concept` 创建；创建后会话进入 `practicing`，并把实际活动 ID 保存为 `active_activity_id`
+- Quiz 正确答案、各选项误解标签和选项解释在提交前只保存在服务端；自由复述的预期要点、可接受改写和误解模式同样不发送给客户端
+- 每个活动恰好有 3 级渐进提示，一次只揭示一级；答案草稿、提示深度、活动版本和会话计时可在刷新、暂停和恢复后继续
+- 活动题目只引用当前概念经过验证的来源；真实模型调用使用严格 `QuizActivityOutput` 或 `RecallActivityOutput`，不提供任何工具
+- Milestone 4B 的提交只持久化原始尝试、提示深度和用时，不生成 `LearningEvidence`、Agent 决策或搜索请求；这些尝试由 Milestone 4C 的统一反馈边界评估
+
 ### 备用“仅输入主题”模式
 
 它不是评委主流程。真实模式可用 GPT-5.6 生成 AI supplemental source；Demo 模式提供明确标记的固定 AI fixture。此模式从首页视觉上弱于上传材料，并始终显示“AI 补充解释”，不能产生伪造的上传来源定位。

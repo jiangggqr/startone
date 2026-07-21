@@ -1669,6 +1669,184 @@ dialog::backdrop {
   background: #f5f7fb;
 }
 
+.practice-launcher {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.practice-launcher h2,
+.practice-launcher p {
+  margin-bottom: 0.3rem;
+}
+
+.practice-launcher-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.activity-view {
+  padding-top: 1.5rem;
+}
+
+.activity-topbar,
+.activity-heading,
+.activity-submit-row {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.activity-topbar {
+  margin-bottom: 1rem;
+  padding: 0.75rem 0 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.activity-topbar h1,
+.activity-topbar p {
+  margin-top: 0;
+  margin-bottom: 0.25rem;
+}
+
+.activity-topbar h1 {
+  max-width: 20ch;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+}
+
+.activity-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 0.38fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.activity-card {
+  min-width: 0;
+}
+
+.activity-heading {
+  align-items: flex-start;
+}
+
+.activity-heading h2 {
+  margin: 0.6rem 0 0;
+}
+
+.activity-prompt {
+  margin: 1.25rem 0;
+  font-size: clamp(1.2rem, 2vw, 1.55rem);
+  font-weight: 740;
+  line-height: 1.45;
+}
+
+.quiz-options {
+  display: grid;
+  gap: 0.7rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.quiz-options legend {
+  margin-bottom: 0.65rem;
+  font-weight: 760;
+}
+
+.quiz-option {
+  display: grid;
+  grid-template-columns: 1.25rem minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+  min-height: 52px;
+  margin: 0;
+  padding: 0.8rem;
+  border: 1px solid #aab4c8;
+  border-radius: 0.8rem;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.quiz-option:has(input:checked) {
+  border: 2px solid var(--primary);
+  background: var(--primary-soft);
+}
+
+.quiz-option input {
+  width: 1.15rem;
+  min-height: 1.15rem;
+  margin: 0.18rem 0 0;
+}
+
+.quiz-option span {
+  font-weight: 620;
+}
+
+#recall-answer-wrap textarea {
+  min-height: 12rem;
+}
+
+.activity-submit-row {
+  margin-top: 1rem;
+}
+
+.submission-receipt {
+  margin-top: 1.2rem;
+  padding: 1rem;
+  border-left: 4px solid var(--teal);
+  border-radius: 0.5rem;
+  color: #244b48;
+  background: #f1f8f7;
+}
+
+.submission-receipt p {
+  margin-bottom: 0;
+}
+
+.hint-panel {
+  position: sticky;
+  top: 5.5rem;
+}
+
+.hint-list {
+  display: grid;
+  gap: 0.7rem;
+  margin: 1rem 0;
+}
+
+.hint-item,
+.hint-placeholder {
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--surface-alt);
+}
+
+.hint-item strong,
+.hint-placeholder strong {
+  display: block;
+}
+
+.hint-item p,
+.hint-placeholder p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.hint-placeholder {
+  color: var(--muted);
+  background: var(--surface);
+}
+
+.activity-boundary {
+  margin-top: 1.2rem;
+}
+
 @media (max-width: 1199px) and (min-width: 768px) {
   .focus-grid {
     grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.55fr);
@@ -1687,8 +1865,13 @@ dialog::backdrop {
     grid-template-columns: 1fr;
   }
 
-  .tutor-context {
+  .tutor-context,
+  .hint-panel {
     position: static;
+  }
+
+  .activity-layout {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1825,13 +2008,31 @@ dialog::backdrop {
     width: 100%;
   }
 
-  .focus-view {
+  .focus-view,
+  .activity-view {
     padding-bottom: 5rem;
   }
 
-  .focus-topbar {
+  .focus-topbar,
+  .activity-topbar,
+  .activity-heading,
+  .activity-submit-row,
+  .practice-launcher {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .activity-heading .status-chip,
+  .activity-heading .origin-badge {
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .practice-launcher-actions,
+  .practice-launcher-actions .button,
+  .activity-submit-row,
+  .activity-submit-row .button {
+    width: 100%;
   }
 
   .focus-grid {
@@ -1897,6 +2098,14 @@ dialog::backdrop {
 
   .tutor-layout {
     grid-template-columns: 1fr;
+  }
+
+  .activity-layout {
+    display: block;
+  }
+
+  .hint-panel {
+    margin-top: 1rem;
   }
 
   .tutor-context {

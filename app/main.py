@@ -14,6 +14,13 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from app import __version__
+from app.activities import (
+    close_activity,
+    create_activity,
+    get_activity,
+    reveal_next_hint,
+    submit_attempt,
+)
 from app.config import Settings
 from app.db import current_schema_version, ensure_workspace, initialize_database
 from app.focus import (
@@ -124,6 +131,20 @@ class TutorMessageRequest(BaseModel):
 
 class TutorCloseRequest(BaseModel):
     thread_version: int = Field(ge=1)
+
+
+class ActivityCreateRequest(BaseModel):
+    type: Literal["quiz", "recall"]
+    version: int = Field(ge=1)
+
+
+class ActivityVersionRequest(BaseModel):
+    version: int = Field(ge=1)
+
+
+class AttemptSubmitRequest(BaseModel):
+    version: int = Field(ge=1)
+    elapsed_seconds: int = Field(default=0, ge=0, le=86_400)
 
 
 def create_app(
@@ -666,6 +687,69 @@ def create_app(
             _workspace_id(request),
             session_id,
             payload.thread_version,
+        )
+
+    @application.post("/api/sessions/{session_id}/activities", status_code=201)
+    async def start_practice_activity(
+        session_id: str,
+        payload: ActivityCreateRequest,
+        request: Request,
+    ) -> dict:
+        return create_activity(
+            resolved_settings,
+            _workspace_id(request),
+            session_id,
+            payload.type,
+            payload.version,
+            client_factory=ai_client_factory,
+        )
+
+    @application.get("/api/activities/{activity_id}")
+    async def activity_detail(activity_id: str, request: Request) -> dict:
+        return get_activity(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            activity_id,
+        )
+
+    @application.post("/api/activities/{activity_id}/hints/next")
+    async def next_activity_hint(
+        activity_id: str,
+        payload: ActivityVersionRequest,
+        request: Request,
+    ) -> dict:
+        return reveal_next_hint(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            activity_id,
+            payload.version,
+        )
+
+    @application.post("/api/activities/{activity_id}/attempts", status_code=201)
+    async def submit_activity_attempt(
+        activity_id: str,
+        payload: AttemptSubmitRequest,
+        request: Request,
+    ) -> dict:
+        return submit_attempt(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            activity_id,
+            payload.version,
+            payload.elapsed_seconds,
+        )
+
+    @application.post("/api/activities/{activity_id}/close")
+    async def close_practice_activity(
+        activity_id: str,
+        payload: SessionVersionRequest,
+        request: Request,
+    ) -> dict:
+        return close_activity(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            activity_id,
+            payload.version,
         )
 
     @application.post("/api/sessions/{session_id}/pause")

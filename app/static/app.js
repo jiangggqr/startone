@@ -17,6 +17,8 @@ const state = {
   drafts: {},
   focus: null,
   tutor: null,
+  activity: null,
+  activityReturnTrigger: null,
   tutorReturnTrigger: null,
   conflict: null,
   runtimeMode: "demo",
@@ -31,6 +33,7 @@ const views = {
   start: document.querySelector("#start-action-view"),
   focus: document.querySelector("#focus-view"),
   tutor: document.querySelector("#tutor-view"),
+  activity: document.querySelector("#activity-view"),
   summary: document.querySelector("#summary-view"),
 };
 
@@ -179,6 +182,34 @@ const tutorContextSources = document.querySelector("#tutor-context-sources");
 const guidanceLadder = document.querySelector("#guidance-ladder");
 const tutorModeLabel = document.querySelector("#tutor-mode-label");
 
+const startQuizButton = document.querySelector("#start-quiz");
+const startRecallButton = document.querySelector("#start-recall");
+const activityTitle = document.querySelector("#activity-title");
+const activityTypeLabel = document.querySelector("#activity-type-label");
+const activityBreadcrumb = document.querySelector("#activity-breadcrumb");
+const activityKindChip = document.querySelector("#activity-kind-chip");
+const activityOriginLabel = document.querySelector("#activity-origin-label");
+const activityPrompt = document.querySelector("#activity-prompt");
+const activitySources = document.querySelector("#activity-sources");
+const activityForm = document.querySelector("#activity-form");
+const quizOptions = document.querySelector("#quiz-options");
+const recallAnswerWrap = document.querySelector("#recall-answer-wrap");
+const recallAnswer = document.querySelector("#recall-answer");
+const activityMessage = document.querySelector("#activity-message");
+const activitySaveStatus = document.querySelector("#activity-save-status");
+const activityDraftStatus = document.querySelector("#activity-draft-status");
+const submitActivityButton = document.querySelector("#submit-activity");
+const closeActivityButton = document.querySelector("#close-activity");
+const activityReturnButton = document.querySelector("#activity-return");
+const activityPauseButton = document.querySelector("#activity-pause");
+const submissionReceipt = document.querySelector("#submission-receipt");
+const hintList = document.querySelector("#hint-list");
+const revealHintButton = document.querySelector("#reveal-hint");
+const hintDepthCopy = document.querySelector("#hint-depth-copy");
+const mobileActivityConcept = document.querySelector("#mobile-activity-concept");
+const mobileActivityHints = document.querySelector("#mobile-activity-hints");
+const mobileActivityPause = document.querySelector("#mobile-activity-pause");
+
 function element(tag, className, text) {
   const node = document.createElement(tag);
   if (className) node.className = className;
@@ -301,6 +332,7 @@ function renderSessions(sessions) {
 
 function resumeLabel(session) {
   if (session.is_paused) return "Resume paused session";
+  if (session.state === "practicing") return "Resume current practice";
   if (session.state === "learning_concept") return "Resume current concept";
   if (session.state === "start_action") return "Open start action";
   if (session.state === "path_drafting") return "Review learning path";
@@ -313,7 +345,10 @@ async function resumeSession(sessionId) {
   window.localStorage.setItem("startframe_session_id", sessionId);
   try {
     const session = await getCurrentSession();
-    if (session.state === "learning_concept") {
+    if (session.state === "practicing") {
+      await showActivity();
+      if (session.is_paused) pauseDialog.showModal();
+    } else if (session.state === "learning_concept") {
       if (session.tutor_open) await showTutor();
       else await showFocus();
       if (session.is_paused) pauseDialog.showModal();
@@ -353,6 +388,8 @@ async function showSources(returnTo = null) {
         ? "← Back to current concept"
         : returnTo === "tutor"
           ? "← Back to Tutor"
+        : returnTo === "activity"
+          ? "← Back to practice"
       : "← Back to library";
   showView("sources", `sources/${state.sessionId}`, sourceTitle);
   await Promise.all([loadSources(), getCurrentSession()]);
@@ -550,7 +587,9 @@ function renderPreview() {
 }
 
 async function openSourceReference(reference, trigger) {
-  const returnTo = window.location.hash.startsWith("#tutor/")
+  const returnTo = window.location.hash.startsWith("#activity/")
+    ? "activity"
+    : window.location.hash.startsWith("#tutor/")
     ? "tutor"
     : window.location.hash.startsWith("#focus/")
     ? "focus"
@@ -573,6 +612,7 @@ async function leaveSourceView() {
   else if (returnTo === "path") showView("path", `path/${state.sessionId}`, pathTitle);
   else if (returnTo === "focus") showView("focus", `focus/${state.sessionId}`, focusTitle);
   else if (returnTo === "tutor") showView("tutor", `tutor/${state.sessionId}`, tutorTitle);
+  else if (returnTo === "activity") showView("activity", `activity/${state.activity?.activity?.id || ""}`, activityTitle);
   else await showHome();
   if (trigger?.isConnected) trigger.focus({ preventScroll: true });
 }
@@ -1006,10 +1046,11 @@ function focusDraftKey() {
 function draftLocalKey(draftType) {
   if (draftType === "start_action") return startDraftKey();
   if (draftType === "tutor") return `startframe_tutor_draft_${state.sessionId}`;
+  if (draftType === "quiz" || draftType === "recall") return `startframe_${draftType}_draft_${state.sessionId}`;
   return focusDraftKey();
 }
 
-function queueDraftSave(draftType, content, statusTarget) {
+function queueDraftSave(draftType, content, statusTarget, hintDepth = 0) {
   window.localStorage.setItem(draftLocalKey(draftType), content);
   window.clearTimeout(state.saveTimers[draftType]);
   if (!navigator.onLine) {
@@ -1018,12 +1059,12 @@ function queueDraftSave(draftType, content, statusTarget) {
   }
   statusTarget.textContent = "Saving…";
   state.saveTimers[draftType] = window.setTimeout(
-    () => saveDraftNow(draftType, content, statusTarget),
+    () => saveDraftNow(draftType, content, statusTarget, hintDepth),
     500,
   );
 }
 
-async function saveDraftNow(draftType, content, statusTarget) {
+async function saveDraftNow(draftType, content, statusTarget, hintDepth = 0) {
   window.clearTimeout(state.saveTimers[draftType]);
   window.localStorage.setItem(draftLocalKey(draftType), content);
   if (!navigator.onLine) {
@@ -1037,7 +1078,7 @@ async function saveDraftNow(draftType, content, statusTarget) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         content,
-        hint_depth: 0,
+        hint_depth: hintDepth,
         version: state.drafts[draftType]?.server_version || 0,
       }),
     });
@@ -1046,26 +1087,29 @@ async function saveDraftNow(draftType, content, statusTarget) {
     statusTarget.textContent = "Saved on server";
     focusSaveStatus.textContent = "Saved";
     if (draftType === "tutor") tutorSaveStatus.textContent = "Conversation and draft saved";
+    if (draftType === "quiz" || draftType === "recall") activitySaveStatus.textContent = "Saved";
     return body.draft;
   } catch (error) {
     if (error.body?.error_code === "draft_version_conflict") {
-      openDraftConflict(draftType, content, statusTarget, error.body.details);
+      openDraftConflict(draftType, content, statusTarget, error.body.details, hintDepth);
       return null;
     }
     statusTarget.textContent = "Save failed · local copy kept";
     focusSaveStatus.textContent = "Local copy kept";
     if (draftType === "tutor") tutorSaveStatus.textContent = "Local draft kept";
+    if (draftType === "quiz" || draftType === "recall") activitySaveStatus.textContent = "Local draft kept";
     return null;
   }
 }
 
-function openDraftConflict(draftType, localContent, statusTarget, details) {
+function openDraftConflict(draftType, localContent, statusTarget, details, hintDepth = 0) {
   const serverDraft = details?.server_draft;
   state.conflict = {
     draftType,
     localContent,
     statusTarget,
     serverVersion: serverDraft?.server_version || 0,
+    hintDepth,
   };
   conflictLocal.value = localContent;
   conflictServer.value = serverDraft?.content || "The server copy is empty.";
@@ -1327,6 +1371,263 @@ async function closeTutor() {
   }
 }
 
+async function startActivity(type, trigger) {
+  state.activityReturnTrigger = trigger;
+  const readyLabel = type === "quiz" ? "Start one-question Quiz" : "Start free recall";
+  const busyLabel = type === "quiz" ? "Preparing Quiz…" : "Preparing free recall…";
+  setButtonBusy(trigger, true, busyLabel, readyLabel);
+  focusSaveStatus.textContent = "Preparing a grounded practice activity…";
+  try {
+    const body = await api(`/api/sessions/${state.sessionId}/activities`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type, version: state.session.version }),
+    });
+    window.localStorage.removeItem(draftLocalKey(type));
+    state.activity = body;
+    state.session = body.session;
+    renderActivity(body);
+    showView("activity", `activity/${body.activity.id}`, activityTitle);
+  } catch (error) {
+    focusSaveStatus.textContent = `${error.message} Your concept and notes remain saved; retry when ready.`;
+  } finally {
+    setButtonBusy(trigger, false, "", readyLabel);
+  }
+}
+
+async function showActivity(existing = null) {
+  let activityId = existing?.activity?.id || state.activity?.activity?.id || state.session?.active_activity_id;
+  if (!activityId) {
+    const session = await getCurrentSession();
+    activityId = session?.active_activity_id;
+  }
+  if (!activityId) throw new Error("The active practice could not be restored.");
+  const body = existing || await api(`/api/activities/${activityId}`);
+  state.activity = body;
+  state.session = body.session;
+  if (body.draft) state.drafts[body.activity.type] = body.draft;
+  renderActivity(body);
+  showView("activity", `activity/${activityId}`, activityTitle);
+  if (body.session.is_paused && !pauseDialog.open) pauseDialog.showModal();
+}
+
+function currentActivityContent() {
+  if (!state.activity) return "";
+  if (state.activity.activity.type === "quiz") {
+    return quizOptions.querySelector('input[name="quiz-answer"]:checked')?.value || "";
+  }
+  return recallAnswer.value;
+}
+
+function applyActivityDraftContent(type, content) {
+  if (type === "quiz") {
+    quizOptions.querySelectorAll('input[name="quiz-answer"]').forEach((input) => {
+      input.checked = input.value === content;
+    });
+  } else if (type === "recall") {
+    recallAnswer.value = content;
+  }
+}
+
+function renderActivity(body) {
+  state.activity = body;
+  state.session = body.session;
+  const activity = body.activity;
+  const type = activity.type;
+  const isQuiz = type === "quiz";
+  const typeName = isQuiz ? "Quiz" : "Free recall";
+  activityTypeLabel.textContent = `${typeName} · active concept only`;
+  activityTitle.textContent = `${activity.concept_title} ${typeName}`;
+  activityBreadcrumb.textContent = `${body.session.name} › ${activity.concept_title} › ${typeName}`;
+  activityKindChip.textContent = isQuiz ? "One question · single select" : "2–3 sentences · meaning over exact wording";
+  activityOriginLabel.textContent = activity.source_origin === "ai_supplement"
+    ? "AI supplemental explanation"
+    : activity.source_origin === "external"
+      ? "External supplement"
+      : "Uploaded material";
+  activityOriginLabel.className = `origin-badge ${activity.source_origin === "ai_supplement" ? "origin-ai" : activity.source_origin === "external" ? "origin-external" : ""}`;
+  activityPrompt.textContent = activity.prompt;
+  activitySaveStatus.textContent = body.session.last_saved_at ? "Saved" : "Ready to save";
+
+  activitySources.replaceChildren();
+  activity.source_refs.forEach((reference) => {
+    const row = element("div", "focus-source-row");
+    row.append(element("span", activityOriginLabel.className, activityOriginLabel.textContent));
+    row.append(referenceButton(reference, activity.source_ref_details));
+    activitySources.append(row);
+  });
+
+  const serverContent = body.draft?.content || "";
+  const localContent = window.localStorage.getItem(draftLocalKey(type));
+  const restoredContent = localContent === null ? serverContent : localContent;
+  if (body.draft) state.drafts[type] = body.draft;
+  quizOptions.replaceChildren();
+  quizOptions.hidden = !isQuiz;
+  recallAnswerWrap.hidden = isQuiz;
+  if (isQuiz) {
+    const legend = element("legend", "", "Choose one answer");
+    quizOptions.append(legend);
+    body.quiz.options.forEach((option, index) => {
+      const label = element("label", "quiz-option");
+      const input = element("input");
+      input.type = "radio";
+      input.name = "quiz-answer";
+      input.value = option.id;
+      input.checked = restoredContent === option.id;
+      input.disabled = activity.status !== "active";
+      input.addEventListener("change", () => {
+        queueDraftSave("quiz", input.value, activityDraftStatus, body.hints.depth);
+      });
+      label.append(input, element("span", "", `${String.fromCharCode(65 + index)}. ${option.text}`));
+      quizOptions.append(label);
+    });
+  } else {
+    recallAnswer.value = restoredContent;
+    recallAnswer.disabled = activity.status !== "active";
+  }
+  activityDraftStatus.textContent = serverContent && restoredContent === serverContent
+    ? "Draft saved on server"
+    : restoredContent
+      ? "Draft saved on this device · waiting to sync"
+      : "No answer saved yet";
+
+  hintList.replaceChildren();
+  body.hints.revealed.forEach((hint) => {
+    const item = element("div", "hint-item");
+    item.append(element("strong", "", `Hint ${hint.level}`), element("p", "", hint.text));
+    hintList.append(item);
+  });
+  for (let level = body.hints.depth + 1; level <= body.hints.total; level += 1) {
+    const item = element("div", "hint-placeholder");
+    item.append(element("strong", "", `Hint ${level} · locked`));
+    item.append(element("p", "", level === body.hints.depth + 1 ? "Reveal this level when you want one more step." : "Reveal earlier levels first."));
+    hintList.append(item);
+  }
+  revealHintButton.disabled = !body.hints.can_reveal_more;
+  revealHintButton.textContent = body.hints.can_reveal_more
+    ? `Reveal hint ${body.hints.depth + 1} of 3`
+    : body.hints.depth >= 3
+      ? "All three hints are visible"
+      : "Hints locked after submission";
+  hintDepthCopy.textContent = `${body.hints.depth} of 3 hints used. Revealing support is not counted as failure.`;
+
+  const submitted = activity.status === "submitted";
+  submitActivityButton.disabled = submitted;
+  submitActivityButton.textContent = submitted ? "Answer submitted" : isQuiz ? "Submit Quiz answer" : "Submit free recall";
+  submissionReceipt.hidden = !submitted;
+  activityMessage.hidden = true;
+  if (submitted) {
+    activityDraftStatus.textContent = "Answer and hint depth saved on server";
+    activitySaveStatus.textContent = "Submitted and saved";
+  }
+}
+
+async function revealNextHint() {
+  const body = state.activity;
+  if (!body) return;
+  const type = body.activity.type;
+  const content = currentActivityContent();
+  if (content || state.drafts[type]) {
+    const saved = await saveDraftNow(type, content, activityDraftStatus, body.hints.depth);
+    if (!saved) return;
+  }
+  setButtonBusy(revealHintButton, true, "Revealing one hint…", revealHintButton.textContent);
+  try {
+    const updated = await api(`/api/activities/${body.activity.id}/hints/next`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ version: body.activity.version }),
+    });
+    state.activity = updated;
+    if (updated.draft) state.drafts[type] = updated.draft;
+    renderActivity(updated);
+    activityMessage.hidden = false;
+    setMessage(activityMessage, `Hint ${updated.hints.depth} is now visible. Your current answer was preserved.`, "success");
+  } catch (error) {
+    setMessage(activityMessage, `${error.message} Your answer and existing hints remain saved.`, "error");
+  } finally {
+    if (state.activity) {
+      const canReveal = state.activity.hints.can_reveal_more;
+      revealHintButton.disabled = !canReveal;
+      revealHintButton.textContent = canReveal
+        ? `Reveal hint ${state.activity.hints.depth + 1} of 3`
+        : state.activity.hints.depth >= 3
+          ? "All three hints are visible"
+          : "Hints locked after submission";
+    }
+  }
+}
+
+async function submitCurrentActivity(event) {
+  event.preventDefault();
+  const body = state.activity;
+  if (!body || body.activity.status !== "active") return;
+  const type = body.activity.type;
+  const content = currentActivityContent().trim();
+  if (!content) {
+    setMessage(activityMessage, type === "quiz" ? "Choose one answer before submitting." : "Write one checkable attempt before submitting.", "error");
+    (type === "quiz" ? quizOptions : recallAnswer).focus();
+    return;
+  }
+  setButtonBusy(submitActivityButton, true, "Saving answer…", "Submit answer");
+  try {
+    const saved = await saveDraftNow(type, content, activityDraftStatus, body.hints.depth);
+    if (!saved) return;
+    const createdAt = Date.parse(`${body.activity.created_at.replace(" ", "T")}Z`);
+    const elapsedSeconds = Number.isFinite(createdAt)
+      ? Math.max(0, Math.min(86400, Math.floor((Date.now() - createdAt) / 1000)))
+      : 0;
+    const submitted = await api(`/api/activities/${body.activity.id}/attempts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ version: body.activity.version, elapsed_seconds: elapsedSeconds }),
+    });
+    state.activity = submitted;
+    state.session = submitted.session;
+    renderActivity(submitted);
+    setMessage(activityMessage, "Your answer is saved. No Agent decision or external search has occurred.", "success");
+  } catch (error) {
+    setMessage(activityMessage, `${error.message} Your draft and hint depth remain saved; submit again when ready.`, "error");
+  } finally {
+    if (state.activity?.activity.status === "active") {
+      setButtonBusy(submitActivityButton, false, "", type === "quiz" ? "Submit Quiz answer" : "Submit free recall");
+    }
+  }
+}
+
+async function closeCurrentActivity() {
+  const body = state.activity;
+  if (!body) return;
+  const type = body.activity.type;
+  setButtonBusy(closeActivityButton, true, "Saving practice…", "Return to concept");
+  try {
+    if (body.activity.status === "active") {
+      const content = currentActivityContent();
+      if (content || state.drafts[type]) {
+        const saved = await saveDraftNow(type, content, activityDraftStatus, body.hints.depth);
+        if (!saved) return;
+      }
+    }
+    const focusBody = await api(`/api/activities/${body.activity.id}/close`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ version: state.session.version }),
+    });
+    state.activity = null;
+    state.focus = focusBody;
+    state.session = focusBody.session;
+    renderFocus(focusBody);
+    showView("focus", `focus/${state.sessionId}`, focusTitle);
+    const trigger = state.activityReturnTrigger;
+    state.activityReturnTrigger = null;
+    if (trigger?.isConnected) trigger.focus({ preventScroll: true });
+  } catch (error) {
+    setMessage(activityMessage, `${error.message} Your practice remains open and saved.`, "error");
+  } finally {
+    setButtonBusy(closeActivityButton, false, "", "Return to concept");
+  }
+}
+
 function startFocusClock(timer) {
   window.clearInterval(state.focusTimer);
   const loadedAt = Date.now();
@@ -1358,13 +1659,29 @@ async function saveFocusNoteNow() {
 async function pauseActiveSession({ showDialog = true } = {}) {
   const draftType = state.session?.state === "start_action"
     ? "start_action"
+    : state.session?.state === "practicing"
+      ? state.activity?.activity?.type
     : window.location.hash.startsWith("#tutor/")
       ? "tutor"
       : "focus_note";
-  const input = draftType === "start_action" ? startAnswer : draftType === "tutor" ? tutorInput : focusNote;
-  const status = draftType === "start_action" ? startSaveStatus : draftType === "tutor" ? tutorDraftStatus : focusNoteStatus;
-  if (input.value || state.drafts[draftType]) {
-    const saved = await saveDraftNow(draftType, input.value, status);
+  const input = draftType === "start_action"
+    ? startAnswer
+    : draftType === "tutor"
+      ? tutorInput
+      : draftType === "quiz" || draftType === "recall"
+        ? null
+        : focusNote;
+  const status = draftType === "start_action"
+    ? startSaveStatus
+    : draftType === "tutor"
+      ? tutorDraftStatus
+      : draftType === "quiz" || draftType === "recall"
+        ? activityDraftStatus
+        : focusNoteStatus;
+  const content = draftType === "quiz" || draftType === "recall" ? currentActivityContent() : input.value;
+  const hintDepth = draftType === "quiz" || draftType === "recall" ? state.activity?.hints?.depth || 0 : 0;
+  if (content || state.drafts[draftType]) {
+    const saved = await saveDraftNow(draftType, content, status, hintDepth);
     if (!saved) return null;
   }
   const body = await api(`/api/sessions/${state.sessionId}/pause`, {
@@ -1388,7 +1705,8 @@ async function resumeActiveSession() {
     });
     state.session = body.session;
     if (pauseDialog.open) pauseDialog.close();
-    if (state.session.state === "learning_concept" && state.session.tutor_open) await showTutor();
+    if (state.session.state === "practicing") await showActivity();
+    else if (state.session.state === "learning_concept" && state.session.tutor_open) await showTutor();
     else if (state.session.state === "learning_concept") await showFocus();
     else await showStartAction();
   } catch (error) {
@@ -1444,7 +1762,7 @@ async function chooseConflictVersion(choice) {
         choice,
         local_content: conflict.localContent,
         server_version: conflict.serverVersion,
-        hint_depth: 0,
+        hint_depth: conflict.hintDepth || 0,
       }),
     });
     state.drafts[conflict.draftType] = body.draft;
@@ -1452,8 +1770,11 @@ async function chooseConflictVersion(choice) {
       ? startAnswer
       : conflict.draftType === "tutor"
         ? tutorInput
-        : focusNote;
-    target.value = body.draft.content;
+        : conflict.draftType === "quiz" || conflict.draftType === "recall"
+          ? null
+          : focusNote;
+    if (target) target.value = body.draft.content;
+    else applyActivityDraftContent(conflict.draftType, body.draft.content);
     window.localStorage.setItem(draftLocalKey(conflict.draftType), body.draft.content);
     conflict.statusTarget.textContent = "Saved on server";
     state.conflict = null;
@@ -1500,6 +1821,8 @@ startBackMapButton.addEventListener("click", showPath);
 focusNote.addEventListener("input", () => queueDraftSave("focus_note", focusNote.value, focusNoteStatus));
 saveFocusNoteButton.addEventListener("click", saveFocusNoteNow);
 openTutorButton.addEventListener("click", () => openTutor(openTutorButton));
+startQuizButton.addEventListener("click", () => startActivity("quiz", startQuizButton));
+startRecallButton.addEventListener("click", () => startActivity("recall", startRecallButton));
 pauseSessionButton.addEventListener("click", () => pauseActiveSession());
 resumeSessionButton.addEventListener("click", resumeActiveSession);
 pauseLibraryButton.addEventListener("click", async () => {
@@ -1532,6 +1855,23 @@ tutorForm.addEventListener("submit", (event) => {
 });
 closeTutorButton.addEventListener("click", closeTutor);
 tutorPauseButton.addEventListener("click", () => pauseActiveSession());
+recallAnswer.addEventListener("input", () => {
+  if (!state.activity || state.activity.activity.type !== "recall") return;
+  queueDraftSave("recall", recallAnswer.value, activityDraftStatus, state.activity.hints.depth);
+});
+activityForm.addEventListener("submit", submitCurrentActivity);
+revealHintButton.addEventListener("click", revealNextHint);
+closeActivityButton.addEventListener("click", closeCurrentActivity);
+activityReturnButton.addEventListener("click", closeCurrentActivity);
+activityPauseButton.addEventListener("click", () => pauseActiveSession());
+mobileActivityConcept.addEventListener("click", closeCurrentActivity);
+mobileActivityHints.addEventListener("click", () => {
+  const heading = document.querySelector("#hint-title");
+  heading.setAttribute("tabindex", "-1");
+  heading.scrollIntoView({ behavior: "smooth", block: "start" });
+  heading.focus({ preventScroll: true });
+});
+mobileActivityPause.addEventListener("click", () => pauseActiveSession());
 
 ["dragenter", "dragover"].forEach((eventName) => {
   dropZone.addEventListener(eventName, (event) => {
@@ -1555,6 +1895,10 @@ window.addEventListener("offline", () => {
     else focusNoteStatus.textContent = "Offline · local copy kept";
     focusSaveStatus.textContent = "Offline";
   }
+  if (state.session?.state === "practicing") {
+    activityDraftStatus.textContent = "Offline · local copy kept";
+    activitySaveStatus.textContent = "Offline";
+  }
 });
 window.addEventListener("online", () => {
   connectionBanner.hidden = true;
@@ -1564,6 +1908,13 @@ window.addEventListener("online", () => {
     saveDraftNow("tutor", tutorInput.value, tutorDraftStatus);
   } else if (state.session?.state === "learning_concept") {
     saveDraftNow("focus_note", focusNote.value, focusNoteStatus);
+  } else if (state.session?.state === "practicing" && state.activity) {
+    saveDraftNow(
+      state.activity.activity.type,
+      currentActivityContent(),
+      activityDraftStatus,
+      state.activity.hints.depth,
+    );
   }
 });
 
@@ -1578,6 +1929,7 @@ async function initialize() {
     else if (hash.startsWith("#path/")) await showPath();
     else if (hash.startsWith("#start/")) await showStartAction();
     else if (hash.startsWith("#tutor/")) await showTutor();
+    else if (hash.startsWith("#activity/")) await showActivity();
     else if (hash.startsWith("#focus/")) await showFocus();
     else if (hash.startsWith("#summary/")) {
       await showFocus();

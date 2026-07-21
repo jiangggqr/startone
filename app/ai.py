@@ -92,6 +92,37 @@ class TutorResponseOutput(StrictModel):
     prerequisite_gap_signal: str | None = Field(default=None, max_length=240)
 
 
+class QuizOptionOutput(StrictModel):
+    id: str = Field(min_length=1, max_length=12)
+    text: str = Field(min_length=1, max_length=500)
+    misconception_tag: str = Field(min_length=1, max_length=120)
+
+
+class QuizOptionExplanationOutput(StrictModel):
+    option_id: str = Field(min_length=1, max_length=12)
+    explanation: str = Field(min_length=1, max_length=700)
+
+
+class QuizActivityOutput(StrictModel):
+    question: str = Field(min_length=1, max_length=1000)
+    options: list[QuizOptionOutput] = Field(min_length=3, max_length=4)
+    correct_option_id: str = Field(min_length=1, max_length=12)
+    explanation_by_option: list[QuizOptionExplanationOutput] = Field(min_length=3, max_length=4)
+    hint_levels: list[str] = Field(min_length=3, max_length=3)
+    source_origin: Literal["uploaded", "external", "ai_supplement"]
+    source_refs: list[SourceReference] = Field(min_length=1, max_length=4)
+
+
+class RecallActivityOutput(StrictModel):
+    prompt: str = Field(min_length=1, max_length=1000)
+    expected_key_points: list[str] = Field(min_length=1, max_length=6)
+    acceptable_paraphrases: list[str] = Field(max_length=8)
+    misconception_patterns: list[str] = Field(max_length=8)
+    hint_levels: list[str] = Field(min_length=3, max_length=3)
+    source_origin: Literal["uploaded", "external", "ai_supplement"]
+    source_refs: list[SourceReference] = Field(min_length=1, max_length=4)
+
+
 class ModelGatewayError(Exception):
     def __init__(self, error_code: str, user_message: str) -> None:
         super().__init__(user_message)

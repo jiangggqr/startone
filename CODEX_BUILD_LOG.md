@@ -85,7 +85,7 @@ Record one section after each verified milestone.
 - Status: complete
 - Date: 2026-07-21
 - Codex thread/session: current StartFrame Agent task
-- Git commit: Milestone 3 focused commit (this commit)
+- Git commit: `7d3b1b0`
 - Goal: make the first learning step durable, resumable and usable across desktop, tablet and mobile without adding Tutor or mastery judgments early
 - Codex contribution: added schema version 4; server-versioned drafts; explicit two-copy conflict resolution; start-action completion; one-active-concept initialization; source-backed focus payloads; elapsed/remaining timer state; pause/resume mutation locks; a responsive three-column focus workspace; 390 px bottom session navigation; offline/save status; source-return focus restoration; and a concrete restart summary
 - Human product decisions: the Demo route treats Transformer goal as completed orientation and starts active learning at Self-attention; a focus note is an ungraded navigation aid and never LearningEvidence; all user-visible copy remains English and all large backgrounds remain flat colors
@@ -101,7 +101,7 @@ Record one section after each verified milestone.
 - Status: complete
 - Date: 2026-07-21
 - Codex thread/session: current StartFrame Agent task
-- Git commit: Milestone 4A focused commit (this commit)
+- Git commit: `014c34b`
 - Goal: add continuous, low-pressure support for the active concept without giving Tutor any planning or search authority
 - Codex contribution: added schema version 5, per-concept Tutor threads, ordered persistent messages, six quick support actions, free questions, a seven-level guidance ladder, retry-safe unsent drafts, explicit uploaded/AI-supplement origins, checking questions, factual difficulty signals, bounded source retrieval, server-side source-reference validation, Demo responses and a strict GPT-5.6 Structured Output path
 - Human product decisions: Tutor remains an overlay on `learning_concept`; one thread is retained per session/concept and can be closed/reopened without losing history; Tutor close records aggregate signal counts but does not create `LearningEvidence` before Milestone 4C; no Tutor request receives a search or route-change tool
@@ -111,3 +111,19 @@ Record one section after each verified milestone.
 - Responsive verification: the real Tutor flow opened from the 390 px bottom navigation, document width equaled viewport width with no horizontal overflow, and visual inspection confirmed a flat-background full-screen conversation layout
 - Problems and corrections: Tutor messages initially used second-resolution timestamps plus UUIDs for ordering, which could reverse a same-turn pair; reads now use SQLite insertion order; the Tutor source viewer initially displayed an incorrect “Back to library” label even though it returned correctly, and was corrected to “Back to Tutor” with focus restoration rechecked
 - Remaining limitations: `LearningEvidence`, structured feedback, Quiz, recall and remediation intentionally begin in Milestones 4B/4C; the live GPT-5.6 smoke test remains pending a deployment-only API key
+
+## Milestone 4B — Quiz and free recall
+
+- Status: complete
+- Date: 2026-07-21
+- Codex thread/session: current StartFrame Agent task
+- Git commit: Milestone 4B focused commit (this commit)
+- Goal: add one-question Quiz and free recall with progressive support and durable attempts while preserving the Tutor/Agent boundary
+- Codex contribution: added schema version 6, typed Quiz/recall outputs, current-concept activity generation, server-only evaluation keys, misconception-based Quiz distractors, three-level hints, activity-linked drafts, versioned hint reveals, durable attempts, pause/refresh recovery, source return and responsive English practice screens
+- Human product decisions: answers and scoring rubrics remain hidden until feedback; a 4B submission records facts but creates no `LearningEvidence`, Agent decision or search request; Tutor remains the dominant recommended focus action while Quiz and recall are visually secondary
+- Files changed: activity schema/service/API, typed AI models, focus state support, static practice UI, automated tests, README, status and decision records
+- Verification: 24 automated tests passed; Quiz answer keys, misconception tags and option explanations were absent from pre-feedback API payloads; recall key points and misconception patterns stayed server-only; activity draft conflicts, hints, pause/resume, attempts, source validation and boundary flags passed; a fake Responses client verified `gpt-5.6`, typed `QuizActivityOutput`, `store=False` and no `tools` argument; JavaScript syntax and diff hygiene passed; application/test files contained no Chinese UI strings or gradient declarations
+- Browser verification: launched Quiz from the active concept, selected an answer, revealed a hint, restored the same answer and hint through a fresh page, opened the exact uploaded source and returned to practice, paused/resumed, submitted without exposing correctness, returned to the concept, then created and submitted a free recall with two progressive hints; all browser requests completed without server errors
+- Responsive verification: the complete recall screen and fixed Practice navigation were exercised at 390 px; visual inspection caught a clipped header badge, the activity header was changed to a stacked mobile layout, and the corrected screen was rechecked with flat solid backgrounds and no visible critical horizontal clipping
+- Problems and corrections: a stale browser-control tab stopped accepting clicks during repeated QA, so the same saved practice was reopened in a fresh tab and recovery was confirmed; the first mobile activity heading placed two non-wrapping badges in one row, which was corrected before completion
+- Remaining limitations: immediate correctness/coverage feedback, encouragement, remediation and `LearningEvidence` intentionally begin in Milestone 4C; the live GPT-5.6 smoke test remains pending a deployment-only API key

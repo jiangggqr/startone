@@ -13,7 +13,8 @@
 - Milestone 2 learner setup, coverage and knowledge map: complete
 - Milestone 3 production focus-session shell: complete
 - Milestone 4A contextual Tutor: complete
-- Milestone 4B Quiz and free recall: in progress
+- Milestone 4B Quiz and free recall: complete
+- Milestone 4C feedback, remediation and LearningEvidence: in progress
 - Production UI language: English
 
 ## What the prototype is
@@ -49,7 +50,13 @@
 - Factual confusion/prerequisite signals that are visibly not Agent decisions or search requests
 - Tutor pause/resume, refresh recovery, source-view return focus and full-screen 390 px mobile flow
 - Real GPT-5.6 Tutor contract path with no tools exposed; deterministic Demo Tutor remains visibly labeled
+- One-question Quiz with server-only answer keys and misconception-based distractors
+- Free recall with server-only key points, acceptable paraphrases and misconception patterns
+- Progressive 0–3 hint disclosure with saved depth, answer autosave and explicit conflict recovery
+- Persistent activity attempts with source references, pause/refresh recovery and no premature evidence or Agent decision
+- Strict GPT-5.6 Quiz/recall Structured Output contracts with deterministic, visibly labeled Demo activities
+- Full-screen practice flows with English-only copy, flat backgrounds and a verified 390 px layout
 
 ## Next action
 
-Implement Milestone 4B one-question Quiz and free recall with progressive hints, versioned attempts, misconception targets and grounded source references. No Agent decision is allowed in this milestone.
+Implement Milestone 4C structured immediate feedback, specific encouragement, misconception detection, remedial practice and normalized `LearningEvidence`. Evidence must remain factual and contain no recommendation fields.

@@ -34,11 +34,13 @@ Implement source-aware chat, quick actions, free questions, graduated guidance, 
 
 Implement one-question Quiz, misconception-based distractors, free recall, progressive hints, attempt persistence and source references. No Agent decision in this milestone.
 
-**Status:** In progress.
+**Status:** Complete and verified on 2026-07-21. Quiz answer keys, misconception targets and recall evaluation points remain server-only; answers and 0–3 hint depth recover across refresh and pause; attempts persist with grounded source references and no evidence, Agent action or search side effect.
 
 ## Milestone 4C — Feedback, encouragement, remedial practice and LearningEvidence
 
 Implement structured immediate feedback, specific encouragement, misconception detection, remedial activity and normalized evidence with no recommendation fields.
+
+**Status:** In progress.
 
 ## Milestone 5 — Adaptive Planning Agent
 
