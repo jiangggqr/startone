@@ -16,6 +16,8 @@ const state = {
   saveTimers: {},
   drafts: {},
   focus: null,
+  tutor: null,
+  tutorReturnTrigger: null,
   conflict: null,
   runtimeMode: "demo",
 };
@@ -28,6 +30,7 @@ const views = {
   path: document.querySelector("#path-view"),
   start: document.querySelector("#start-action-view"),
   focus: document.querySelector("#focus-view"),
+  tutor: document.querySelector("#tutor-view"),
   summary: document.querySelector("#summary-view"),
 };
 
@@ -136,6 +139,7 @@ const focusNote = document.querySelector("#focus-note");
 const focusNoteStatus = document.querySelector("#focus-note-status");
 const focusSaveStatus = document.querySelector("#focus-save-status");
 const saveFocusNoteButton = document.querySelector("#save-focus-note");
+const openTutorButton = document.querySelector("#open-tutor");
 const pauseSessionButton = document.querySelector("#pause-session");
 const saveExitButton = document.querySelector("#save-exit");
 const reviewFullMapButton = document.querySelector("#review-full-map");
@@ -153,6 +157,27 @@ const summaryConcept = document.querySelector("#summary-concept");
 const summaryNote = document.querySelector("#summary-note");
 const summaryLibraryButton = document.querySelector("#summary-library");
 const summaryResumeButton = document.querySelector("#summary-resume");
+
+const tutorTitle = document.querySelector("#tutor-title");
+const tutorBreadcrumb = document.querySelector("#tutor-breadcrumb");
+const tutorSaveStatus = document.querySelector("#tutor-save-status");
+const tutorPauseButton = document.querySelector("#tutor-pause");
+const closeTutorButton = document.querySelector("#close-tutor");
+const tutorEmpty = document.querySelector("#tutor-empty");
+const tutorLog = document.querySelector("#tutor-log");
+const tutorActions = document.querySelector("#tutor-actions");
+const tutorForm = document.querySelector("#tutor-form");
+const tutorInput = document.querySelector("#tutor-input");
+const tutorDraftStatus = document.querySelector("#tutor-draft-status");
+const tutorMessageStatus = document.querySelector("#tutor-message-status");
+const sendTutorMessageButton = document.querySelector("#send-tutor-message");
+const tutorConcept = document.querySelector("#tutor-concept");
+const tutorRole = document.querySelector("#tutor-role");
+const tutorPrevious = document.querySelector("#tutor-previous");
+const tutorGuidanceLevel = document.querySelector("#tutor-guidance-level");
+const tutorContextSources = document.querySelector("#tutor-context-sources");
+const guidanceLadder = document.querySelector("#guidance-ladder");
+const tutorModeLabel = document.querySelector("#tutor-mode-label");
 
 function element(tag, className, text) {
   const node = document.createElement(tag);
@@ -289,7 +314,8 @@ async function resumeSession(sessionId) {
   try {
     const session = await getCurrentSession();
     if (session.state === "learning_concept") {
-      await showFocus();
+      if (session.tutor_open) await showTutor();
+      else await showFocus();
       if (session.is_paused) pauseDialog.showModal();
     } else if (session.state === "start_action") {
       await showStartAction();
@@ -325,6 +351,8 @@ async function showSources(returnTo = null) {
       ? "← Back to learning map"
       : returnTo === "focus"
         ? "← Back to current concept"
+        : returnTo === "tutor"
+          ? "← Back to Tutor"
       : "← Back to library";
   showView("sources", `sources/${state.sessionId}`, sourceTitle);
   await Promise.all([loadSources(), getCurrentSession()]);
@@ -522,7 +550,9 @@ function renderPreview() {
 }
 
 async function openSourceReference(reference, trigger) {
-  const returnTo = window.location.hash.startsWith("#focus/")
+  const returnTo = window.location.hash.startsWith("#tutor/")
+    ? "tutor"
+    : window.location.hash.startsWith("#focus/")
     ? "focus"
     : window.location.hash.startsWith("#path/")
       ? "path"
@@ -542,6 +572,7 @@ async function leaveSourceView() {
   if (returnTo === "coverage") showView("coverage", `coverage/${state.sessionId}`, coverageTitle);
   else if (returnTo === "path") showView("path", `path/${state.sessionId}`, pathTitle);
   else if (returnTo === "focus") showView("focus", `focus/${state.sessionId}`, focusTitle);
+  else if (returnTo === "tutor") showView("tutor", `tutor/${state.sessionId}`, tutorTitle);
   else await showHome();
   if (trigger?.isConnected) trigger.focus({ preventScroll: true });
 }
@@ -973,7 +1004,9 @@ function focusDraftKey() {
 }
 
 function draftLocalKey(draftType) {
-  return draftType === "start_action" ? startDraftKey() : focusDraftKey();
+  if (draftType === "start_action") return startDraftKey();
+  if (draftType === "tutor") return `startframe_tutor_draft_${state.sessionId}`;
+  return focusDraftKey();
 }
 
 function queueDraftSave(draftType, content, statusTarget) {
@@ -1012,6 +1045,7 @@ async function saveDraftNow(draftType, content, statusTarget) {
     window.localStorage.setItem(draftLocalKey(draftType), body.draft.content);
     statusTarget.textContent = "Saved on server";
     focusSaveStatus.textContent = "Saved";
+    if (draftType === "tutor") tutorSaveStatus.textContent = "Conversation and draft saved";
     return body.draft;
   } catch (error) {
     if (error.body?.error_code === "draft_version_conflict") {
@@ -1020,6 +1054,7 @@ async function saveDraftNow(draftType, content, statusTarget) {
     }
     statusTarget.textContent = "Save failed · local copy kept";
     focusSaveStatus.textContent = "Local copy kept";
+    if (draftType === "tutor") tutorSaveStatus.textContent = "Local draft kept";
     return null;
   }
 }
@@ -1097,6 +1132,201 @@ function renderFocus(body) {
   selectMobilePanel("learn");
 }
 
+async function openTutor(trigger) {
+  state.tutorReturnTrigger = trigger || state.tutorReturnTrigger || openTutorButton;
+  if (state.session?.tutor_open) {
+    await showTutor();
+    return;
+  }
+  if (trigger) setButtonBusy(trigger, true, "Opening Tutor…", trigger.textContent);
+  try {
+    const body = await api(`/api/sessions/${state.sessionId}/tutor/open`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ version: state.session.version }),
+    });
+    await showTutor(body);
+  } catch (error) {
+    focusNoteStatus.textContent = `${error.message} Your current concept remains saved.`;
+  } finally {
+    if (trigger) {
+      const label = trigger.dataset.focusPanel === "tutor" ? "Tutor" : "Open Tutor for this concept";
+      setButtonBusy(trigger, false, "", label);
+    }
+  }
+}
+
+async function showTutor(existing = null) {
+  const [body, draftsBody] = await Promise.all([
+    existing ? Promise.resolve(existing) : api(`/api/sessions/${state.sessionId}/tutor/messages`),
+    api(`/api/sessions/${state.sessionId}/drafts`),
+  ]);
+  state.tutor = body;
+  state.session = body.session;
+  draftsBody.drafts.forEach((draft) => { state.drafts[draft.draft_type] = draft; });
+  renderTutor(body);
+  showView("tutor", `tutor/${state.sessionId}`, tutorTitle);
+}
+
+function renderTutor(body) {
+  const context = body.context;
+  const concept = context.concept;
+  tutorTitle.textContent = `${concept.title} Tutor`;
+  tutorBreadcrumb.textContent = `${state.session.name} › ${concept.title}`;
+  tutorConcept.textContent = concept.title;
+  tutorRole.textContent = concept.role_in_map;
+  tutorPrevious.textContent = context.previous_concept_title || "This is the first route concept.";
+  const level = body.thread.last_guidance_level || 1;
+  tutorGuidanceLevel.textContent = `${level} · ${body.guidance_ladder[level - 1]}`;
+  tutorSaveStatus.textContent = "Conversation saved";
+  tutorModeLabel.textContent = body.generation?.mode === "real"
+    ? `${body.generation.model} · uploaded material first`
+    : "Uploaded material first";
+
+  tutorContextSources.replaceChildren();
+  concept.source_refs.forEach((reference) => {
+    const row = element("div", "focus-source-row");
+    row.append(element("span", "origin-badge", "Uploaded material"));
+    row.append(referenceButton(reference, concept.source_ref_details));
+    tutorContextSources.append(row);
+  });
+
+  guidanceLadder.replaceChildren();
+  body.guidance_ladder.forEach((item, index) => {
+    const entry = element("li", index + 1 === level ? "current-guidance" : "", `${index + 1}. ${item}`);
+    if (index + 1 === level) entry.append(element("strong", "", " · current"));
+    guidanceLadder.append(entry);
+  });
+
+  tutorActions.replaceChildren();
+  body.quick_actions.forEach((action) => {
+    const button = element("button", "tutor-action", action.label);
+    button.type = "button";
+    button.addEventListener("click", () => sendTutorTurn(action.label, action.id));
+    tutorActions.append(button);
+  });
+
+  tutorLog.replaceChildren();
+  body.messages.forEach((message) => tutorLog.append(renderTutorMessage(message)));
+  tutorEmpty.hidden = body.messages.length > 0;
+  if (body.messages.length) tutorLog.lastElementChild?.scrollIntoView({ block: "nearest" });
+
+  const serverDraft = state.drafts.tutor?.content || "";
+  const localDraft = window.localStorage.getItem(draftLocalKey("tutor"));
+  tutorInput.value = localDraft === null ? serverDraft : localDraft;
+  tutorDraftStatus.textContent = serverDraft && tutorInput.value === serverDraft
+    ? "Draft saved on server"
+    : tutorInput.value
+      ? "Draft saved on this device · waiting to sync"
+      : "No unsent draft";
+  tutorMessageStatus.textContent = body.messages.length
+    ? "Continue with a support action or answer the latest checking question."
+    : "No message has been sent yet.";
+}
+
+function renderTutorMessage(message) {
+  const article = element("article", `tutor-message tutor-message-${message.role}`);
+  const header = element("div", "tutor-message-header");
+  header.append(element("strong", "", message.role === "tutor" ? "Tutor" : "You"));
+  if (message.role === "tutor") {
+    const originLabel = message.source_origin === "ai_supplement"
+      ? "AI supplemental explanation"
+      : "Based on uploaded material";
+    const badge = element("span", `origin-badge ${message.source_origin === "ai_supplement" ? "origin-ai" : ""}`, originLabel);
+    header.append(badge);
+  }
+  article.append(header, element("p", "tutor-message-copy", message.message));
+  if (message.checking_question) {
+    const check = element("div", "tutor-checking-question");
+    check.append(element("strong", "", "Checking question"), element("p", "", message.checking_question));
+    article.append(check);
+  }
+  if (message.source_refs?.length) {
+    const refs = element("div", "reference-list");
+    message.source_refs.forEach((reference) => refs.append(referenceButton(reference, message.source_ref_details)));
+    article.append(refs);
+  }
+  if (message.confusion_signal || message.prerequisite_gap_signal) {
+    const signal = element("div", "tutor-signal");
+    signal.append(element("strong", "", "Factual Tutor signal"));
+    if (message.confusion_signal) signal.append(element("p", "", message.confusion_signal));
+    if (message.prerequisite_gap_signal) signal.append(element("p", "", message.prerequisite_gap_signal));
+    signal.append(element("span", "micro-copy", "This is an observation, not an Agent decision or search request."));
+    article.append(signal);
+  }
+  return article;
+}
+
+async function sendTutorTurn(message, quickAction = null) {
+  const cleaned = String(message || "").trim();
+  if (!cleaned) {
+    tutorMessageStatus.textContent = "Write a question or choose one support action.";
+    tutorInput.focus();
+    return;
+  }
+  if (!quickAction) {
+    const saved = await saveDraftNow("tutor", tutorInput.value, tutorDraftStatus);
+    if (!saved) return;
+  }
+  setButtonBusy(sendTutorMessageButton, true, "Tutor is thinking…", "Send to Tutor");
+  tutorActions.querySelectorAll("button").forEach((button) => { button.disabled = true; });
+  tutorMessageStatus.textContent = "Tutor is preparing a source-grounded response. Your unsent text remains saved.";
+  try {
+    const body = await api(`/api/sessions/${state.sessionId}/tutor/messages`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: cleaned,
+        quick_action: quickAction,
+        thread_version: state.tutor.thread.version,
+      }),
+    });
+    state.tutor = body;
+    state.session = body.session;
+    renderTutor(body);
+    if (!quickAction) {
+      tutorInput.value = "";
+      await saveDraftNow("tutor", "", tutorDraftStatus);
+    }
+    tutorMessageStatus.textContent = "Tutor response saved. No internet search was available or performed.";
+  } catch (error) {
+    tutorMessageStatus.textContent = `${error.message} Your unsent text is still saved; retry when ready.`;
+    if (error.body?.error_code === "tutor_version_conflict") {
+      await showTutor();
+      tutorMessageStatus.textContent = "The newer conversation was restored. Your unsent text is still here; send it again when ready.";
+    }
+  } finally {
+    setButtonBusy(sendTutorMessageButton, false, "", "Send to Tutor");
+    tutorActions.querySelectorAll("button").forEach((button) => { button.disabled = false; });
+  }
+}
+
+async function closeTutor() {
+  setButtonBusy(closeTutorButton, true, "Closing Tutor…", "Close Tutor");
+  try {
+    if (tutorInput.value || state.drafts.tutor) {
+      const saved = await saveDraftNow("tutor", tutorInput.value, tutorDraftStatus);
+      if (!saved) return;
+    }
+    const focusBody = await api(`/api/sessions/${state.sessionId}/tutor/close`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ thread_version: state.tutor.thread.version }),
+    });
+    state.focus = focusBody;
+    state.session = focusBody.session;
+    renderFocus(focusBody);
+    showView("focus", `focus/${state.sessionId}`, focusTitle);
+    const trigger = state.tutorReturnTrigger;
+    state.tutorReturnTrigger = null;
+    if (trigger?.isConnected) trigger.focus({ preventScroll: true });
+  } catch (error) {
+    tutorMessageStatus.textContent = `${error.message} The Tutor conversation remains open and saved.`;
+  } finally {
+    setButtonBusy(closeTutorButton, false, "", "Close Tutor");
+  }
+}
+
 function startFocusClock(timer) {
   window.clearInterval(state.focusTimer);
   const loadedAt = Date.now();
@@ -1126,9 +1356,13 @@ async function saveFocusNoteNow() {
 }
 
 async function pauseActiveSession({ showDialog = true } = {}) {
-  const draftType = state.session?.state === "start_action" ? "start_action" : "focus_note";
-  const input = draftType === "start_action" ? startAnswer : focusNote;
-  const status = draftType === "start_action" ? startSaveStatus : focusNoteStatus;
+  const draftType = state.session?.state === "start_action"
+    ? "start_action"
+    : window.location.hash.startsWith("#tutor/")
+      ? "tutor"
+      : "focus_note";
+  const input = draftType === "start_action" ? startAnswer : draftType === "tutor" ? tutorInput : focusNote;
+  const status = draftType === "start_action" ? startSaveStatus : draftType === "tutor" ? tutorDraftStatus : focusNoteStatus;
   if (input.value || state.drafts[draftType]) {
     const saved = await saveDraftNow(draftType, input.value, status);
     if (!saved) return null;
@@ -1154,7 +1388,8 @@ async function resumeActiveSession() {
     });
     state.session = body.session;
     if (pauseDialog.open) pauseDialog.close();
-    if (state.session.state === "learning_concept") await showFocus();
+    if (state.session.state === "learning_concept" && state.session.tutor_open) await showTutor();
+    else if (state.session.state === "learning_concept") await showFocus();
     else await showStartAction();
   } catch (error) {
     pauseDialog.querySelector("#pause-description").textContent = `${error.message} Your saved work is unchanged.`;
@@ -1187,10 +1422,6 @@ function showSummary() {
 }
 
 function selectMobilePanel(panel) {
-  if (panel === "tutor") {
-    focusNoteStatus.textContent = "Tutor is enabled in the next Guided Mastery Loop milestone. Your current concept remains saved.";
-    panel = "learn";
-  }
   document.querySelectorAll("[data-focus-panel]").forEach((button) => {
     if (button.dataset.focusPanel === panel) button.setAttribute("aria-current", "page");
     else button.removeAttribute("aria-current");
@@ -1217,7 +1448,11 @@ async function chooseConflictVersion(choice) {
       }),
     });
     state.drafts[conflict.draftType] = body.draft;
-    const target = conflict.draftType === "start_action" ? startAnswer : focusNote;
+    const target = conflict.draftType === "start_action"
+      ? startAnswer
+      : conflict.draftType === "tutor"
+        ? tutorInput
+        : focusNote;
     target.value = body.draft.content;
     window.localStorage.setItem(draftLocalKey(conflict.draftType), body.draft.content);
     conflict.statusTarget.textContent = "Saved on server";
@@ -1264,6 +1499,7 @@ startSaveLaterButton.addEventListener("click", () => pauseActiveSession());
 startBackMapButton.addEventListener("click", showPath);
 focusNote.addEventListener("input", () => queueDraftSave("focus_note", focusNote.value, focusNoteStatus));
 saveFocusNoteButton.addEventListener("click", saveFocusNoteNow);
+openTutorButton.addEventListener("click", () => openTutor(openTutorButton));
 pauseSessionButton.addEventListener("click", () => pauseActiveSession());
 resumeSessionButton.addEventListener("click", resumeActiveSession);
 pauseLibraryButton.addEventListener("click", async () => {
@@ -1285,8 +1521,17 @@ hideTimer.addEventListener("change", () => {
 });
 mobileSessionNav.addEventListener("click", (event) => {
   const button = event.target.closest("[data-focus-panel]");
-  if (button) selectMobilePanel(button.dataset.focusPanel);
+  if (!button) return;
+  if (button.dataset.focusPanel === "tutor") openTutor(button);
+  else selectMobilePanel(button.dataset.focusPanel);
 });
+tutorInput.addEventListener("input", () => queueDraftSave("tutor", tutorInput.value, tutorDraftStatus));
+tutorForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  sendTutorTurn(tutorInput.value);
+});
+closeTutorButton.addEventListener("click", closeTutor);
+tutorPauseButton.addEventListener("click", () => pauseActiveSession());
 
 ["dragenter", "dragover"].forEach((eventName) => {
   dropZone.addEventListener(eventName, (event) => {
@@ -1306,7 +1551,8 @@ window.addEventListener("offline", () => {
   connectionBanner.hidden = false;
   if (state.session?.state === "start_action") startSaveStatus.textContent = "Offline · local copy kept";
   if (state.session?.state === "learning_concept") {
-    focusNoteStatus.textContent = "Offline · local copy kept";
+    if (window.location.hash.startsWith("#tutor/")) tutorDraftStatus.textContent = "Offline · local copy kept";
+    else focusNoteStatus.textContent = "Offline · local copy kept";
     focusSaveStatus.textContent = "Offline";
   }
 });
@@ -1314,7 +1560,11 @@ window.addEventListener("online", () => {
   connectionBanner.hidden = true;
   setUploadMessage("Connection restored. You can upload or retry now.", "success");
   if (state.session?.state === "start_action") saveDraftNow("start_action", startAnswer.value, startSaveStatus);
-  if (state.session?.state === "learning_concept") saveDraftNow("focus_note", focusNote.value, focusNoteStatus);
+  if (state.session?.state === "learning_concept" && window.location.hash.startsWith("#tutor/")) {
+    saveDraftNow("tutor", tutorInput.value, tutorDraftStatus);
+  } else if (state.session?.state === "learning_concept") {
+    saveDraftNow("focus_note", focusNote.value, focusNoteStatus);
+  }
 });
 
 async function initialize() {
@@ -1327,6 +1577,7 @@ async function initialize() {
     else if (hash.startsWith("#coverage/")) await showCoverage();
     else if (hash.startsWith("#path/")) await showPath();
     else if (hash.startsWith("#start/")) await showStartAction();
+    else if (hash.startsWith("#tutor/")) await showTutor();
     else if (hash.startsWith("#focus/")) await showFocus();
     else if (hash.startsWith("#summary/")) {
       await showFocus();

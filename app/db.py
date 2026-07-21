@@ -6,7 +6,7 @@ import sqlite3
 from pathlib import Path
 
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 
 SOURCE_SCHEMA = """
 CREATE TABLE IF NOT EXISTS workspaces (
@@ -221,6 +221,46 @@ CREATE INDEX idx_session_events_session_created
     ON session_events(session_id, created_at);
 """
 
+TUTOR_SCHEMA = """
+ALTER TABLE learning_sessions ADD COLUMN tutor_open INTEGER NOT NULL DEFAULT 0;
+
+CREATE TABLE tutor_threads (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    session_id TEXT NOT NULL REFERENCES learning_sessions(id) ON DELETE CASCADE,
+    concept_id TEXT NOT NULL REFERENCES concepts(id) ON DELETE CASCADE,
+    status TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open', 'closed')),
+    version INTEGER NOT NULL DEFAULT 1,
+    last_guidance_level INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    closed_at TEXT,
+    UNIQUE(session_id, concept_id)
+);
+CREATE INDEX idx_tutor_threads_session_concept
+    ON tutor_threads(session_id, concept_id, status, updated_at DESC);
+
+CREATE TABLE tutor_messages (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    session_id TEXT NOT NULL REFERENCES learning_sessions(id) ON DELETE CASCADE,
+    thread_id TEXT NOT NULL REFERENCES tutor_threads(id) ON DELETE CASCADE,
+    concept_id TEXT NOT NULL REFERENCES concepts(id) ON DELETE CASCADE,
+    role TEXT NOT NULL CHECK(role IN ('user', 'tutor')),
+    message TEXT NOT NULL,
+    quick_action TEXT,
+    guidance_level INTEGER NOT NULL DEFAULT 0,
+    checking_question TEXT,
+    source_origin TEXT CHECK(source_origin IN ('uploaded', 'ai_supplement')),
+    source_refs_json TEXT NOT NULL DEFAULT '[]',
+    confusion_signal TEXT,
+    prerequisite_gap_signal TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_tutor_messages_thread_created
+    ON tutor_messages(thread_id, created_at, id);
+"""
+
 
 def connect(database_path: Path) -> sqlite3.Connection:
     """Open a configured SQLite connection with safety pragmas enabled."""
@@ -260,6 +300,9 @@ def initialize_database(database_path: Path) -> None:
         if 4 not in applied:
             connection.executescript(FOCUS_WORKSPACE_SCHEMA)
             connection.execute("INSERT INTO schema_migrations(version) VALUES (4)")
+        if 5 not in applied:
+            connection.executescript(TUTOR_SCHEMA)
+            connection.execute("INSERT INTO schema_migrations(version) VALUES (5)")
 
 
 def ensure_workspace(database_path: Path, workspace_id: str) -> None:

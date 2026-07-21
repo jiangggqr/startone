@@ -28,11 +28,13 @@ Implement desktop/tablet/mobile layouts, one active concept, one primary action,
 
 Implement source-aware chat, quick actions, free questions, graduated guidance, checking questions, persistence, origin labels and prerequisite-gap signals. Tutor cannot change route or search.
 
-**Status:** In progress.
+**Status:** Complete and verified on 2026-07-21. Tutor messages persist per active concept; six quick supports and free questions follow a seven-level guidance ladder; every response uses validated source references and explicit source-origin labels; Tutor has no route or search capability.
 
 ## Milestone 4B — Quiz and free recall
 
 Implement one-question Quiz, misconception-based distractors, free recall, progressive hints, attempt persistence and source references. No Agent decision in this milestone.
+
+**Status:** In progress.
 
 ## Milestone 4C — Feedback, encouragement, remedial practice and LearningEvidence
 

@@ -427,11 +427,12 @@ def _focus_session(session: dict[str, Any]) -> dict[str, Any]:
         for key in (
             "id", "name", "state", "mode", "version", "is_paused", "resume_state",
             "active_concept_id", "active_activity_id", "show_timer", "started_at",
-            "last_saved_at", "updated_at",
+            "last_saved_at", "updated_at", "tutor_open",
         )
     }
     result["is_paused"] = bool(result["is_paused"])
     result["show_timer"] = bool(result["show_timer"])
+    result["tutor_open"] = bool(result["tutor_open"])
     return result
 
 

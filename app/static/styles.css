@@ -1350,6 +1350,19 @@ dialog::backdrop {
   min-height: 7.5rem;
 }
 
+.focus-note-tool {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+
+.focus-note-tool summary,
+.guidance-details summary {
+  min-height: 44px;
+  cursor: pointer;
+  font-weight: 740;
+}
+
 .timer-stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1456,6 +1469,206 @@ dialog::backdrop {
   min-height: 8rem;
 }
 
+.tutor-topbar {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tutor-topbar h1,
+.tutor-topbar p {
+  margin-top: 0;
+  margin-bottom: 0.25rem;
+}
+
+.tutor-topbar h1 {
+  max-width: 20ch;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+}
+
+.tutor-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 0.38fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.tutor-conversation {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.tutor-context {
+  position: sticky;
+  top: 5.5rem;
+}
+
+.tutor-empty {
+  padding: 1rem;
+  border: 1px dashed #9ba6bd;
+  border-radius: 0.8rem;
+  color: var(--muted);
+  background: #fafbfe;
+}
+
+.tutor-empty p {
+  margin-bottom: 0;
+}
+
+.tutor-log {
+  display: grid;
+  gap: 0.8rem;
+  max-height: 54vh;
+  padding: 0.25rem;
+  overflow-y: auto;
+  scroll-padding: 1rem;
+}
+
+.tutor-message {
+  width: min(88%, 44rem);
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+}
+
+.tutor-message-user {
+  justify-self: end;
+  border-color: #b7c3f7;
+  background: var(--primary-soft);
+}
+
+.tutor-message-tutor {
+  justify-self: start;
+}
+
+.tutor-message-header,
+.tutor-submit-row {
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tutor-message-header {
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.tutor-message-copy {
+  white-space: pre-wrap;
+}
+
+.tutor-checking-question,
+.tutor-signal,
+.boundary-note {
+  margin-top: 0.8rem;
+  padding: 0.8rem;
+  border-left: 4px solid var(--teal);
+  color: #244b48;
+  background: #f1f8f7;
+}
+
+.tutor-checking-question p,
+.tutor-signal p,
+.boundary-note p {
+  margin: 0.25rem 0 0;
+}
+
+.tutor-signal {
+  border-left-color: #9a6c20;
+  color: #60400b;
+  background: #fff8e8;
+}
+
+.tutor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--border);
+}
+
+.tutor-action {
+  min-height: 44px;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid #aab4c8;
+  border-radius: 999px;
+  color: var(--ink);
+  background: var(--surface);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 680;
+  cursor: pointer;
+}
+
+.tutor-action:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.tutor-form textarea {
+  min-height: 6.5rem;
+}
+
+.tutor-submit-row p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.context-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.context-list div {
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.context-list dt {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.context-list dd {
+  margin: 0.2rem 0 0;
+}
+
+.guidance-details {
+  margin-top: 1rem;
+}
+
+.guidance-details ol {
+  padding-left: 1.4rem;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.guidance-details li {
+  padding: 0.25rem 0;
+}
+
+.guidance-details .current-guidance {
+  color: var(--ink);
+}
+
+.boundary-note {
+  margin-top: 1rem;
+  border-left-color: #65739a;
+  color: #35415f;
+  background: #f5f7fb;
+}
+
 @media (max-width: 1199px) and (min-width: 768px) {
   .focus-grid {
     grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.55fr);
@@ -1468,6 +1681,14 @@ dialog::backdrop {
 
   .focus-route {
     grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  }
+
+  .tutor-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .tutor-context {
+    position: static;
   }
 }
 
@@ -1666,6 +1887,37 @@ dialog::backdrop {
   .summary-grid,
   .conflict-grid {
     grid-template-columns: 1fr;
+  }
+
+  .tutor-topbar,
+  .tutor-submit-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tutor-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .tutor-context {
+    position: static;
+  }
+
+  .tutor-log {
+    max-height: none;
+  }
+
+  .tutor-message {
+    width: 100%;
+  }
+
+  .tutor-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tutor-submit-row .button {
+    width: 100%;
   }
 }
 

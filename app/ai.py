@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import hashlib
-from typing import Any, Callable, Generic, TypeVar
+from typing import Any, Callable, Generic, Literal, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -80,6 +80,16 @@ class KnowledgeMapOutput(StrictModel):
     recommended_route: list[str] = Field(min_length=2, max_length=5)
     start_action: StartActionOutput
     source_gaps: list[SourceGapProposal] = Field(max_length=6)
+
+
+class TutorResponseOutput(StrictModel):
+    message: str = Field(min_length=1, max_length=1800)
+    guidance_level: int = Field(ge=1, le=7)
+    checking_question: str | None = Field(default=None, max_length=500)
+    source_origin: Literal["uploaded", "ai_supplement"]
+    source_refs: list[SourceReference] = Field(min_length=1, max_length=4)
+    confusion_signal: str | None = Field(default=None, max_length=240)
+    prerequisite_gap_signal: str | None = Field(default=None, max_length=240)
 
 
 class ModelGatewayError(Exception):

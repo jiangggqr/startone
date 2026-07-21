@@ -12,7 +12,8 @@
 - Milestone 1 source ingestion and grounding: complete
 - Milestone 2 learner setup, coverage and knowledge map: complete
 - Milestone 3 production focus-session shell: complete
-- Milestone 4A contextual Tutor: in progress
+- Milestone 4A contextual Tutor: complete
+- Milestone 4B Quiz and free recall: in progress
 - Production UI language: English
 
 ## What the prototype is
@@ -42,7 +43,13 @@
 - Session timer, optional hiding, pause/resume mutation lock and refresh-safe restoration
 - Desktop three-column, tablet reflow and 390 px mobile session navigation
 - Saved-exit summary with a concrete next restart action
+- Current-concept Tutor with persisted per-concept conversation and retry-safe unsent drafts
+- Six concrete Tutor quick actions, free questions and a visible seven-level guidance ladder
+- Strict typed Tutor responses with validated source references and explicit uploaded/AI-supplement labels
+- Factual confusion/prerequisite signals that are visibly not Agent decisions or search requests
+- Tutor pause/resume, refresh recovery, source-view return focus and full-screen 390 px mobile flow
+- Real GPT-5.6 Tutor contract path with no tools exposed; deterministic Demo Tutor remains visibly labeled
 
 ## Next action
 
-Implement Milestone 4A contextual Tutor with source-aware guidance, persisted messages and factual prerequisite-gap signals. Tutor must remain inside the active concept and cannot change the route or search.
+Implement Milestone 4B one-question Quiz and free recall with progressive hints, versioned attempts, misconception targets and grounded source references. No Agent decision is allowed in this milestone.

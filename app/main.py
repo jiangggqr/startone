@@ -53,6 +53,7 @@ from app.sources import (
     store_source,
     validate_file_bytes,
 )
+from app.tutor import close_tutor, get_tutor, open_tutor, send_tutor_message
 
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
@@ -106,6 +107,23 @@ class DraftConflictRequest(BaseModel):
 
 class SessionVersionRequest(BaseModel):
     version: int = Field(ge=1)
+
+
+class TutorMessageRequest(BaseModel):
+    message: str = Field(min_length=1, max_length=2_000)
+    quick_action: Literal[
+        "simplify",
+        "define_terms",
+        "concrete_example",
+        "previous_connection",
+        "hint_only",
+        "check_understanding",
+    ] | None = None
+    thread_version: int = Field(ge=1)
+
+
+class TutorCloseRequest(BaseModel):
+    thread_version: int = Field(ge=1)
 
 
 def create_app(
@@ -600,6 +618,56 @@ def create_app(
             session_id,
         )
 
+    @application.post("/api/sessions/{session_id}/tutor/open")
+    async def open_contextual_tutor(
+        session_id: str,
+        payload: SessionVersionRequest,
+        request: Request,
+    ) -> dict:
+        return open_tutor(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            session_id,
+            payload.version,
+        )
+
+    @application.get("/api/sessions/{session_id}/tutor/messages")
+    async def tutor_messages(session_id: str, request: Request) -> dict:
+        return get_tutor(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            session_id,
+        )
+
+    @application.post("/api/sessions/{session_id}/tutor/messages")
+    async def create_tutor_message(
+        session_id: str,
+        payload: TutorMessageRequest,
+        request: Request,
+    ) -> dict:
+        return send_tutor_message(
+            resolved_settings,
+            _workspace_id(request),
+            session_id,
+            payload.message,
+            payload.quick_action,
+            payload.thread_version,
+            client_factory=ai_client_factory,
+        )
+
+    @application.post("/api/sessions/{session_id}/tutor/close")
+    async def close_contextual_tutor(
+        session_id: str,
+        payload: TutorCloseRequest,
+        request: Request,
+    ) -> dict:
+        return close_tutor(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            session_id,
+            payload.thread_version,
+        )
+
     @application.post("/api/sessions/{session_id}/pause")
     async def pause_learning_session(
         session_id: str,
@@ -677,6 +745,7 @@ def _public_session(session: dict) -> dict:
         "started_at",
         "last_saved_at",
         "ended_at",
+        "tutor_open",
         "created_at",
         "updated_at",
     }
@@ -685,7 +754,7 @@ def _public_session(session: dict) -> dict:
         import json
 
         result["support_preferences"] = json.loads(session.get("support_preferences_json") or "[]")
-    for key in ("show_timer", "search_permission", "setup_completed", "is_paused"):
+    for key in ("show_timer", "search_permission", "setup_completed", "is_paused", "tutor_open"):
         if key in result:
             result[key] = bool(result[key])
     return result

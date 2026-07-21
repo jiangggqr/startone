@@ -124,6 +124,15 @@ Milestone 3 进一步固定以下实现决定：
 - 暂停时冻结计时并阻止学习写操作；恢复后从相同业务状态继续，暂停本身不创建失败或能力判断
 - “保存并退出”先完成服务端同步和暂停，再显示当前概念、专注笔记和一个具体下次启动动作
 
+### Tutor 会话
+
+- 每个 session/concept 组合保留一个 Tutor thread；关闭与重新打开不删除历史，刷新从相同消息与未发送草稿恢复
+- Tutor 仍是 `learning_concept` 上的界面状态，不改变全局主状态、概念顺序或路线
+- Tutor 输出使用严格 `TutorResponseOutput`，来源引用保存前按 workspace、session、source、chunk 验证
+- 上传材料中的说明显示 `uploaded`；不在材料中的示例必须显示 `ai_supplement`，但仍携带它所依据的已验证来源引用
+- 真实 Tutor 调用不提供任何工具，尤其不提供搜索；只选取当前概念来源和与本次问题匹配的少量片段，不默认发送全部材料
+- Tutor 消息可记录事实性的 `confusion_signal` 与 `prerequisite_gap_signal`；关闭时只记录信号数量。`LearningEvidence` 在 Milestone 4C 的检查边界统一生成，当前阶段不按消息制造 Evidence
+
 ### 备用“仅输入主题”模式
 
 它不是评委主流程。真实模式可用 GPT-5.6 生成 AI supplemental source；Demo 模式提供明确标记的固定 AI fixture。此模式从首页视觉上弱于上传材料，并始终显示“AI 补充解释”，不能产生伪造的上传来源定位。

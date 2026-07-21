@@ -413,12 +413,17 @@
             </section>
             <section class="primary-action-card focus-primary" aria-labelledby="focus-action-title">
               <p class="eyebrow">Recommended action · about 2 minutes</p>
-              <h2 id="focus-action-title">Capture the one part you want to clarify</h2>
-              <p>This note is not graded and does not create mastery evidence. It keeps your next step concrete while the Guided Mastery Loop is being prepared.</p>
-              <label for="focus-note">My focus note</label>
-              <textarea id="focus-note" rows="5" placeholder="For example: I understand relevance scores, but not how values are combined."></textarea>
-              <p class="save-state" id="focus-note-status" role="status" aria-live="polite">Not saved yet</p>
-              <button class="button button-primary full-width" id="save-focus-note" type="button">Save this focus note</button>
+              <h2 id="focus-action-title">Let Tutor check your current understanding</h2>
+              <p>Tutor stays inside this concept, starts with the least support needed, and keeps uploaded material as the primary source.</p>
+              <button class="button button-primary full-width" id="open-tutor" type="button">Open Tutor for this concept</button>
+              <details class="focus-note-tool">
+                <summary>Save a private focus note</summary>
+                <p>This note is not graded and does not create learning evidence.</p>
+                <label for="focus-note">My focus note</label>
+                <textarea id="focus-note" rows="5" placeholder="For example: I understand relevance scores, but not how values are combined."></textarea>
+                <p class="save-state" id="focus-note-status" role="status" aria-live="polite">Not saved yet</p>
+                <button class="button button-secondary full-width" id="save-focus-note" type="button">Save this focus note</button>
+              </details>
             </section>
           </article>
 
@@ -448,6 +453,64 @@
           <button type="button" data-focus-panel="tutor">Tutor</button>
           <button type="button" data-focus-panel="more">More</button>
         </nav>
+      </section>
+
+      <section class="workflow-view tutor-view" id="tutor-view" aria-labelledby="tutor-title" hidden>
+        <div class="tutor-topbar">
+          <div>
+            <p class="eyebrow">Contextual Tutor · active concept only</p>
+            <h1 id="tutor-title" tabindex="-1">Tutor</h1>
+            <p class="focus-breadcrumb" id="tutor-breadcrumb"></p>
+          </div>
+          <div class="focus-top-actions">
+            <span class="save-state" id="tutor-save-status" role="status" aria-live="polite">Conversation saved</span>
+            <button class="button button-quiet" id="tutor-pause" type="button">Pause session</button>
+            <button class="button button-secondary" id="close-tutor" type="button">Close Tutor</button>
+          </div>
+        </div>
+
+        <div class="tutor-layout">
+          <section class="tutor-conversation card-panel" aria-labelledby="conversation-title">
+            <div class="panel-heading">
+              <div><p class="eyebrow">Grounded conversation</p><h2 id="conversation-title">Ask one specific question</h2></div>
+              <span class="origin-badge" id="tutor-mode-label">Uploaded material first</span>
+            </div>
+            <div class="tutor-empty" id="tutor-empty">
+              <strong>Choose a support action or ask your own question.</strong>
+              <p>Tutor will begin with a small prompt instead of giving a long answer by default.</p>
+            </div>
+            <div class="tutor-log" id="tutor-log" role="log" aria-live="polite" aria-relevant="additions"></div>
+            <div class="tutor-actions" id="tutor-actions" aria-label="Tutor support actions"></div>
+            <form class="tutor-form" id="tutor-form">
+              <label for="tutor-input">Your question or answer</label>
+              <textarea id="tutor-input" rows="3" maxlength="2000" placeholder="Ask about this concept, or answer Tutor's checking question."></textarea>
+              <p class="save-state" id="tutor-draft-status" role="status" aria-live="polite">Not saved yet</p>
+              <div class="tutor-submit-row">
+                <p id="tutor-message-status" role="status" aria-live="polite"></p>
+                <button class="button button-primary" id="send-tutor-message" type="submit">Send to Tutor</button>
+              </div>
+            </form>
+          </section>
+
+          <aside class="tutor-context card-panel" aria-labelledby="tutor-context-title">
+            <h2 id="tutor-context-title">Current context</h2>
+            <dl class="context-list">
+              <div><dt>Concept</dt><dd id="tutor-concept"></dd></div>
+              <div><dt>Role in the map</dt><dd id="tutor-role"></dd></div>
+              <div><dt>Previous concept</dt><dd id="tutor-previous"></dd></div>
+              <div><dt>Current support level</dt><dd id="tutor-guidance-level">1 · Clarify</dd></div>
+            </dl>
+            <div id="tutor-context-sources" class="focus-sources"></div>
+            <details class="guidance-details">
+              <summary>How Tutor increases support</summary>
+              <ol id="guidance-ladder"></ol>
+            </details>
+            <div class="boundary-note">
+              <strong>Tutor boundary</strong>
+              <p>Tutor can explain, ask and record factual difficulty signals. It cannot change your route, choose an Agent action or search the internet.</p>
+            </div>
+          </aside>
+        </div>
       </section>
 
       <section class="workflow-view summary-view" id="summary-view" aria-labelledby="summary-title" hidden>

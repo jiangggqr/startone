@@ -95,3 +95,19 @@ Record one section after each verified milestone.
 - Responsive verification: at 390 px the Map/Learn/More panels were operable from the fixed bottom navigation, the document width remained exactly 390 px with no horizontal overflow, and visual inspection confirmed solid backgrounds with no large-area gradient
 - Problems and corrections: the initial test module import did not resolve under pytest collection and was converted to an explicit test package import; draft conflict QA intentionally used two live pages to prove that no copy is silently overwritten
 - Remaining limitations: Tutor is deliberately disclosed as the next Guided Mastery Loop milestone; the environment still has no `OPENAI_API_KEY`, which is not needed for this deterministic milestone
+
+## Milestone 4A — Contextual Tutor
+
+- Status: complete
+- Date: 2026-07-21
+- Codex thread/session: current StartFrame Agent task
+- Git commit: Milestone 4A focused commit (this commit)
+- Goal: add continuous, low-pressure support for the active concept without giving Tutor any planning or search authority
+- Codex contribution: added schema version 5, per-concept Tutor threads, ordered persistent messages, six quick support actions, free questions, a seven-level guidance ladder, retry-safe unsent drafts, explicit uploaded/AI-supplement origins, checking questions, factual difficulty signals, bounded source retrieval, server-side source-reference validation, Demo responses and a strict GPT-5.6 Structured Output path
+- Human product decisions: Tutor remains an overlay on `learning_concept`; one thread is retained per session/concept and can be closed/reopened without losing history; Tutor close records aggregate signal counts but does not create `LearningEvidence` before Milestone 4C; no Tutor request receives a search or route-change tool
+- Files changed: Tutor schema/service/API, typed AI response model, focus/Tutor UI and responsive styles, automated tests, milestone/status/decision records
+- Verification: 21 automated tests passed; Demo quick actions, free questions, confusion signals, covered prerequisites, AI supplemental example labels, pause locks, close/reopen persistence and optimistic thread versions passed; a fake Responses client verified `gpt-5.6`, typed `TutorResponseOutput`, `store=False` and absence of any `tools` argument; Python/JavaScript/diff checks passed; application files contained no Chinese UI strings or gradient declarations
+- Browser verification: opened Tutor from the dominant focus action; ran a checking question; autosaved and submitted a free confusion message; displayed a factual signal with explicit non-Agent/non-search wording; generated an AI supplemental example with its correct source label; opened an exact source and returned focus to the invoking citation; paused/resumed the same conversation; closed Tutor and restored focus to its trigger
+- Responsive verification: the real Tutor flow opened from the 390 px bottom navigation, document width equaled viewport width with no horizontal overflow, and visual inspection confirmed a flat-background full-screen conversation layout
+- Problems and corrections: Tutor messages initially used second-resolution timestamps plus UUIDs for ordering, which could reverse a same-turn pair; reads now use SQLite insertion order; the Tutor source viewer initially displayed an incorrect “Back to library” label even though it returned correctly, and was corrected to “Back to Tutor” with focus restoration rechecked
+- Remaining limitations: `LearningEvidence`, structured feedback, Quiz, recall and remediation intentionally begin in Milestones 4B/4C; the live GPT-5.6 smoke test remains pending a deployment-only API key
