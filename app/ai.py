@@ -82,18 +82,6 @@ class KnowledgeMapOutput(StrictModel):
     source_gaps: list[SourceGapProposal] = Field(max_length=6)
 
 
-class TopicSectionOutput(StrictModel):
-    heading: str = Field(min_length=1, max_length=120)
-    explanation: str = Field(min_length=40, max_length=1800)
-
-
-class TopicSourceOutput(StrictModel):
-    title: str = Field(min_length=1, max_length=120)
-    overview: str = Field(min_length=40, max_length=1200)
-    sections: list[TopicSectionOutput] = Field(min_length=2, max_length=5)
-    verification_note: str = Field(min_length=20, max_length=300)
-
-
 class TutorResponseOutput(StrictModel):
     message: str = Field(min_length=1, max_length=1800)
     guidance_level: int = Field(ge=1, le=7)

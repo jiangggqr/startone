@@ -24,10 +24,9 @@
         <nav aria-label="Main navigation">
           <a href="#library" id="library-link" aria-current="page">Library</a>
           <a href="#recent-sessions">Learning history</a>
-          <a href="#data-controls">Settings &amp; data</a>
-          <a href="#help">Help</a>
+          <button class="nav-link" id="open-settings-panel" type="button">Settings</button>
+          <button class="nav-link" id="open-help-panel" type="button">Help</button>
         </nav>
-        <span class="mode-badge" id="mode-badge">Demo mode</span>
       </div>
     </header>
 
@@ -52,23 +51,12 @@
           </p>
         </div>
 
-        <div class="source-options" aria-label="Available ways to start learning">
+        <div class="source-options" aria-label="Start with your learning material">
           <article class="source-card source-card-primary">
             <span class="source-icon" aria-hidden="true">▣</span>
             <div>
               <h2>Upload PDF, Markdown, or TXT</h2>
               <p>Primary path · Explanations, practice, and citations start with your material.</p>
-            </div>
-            <span class="recommended-label">Recommended</span>
-          </article>
-          <article class="source-card">
-            <span class="source-icon" aria-hidden="true">✎</span>
-            <div>
-              <h2>Enter a topic only</h2>
-              <p>Fallback path · Content is clearly labeled as an AI supplemental explanation.</p>
-              <button class="button button-quiet topic-entry-button" id="open-topic" type="button">
-                Use topic-only fallback
-              </button>
             </div>
           </article>
         </div>
@@ -109,42 +97,6 @@
         <p class="form-message" id="recent-message" role="status" aria-live="polite" hidden></p>
       </section>
 
-      <section class="section two-column" aria-label="Product safeguards">
-        <article class="info-card" id="data-controls">
-          <p class="eyebrow">Your data</p>
-          <h2>Storage and controls stay visible</h2>
-          <p>
-            Learning material is stored in this deployment's private workspace. Every source can be previewed,
-            retried, copied, exported, or removed. Exports never contain API keys, hidden answer keys, internal prompts, or server file paths.
-          </p>
-          <details class="preference-panel">
-            <summary>Learning and accessibility preferences</summary>
-            <div class="preference-grid">
-              <label class="check-row"><input type="checkbox" id="preference-large-text" /> Use larger interface text</label>
-              <label class="check-row"><input type="checkbox" id="preference-reduced-motion" /> Reduce interface motion</label>
-              <label class="check-row"><input type="checkbox" id="preference-show-timer" /> Show the timer by default in new sessions</label>
-              <label class="check-row"><input type="checkbox" id="preference-search-suggestions" /> Allow search suggestions by default in new sessions</label>
-            </div>
-            <p class="micro-copy">External search still requires a named gap, an Agent request, and a separate confirmation every time.</p>
-          </details>
-          <div class="data-control-actions">
-            <button class="button button-secondary" id="export-json" type="button">Download JSON record</button>
-            <button class="button button-secondary" id="export-markdown" type="button">Download Markdown summary</button>
-            <button class="button button-quiet" id="open-ai-activity" type="button">View AI activity</button>
-            <button class="button button-danger" id="open-delete-workspace" type="button">Delete all workspace data</button>
-          </div>
-          <p class="form-message" id="data-control-message" role="status" aria-live="polite" hidden></p>
-        </article>
-        <article class="info-card" id="help">
-          <p class="eyebrow">System boundary</p>
-          <h2>AI will not expand your study scope on its own</h2>
-          <p>
-            External search runs only after a named source gap is found, the planning Agent requests it, and
-            you confirm that specific search. Every item shows its source type.
-          </p>
-          <a class="text-link" href="/api/docs">View current API status</a>
-        </article>
-      </section>
       </div>
 
       <section class="source-workspace" id="source-view" aria-labelledby="sources-title" hidden>
@@ -161,21 +113,39 @@
         <div class="connection-banner" id="connection-banner" role="status" hidden>
           You are offline. Existing source previews remain visible; new uploads will wait until you reconnect.
         </div>
-        <div class="upload-message" id="upload-message" role="status" aria-live="polite" hidden></div>
-
         <div class="upload-layout">
           <div class="source-column">
-            <section class="upload-panel" aria-labelledby="upload-title">
+            <section class="upload-panel" id="upload-panel" aria-labelledby="upload-title">
               <div class="upload-panel-copy">
                 <p class="eyebrow">Primary source</p>
                 <h2 id="upload-title">Upload PDF, Markdown, or TXT</h2>
                 <p>Up to 5 files at once, 20 MB each. Scanned PDFs need a selectable text layer.</p>
               </div>
+              <div class="upload-message" id="upload-message" role="status" aria-live="polite" tabindex="-1" hidden></div>
+
+              <section class="source-inventory" id="source-inventory" aria-labelledby="inventory-title" hidden>
+                <div class="section-heading compact-heading">
+                  <div>
+                    <p class="eyebrow">Your material</p>
+                    <h2 id="inventory-title">Ready for this learning session</h2>
+                  </div>
+                  <span class="status-chip" id="source-count">0 sources</span>
+                </div>
+                <div class="empty-state" id="source-empty" hidden>
+                  <span class="empty-icon" aria-hidden="true">◇</span>
+                  <div>
+                    <h3>No material yet</h3>
+                    <p>Add one file or paste text. Successful sources remain usable if another file fails.</p>
+                  </div>
+                </div>
+                <ul class="source-list" id="source-list" aria-live="polite"></ul>
+              </section>
+
               <div class="drop-zone" id="drop-zone">
                 <span class="source-icon" aria-hidden="true">＋</span>
                 <div>
-                  <strong>Drop files here</strong>
-                  <p>or choose files from this device</p>
+                  <strong id="drop-zone-title">Drop files here</strong>
+                  <p id="drop-zone-copy">or choose files from this device</p>
                 </div>
                 <button class="button button-primary" id="choose-files" type="button">Choose files</button>
                 <input
@@ -186,36 +156,25 @@
                   hidden
                 />
               </div>
-              <button class="button button-secondary" id="open-paste" type="button">Paste text instead</button>
-              <div class="demo-fixture-actions">
-                <button class="button button-quiet" id="load-demo-materials" type="button">
-                  Load standard Demo
-                </button>
-                <button class="button button-quiet" id="load-search-demo-material" type="button">
-                  Load controlled-search Demo
-                </button>
+              <div class="source-secondary-actions">
+                <button class="button button-secondary" id="open-paste" type="button">Paste text instead</button>
+                <button class="button button-quiet" id="load-demo-materials" type="button">Try sample material</button>
               </div>
               <p class="micro-copy" id="demo-material-note">
-                Standard loads two complete sources. Controlled-search loads only the Transformer notes in a fresh session so the missing dot-product prerequisite can be detected. Neither option calls a model or the internet.
+                Sample material lets you explore the learning flow without choosing a file. It does not call the internet.
               </p>
-            </section>
 
-            <section class="source-inventory" aria-labelledby="inventory-title">
-              <div class="section-heading compact-heading">
-                <div>
-                  <p class="eyebrow">Saved privately</p>
-                  <h2 id="inventory-title">Sources in this session</h2>
+              <section class="learning-ready" id="learning-ready" aria-labelledby="learning-ready-title" hidden>
+                <p class="eyebrow">Material ready · next step</p>
+                <h3 id="learning-ready-title">Build a learning path from this material</h3>
+                <p id="coverage-note">StartFrame will identify the core concepts, organize a short route, and use your first response to begin learning your starting level.</p>
+                <div class="learning-ready-actions">
+                  <button class="button button-quiet" id="save-for-later" type="button">Save and return later</button>
+                  <button class="button button-primary" id="review-coverage" type="button" disabled>
+                    Build my learning path
+                  </button>
                 </div>
-                <span class="status-chip" id="source-count">0 sources</span>
-              </div>
-              <div class="empty-state" id="source-empty">
-                <span class="empty-icon" aria-hidden="true">◇</span>
-                <div>
-                  <h3>No material yet</h3>
-                  <p>Add one file or paste text. Successful sources remain usable if another file fails.</p>
-                </div>
-              </div>
-              <ul class="source-list" id="source-list" aria-live="polite"></ul>
+              </section>
             </section>
           </div>
 
@@ -245,85 +204,12 @@
           </aside>
         </div>
 
-        <div class="workflow-actions">
-          <button class="button button-secondary" id="save-for-later" type="button">Save and return later</button>
-          <button class="button button-primary" id="review-coverage" type="button" disabled aria-describedby="coverage-note">
-            Continue to session setup
-          </button>
-          <p id="coverage-note">Add at least one readable source to continue.</p>
-        </div>
-      </section>
-
-      <section class="workflow-view" id="setup-view" aria-labelledby="setup-title" hidden>
-        <div class="workflow-heading">
-          <button class="button button-quiet" id="back-to-sources" type="button">← Back to sources</button>
-          <p class="eyebrow">Step 2 · Shape this session</p>
-          <h1 id="setup-title" tabindex="-1">Set a small, useful learning target</h1>
-          <p class="hero-lead">A few constraints help the map fit your time and energy. The learning interface stays in English.</p>
-        </div>
-
-        <div class="form-message" id="setup-message" role="status" aria-live="polite" hidden></div>
-        <form class="setup-form" id="setup-form">
-          <div class="form-card form-card-main">
-            <label for="goal">What do you want to understand or be able to do?</label>
-            <textarea id="goal" name="goal" rows="3" minlength="5" maxlength="500" required></textarea>
-
-            <label for="prior-knowledge">What do you already know?</label>
-            <textarea id="prior-knowledge" name="prior_knowledge" rows="3" minlength="2" maxlength="500" required></textarea>
-
-            <div class="field-grid">
-              <div>
-                <label for="available-minutes">Time available</label>
-                <select id="available-minutes" name="available_minutes">
-                  <option value="10">10 minutes</option>
-                  <option value="25" selected>25 minutes</option>
-                  <option value="45">45 minutes</option>
-                </select>
-              </div>
-              <div>
-                <label for="energy-level">Current energy</label>
-                <select id="energy-level" name="energy_level">
-                  <option value="low">Low</option>
-                  <option value="medium" selected>Medium</option>
-                  <option value="high">High</option>
-                </select>
-              </div>
-            </div>
-
-            <label for="learning-language">Learning language</label>
-            <input id="learning-language" value="English" readonly aria-describedby="language-note" />
-            <p class="micro-copy" id="language-note">All interface text and generated learning content are displayed in English.</p>
-
-            <label for="current-question">What feels unclear right now? <span class="optional">Optional</span></label>
-            <textarea id="current-question" name="current_question" rows="3" maxlength="1000"></textarea>
-          </div>
-
-          <div class="form-card">
-            <fieldset>
-              <legend>Support preferences</legend>
-              <label class="check-row"><input type="checkbox" name="support" value="direct_explanation" checked /> Explain directly before using a metaphor</label>
-              <label class="check-row"><input type="checkbox" name="support" value="define_terms" checked /> Define technical terms separately</label>
-              <label class="check-row"><input type="checkbox" name="support" value="short_steps" checked /> Use shorter steps</label>
-              <label class="check-row"><input type="checkbox" name="support" value="examples_on_request" /> Offer examples on request</label>
-            </fieldset>
-
-            <fieldset>
-              <legend>Session controls</legend>
-              <label class="check-row"><input type="checkbox" id="show-timer" name="show_timer" /> Show the session timer</label>
-              <label class="check-row"><input type="checkbox" id="search-permission" name="search_permission" /> Allow the Agent to suggest external search when a verified gap exists</label>
-              <p class="micro-copy">Turning this on never runs a search. Every search still needs a named gap, an Agent request, and your confirmation.</p>
-            </fieldset>
-
-            <div class="save-status" id="setup-save-status" role="status">Draft is saved on this device.</div>
-            <button class="button button-primary full-width" id="generate-coverage" type="submit">Save setup and review source coverage</button>
-          </div>
-        </form>
       </section>
 
       <section class="workflow-view" id="coverage-view" aria-labelledby="coverage-title" hidden>
         <div class="workflow-heading">
-          <button class="button button-quiet" id="back-to-setup" type="button">← Back to setup</button>
-          <p class="eyebrow">Step 3 · Verify source coverage</p>
+          <button class="button button-quiet" id="back-to-sources-from-coverage" type="button">← Back to material</button>
+          <p class="eyebrow">Source coverage</p>
           <h1 id="coverage-title" tabindex="-1">See what your material covers before planning</h1>
           <p class="hero-lead">Covered concepts and candidate gaps stay tied to real saved source locations.</p>
         </div>
@@ -364,9 +250,9 @@
       <section class="workflow-view" id="path-view" aria-labelledby="path-title" hidden>
         <div class="workflow-heading">
           <button class="button button-quiet" id="back-to-coverage" type="button">← Back to coverage</button>
-          <p class="eyebrow">Step 4 · Confirm one route</p>
-          <h1 id="path-title" tabindex="-1">Review the dependency map and first action</h1>
-          <p class="hero-lead">The complete map shows relationships; the selected route shows what fits this session.</p>
+          <p class="eyebrow">Your learning path</p>
+          <h1 id="path-title" tabindex="-1">See the knowledge structure and where learning starts</h1>
+          <p class="hero-lead">The map shows how the concepts connect. StartFrame will adapt the route after it observes your actual learning performance.</p>
         </div>
         <div class="form-message" id="path-message" role="status" aria-live="polite" hidden></div>
         <div class="path-layout">
@@ -378,6 +264,12 @@
             <ol class="concept-map" id="concept-map"></ol>
           </section>
           <div class="path-side">
+            <section class="result-panel" aria-labelledby="suggested-outcome-heading">
+              <p class="eyebrow">AI-selected learning focus</p>
+              <h2 id="suggested-outcome-heading">Suggested outcome</h2>
+              <p class="suggested-outcome" id="suggested-outcome"></p>
+              <p class="micro-copy">Chosen from the material. The route adapts after StartFrame observes your responses.</p>
+            </section>
             <section class="result-panel" aria-labelledby="route-heading">
               <p class="eyebrow">This session</p>
               <h2 id="route-heading">Recommended route</h2>
@@ -398,7 +290,7 @@
           </div>
         </div>
         <div class="workflow-actions">
-          <button class="button button-primary" id="confirm-path" type="button">Confirm this route and show the start action</button>
+          <button class="button button-primary" id="confirm-path" type="button">Start with this learning path</button>
           <p id="path-generation-label">Waiting for a validated map.</p>
         </div>
       </section>
@@ -412,6 +304,7 @@
           <p class="eyebrow">Start action · no penalty for being wrong</p>
           <h1 id="start-page-title" tabindex="-1"></h1>
           <p class="hero-lead" id="start-page-instruction"></p>
+          <p class="context-note"><strong>This is not a test.</strong> Your response gives StartFrame its first signal about what support you need.</p>
           <label for="start-answer">Your one-sentence answer</label>
           <textarea id="start-answer" rows="6" placeholder="Write one sentence. It does not need to be correct."></textarea>
           <div class="completion-box"><strong>Completion condition</strong><p id="start-page-condition"></p></div>
@@ -866,26 +759,59 @@
     </main>
 
     <footer>
-      <p>StartFrame Agent · <span id="runtime-status" role="status" aria-live="polite">Checking service status…</span></p>
+      <p>StartFrame Agent</p>
+      <span class="visually-hidden" id="runtime-status" role="status" aria-live="polite">Checking service status…</span>
     </footer>
 
-    <dialog id="topic-dialog" aria-labelledby="topic-dialog-title" aria-describedby="topic-dialog-description">
-      <div class="dialog-content">
-        <p class="eyebrow">Topic-only fallback</p>
-        <h2 id="topic-dialog-title">Generate an AI supplemental explanation</h2>
-        <p id="topic-dialog-description">
-          This path does not pretend that AI content was uploaded or externally cited. No internet search runs here.
-          In Demo mode, the fixed supported topic is Self-attention.
-        </p>
-        <form id="topic-form">
-          <label for="topic-input">Learning topic</label>
-          <input id="topic-input" name="topic" minlength="2" maxlength="120" placeholder="Self-attention" required />
-          <p class="field-error" id="topic-error" role="alert" tabindex="-1" hidden></p>
-          <div class="dialog-actions">
-            <button class="button button-secondary" id="cancel-topic" type="button">Cancel</button>
-            <button class="button button-primary" id="submit-topic" type="submit">Generate supplemental source</button>
-          </div>
-        </form>
+    <dialog id="settings-dialog" aria-labelledby="settings-title" aria-describedby="settings-description">
+      <div class="dialog-content settings-dialog-content">
+        <p class="eyebrow">Settings</p>
+        <h2 id="settings-title">Learning and data controls</h2>
+        <p id="settings-description">Adjust the learning interface or manage the data saved in this browser workspace.</p>
+        <div class="settings-grid">
+          <section aria-labelledby="learning-preferences-title">
+            <h3 id="learning-preferences-title">Learning preferences</h3>
+            <div class="preference-grid">
+              <label class="check-row"><input type="checkbox" id="preference-large-text" /> Use larger interface text</label>
+              <label class="check-row"><input type="checkbox" id="preference-reduced-motion" /> Reduce interface motion</label>
+              <label class="check-row"><input type="checkbox" id="preference-show-timer" /> Show the timer by default in new sessions</label>
+              <label class="check-row"><input type="checkbox" id="preference-search-suggestions" /> Allow search suggestions by default in new sessions</label>
+            </div>
+          </section>
+          <section aria-labelledby="workspace-data-title">
+            <h3 id="workspace-data-title">Your learning data</h3>
+            <p class="micro-copy">Your sources, sessions, and drafts stay inside this deployment's private workspace.</p>
+            <div class="data-control-actions">
+              <button class="button button-secondary" id="export-json" type="button">Download JSON record</button>
+              <button class="button button-secondary" id="export-markdown" type="button">Download Markdown summary</button>
+              <button class="button button-quiet" id="open-ai-activity" type="button">View AI activity</button>
+              <button class="button button-danger" id="open-delete-workspace" type="button">Delete all workspace data</button>
+            </div>
+          </section>
+        </div>
+        <p class="form-message" id="data-control-message" role="status" aria-live="polite" hidden></p>
+        <div class="dialog-actions dialog-actions-end">
+          <button class="button button-primary" id="close-settings-panel" type="button">Done</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="help-dialog" aria-labelledby="help-title" aria-describedby="help-description">
+      <div class="dialog-content help-dialog-content">
+        <p class="eyebrow">How StartFrame works</p>
+        <h2 id="help-title">One concept at a time, grounded in your material</h2>
+        <p id="help-description">StartFrame turns material you already have into a short, guided learning loop.</p>
+        <ol class="method-steps">
+          <li><strong>Add your material.</strong><span>StartFrame keeps verifiable source locations.</span></li>
+          <li><strong>Let AI prepare the learning focus.</strong><span>It identifies core concepts in the material and proposes a dependency-aware path.</span></li>
+          <li><strong>Give one short starting response.</strong><span>This first signal helps calibrate support without making you complete a setup form.</span></li>
+          <li><strong>Learn the current concept.</strong><span>Use its explanation, Tutor, a Quiz, free recall, or a hint when you need it.</span></li>
+          <li><strong>Respond to feedback.</strong><span>A short repair exercise closes a specific gap, then the Agent chooses one next step from validated learning evidence.</span></li>
+        </ol>
+        <p class="context-note"><strong>If your material has a real gap:</strong> StartFrame asks before using any external source. Your uploaded material remains the primary source.</p>
+        <div class="dialog-actions dialog-actions-end">
+          <button class="button button-primary" id="close-help-panel" type="button">Got it</button>
+        </div>
       </div>
     </dialog>
 
@@ -977,7 +903,7 @@
       <div class="dialog-content activity-log-dialog">
         <p class="eyebrow">AI transparency</p>
         <h2 id="ai-activity-title">AI activity in this workspace</h2>
-        <p id="ai-activity-description">This audit view shows the operation, Demo or live mode, model, status, and time. It never exposes hidden reasoning or API keys.</p>
+        <p id="ai-activity-description">This audit view shows which learning operations ran, their status, and when they finished. It never exposes hidden reasoning or credentials.</p>
         <div class="ai-activity-list" id="ai-activity-list" aria-live="polite"></div>
         <p class="form-message" id="ai-activity-message" role="status" aria-live="polite" hidden></p>
         <div class="dialog-actions">

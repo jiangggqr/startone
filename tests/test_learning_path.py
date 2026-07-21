@@ -34,26 +34,46 @@ async def create_session(client: httpx.AsyncClient) -> dict:
     return response.json()["session"]
 
 
-async def save_setup(client: httpx.AsyncClient, session: dict) -> dict:
-    response = await client.patch(
-        f"/api/sessions/{session['id']}",
+async def build_learning_path(client: httpx.AsyncClient, session: dict, *, allow_search: bool = True) -> dict:
+    response = await client.post(
+        f"/api/sessions/{session['id']}/learning-path",
         json={
-            "goal": "Understand self-attention in a focused study session",
-            "prior_knowledge": "Basic machine learning",
-            "available_minutes": 25,
-            "energy_level": "medium",
-            "current_question": "How do attention scores change a token representation?",
-            "support_preferences": ["direct_explanation", "define_terms", "short_steps"],
-            "show_timer": False,
-            "search_permission": True,
             "version": session["version"],
+            "search_permission": allow_search,
         },
     )
     assert response.status_code == 200
-    return response.json()["session"]
+    return response.json()
 
 
-def test_demo_setup_coverage_map_adjust_and_confirm(tmp_path: Path) -> None:
+def test_material_builds_an_automatic_learning_path_without_user_setup(tmp_path: Path) -> None:
+    async def scenario() -> None:
+        app = make_app(tmp_path)
+        async with app_client(app) as client:
+            session = await create_session(client)
+            loaded = await client.post(f"/api/sessions/{session['id']}/demo-materials")
+            assert loaded.status_code == 201
+            session = (await client.get(f"/api/sessions/{session['id']}")).json()["session"]
+
+            response = await client.post(
+                f"/api/sessions/{session['id']}/learning-path",
+                json={"version": session["version"]},
+            )
+            assert response.status_code == 200
+            body = response.json()
+            assert body["coverage"]["coverage"]["covered_concepts"]
+            assert body["path"]["knowledge_map"]["concepts"]
+            assert body["path"]["knowledge_map"]["recommended_route"]
+
+            prepared = (await client.get(f"/api/sessions/{session['id']}")).json()["session"]
+            assert prepared["setup_completed"] is True
+            assert prepared["name"] == body["path"]["knowledge_map"]["map_title"]
+            assert prepared["goal"] == f"Understand and explain {prepared['name']}."
+
+    asyncio.run(scenario())
+
+
+def test_automatic_coverage_map_adjust_and_confirm(tmp_path: Path) -> None:
     async def scenario() -> None:
         app = make_app(tmp_path)
         async with app_client(app) as client:
@@ -63,13 +83,8 @@ def test_demo_setup_coverage_map_adjust_and_confirm(tmp_path: Path) -> None:
             assert demo.json()["created_count"] == 2
 
             session = (await client.get(f"/api/sessions/{session['id']}")).json()["session"]
-            session = await save_setup(client, session)
-            assert session["language"] == "English"
-            assert session["setup_completed"] is True
-
-            coverage_response = await client.post(f"/api/sessions/{session['id']}/coverage")
-            assert coverage_response.status_code == 200
-            coverage = coverage_response.json()
+            generated = await build_learning_path(client, session)
+            coverage = generated["coverage"]
             assert [item["title"] for item in coverage["coverage"]["covered_concepts"]] == [
                 "Transformer goal",
                 "Self-attention",
@@ -85,9 +100,7 @@ def test_demo_setup_coverage_map_adjust_and_confirm(tmp_path: Path) -> None:
             assert all(gap["status"] == "candidate" for gap in coverage["source_gaps"])
             assert all(detail["source_origin"] == "uploaded" for detail in coverage["source_ref_details"])
 
-            path_response = await client.post(f"/api/sessions/{session['id']}/path")
-            assert path_response.status_code == 200
-            path = path_response.json()
+            path = generated["path"]
             expected_route = [
                 "transformer_goal",
                 "self_attention",
@@ -139,34 +152,24 @@ def test_controlled_search_demo_loads_only_the_gap_source(tmp_path: Path) -> Non
             ]
 
             session = (await client.get(f"/api/sessions/{session['id']}")).json()["session"]
-            await save_setup(client, session)
-            coverage = (
-                await client.post(f"/api/sessions/{session['id']}/coverage")
-            ).json()
+            coverage = (await build_learning_path(client, session))["coverage"]
             gap_descriptions = [gap["description"] for gap in coverage["source_gaps"]]
             assert any("dot product" in description for description in gap_descriptions)
 
     asyncio.run(scenario())
 
 
-def test_setup_uses_optimistic_version(tmp_path: Path) -> None:
+def test_automatic_learning_path_uses_optimistic_version(tmp_path: Path) -> None:
     async def scenario() -> None:
         app = make_app(tmp_path)
         async with app_client(app) as client:
             session = await create_session(client)
-            await save_setup(client, session)
-            conflict = await client.patch(
-                f"/api/sessions/{session['id']}",
-                json={
-                    "goal": "A changed goal that remains in the browser",
-                    "prior_knowledge": "Beginner",
-                    "available_minutes": 15,
-                    "energy_level": "low",
-                    "support_preferences": [],
-                    "show_timer": False,
-                    "search_permission": False,
-                    "version": session["version"],
-                },
+            await client.post(f"/api/sessions/{session['id']}/demo-materials")
+            current = (await client.get(f"/api/sessions/{session['id']}")).json()["session"]
+            await build_learning_path(client, current)
+            conflict = await client.post(
+                f"/api/sessions/{session['id']}/learning-path",
+                json={"version": current["version"]},
             )
             assert conflict.status_code == 409
             assert conflict.json()["error_code"] == "session_version_conflict"
@@ -174,14 +177,14 @@ def test_setup_uses_optimistic_version(tmp_path: Path) -> None:
     asyncio.run(scenario())
 
 
-def test_invalid_setup_uses_product_error_envelope(tmp_path: Path) -> None:
+def test_invalid_automatic_path_request_uses_product_error_envelope(tmp_path: Path) -> None:
     async def scenario() -> None:
         app = make_app(tmp_path)
         async with app_client(app) as client:
             session = await create_session(client)
-            response = await client.patch(
-                f"/api/sessions/{session['id']}",
-                json={"goal": "No"},
+            response = await client.post(
+                f"/api/sessions/{session['id']}/learning-path",
+                json={},
             )
             assert response.status_code == 422
             body = response.json()
@@ -204,11 +207,13 @@ def test_real_mode_without_key_fails_explicitly(tmp_path: Path) -> None:
             )
             assert upload.status_code == 202
             session = (await client.get(f"/api/sessions/{session['id']}")).json()["session"]
-            await save_setup(client, session)
-            response = await client.post(f"/api/sessions/{session['id']}/coverage")
+            response = await client.post(
+                f"/api/sessions/{session['id']}/learning-path",
+                json={"version": session["version"]},
+            )
             assert response.status_code == 503
             assert response.json()["error_code"] == "openai_key_missing"
-            assert "sources are saved" in response.json()["user_message"]
+            assert "saved" in response.json()["saved_state"].lower()
 
     asyncio.run(scenario())
 
@@ -243,8 +248,10 @@ def test_invalid_model_source_reference_is_never_persisted(tmp_path: Path) -> No
                 files={"files": ("notes.md", b"# Topic\n\nA grounded idea.", "text/markdown")},
             )
             session = (await client.get(f"/api/sessions/{session['id']}")).json()["session"]
-            await save_setup(client, session)
-            response = await client.post(f"/api/sessions/{session['id']}/coverage")
+            response = await client.post(
+                f"/api/sessions/{session['id']}/learning-path",
+                json={"version": session["version"]},
+            )
             assert response.status_code == 422
             assert response.json()["error_code"] == "source_reference_invalid"
             missing = await client.get(f"/api/sessions/{session['id']}/coverage")

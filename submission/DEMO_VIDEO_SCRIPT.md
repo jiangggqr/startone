@@ -8,11 +8,11 @@ Use English narration or complete English captions. Do not include copyrighted m
 
 **Narration:** “Learners often already have the right material. The hard part is turning it into a manageable first action, staying oriented, and knowing what to do after a mistake. StartFrame Agent is a source-grounded, ADHD-informed learning app for that gap.”
 
-## 0:18–0:42 — Sources and setup
+## 0:18–0:42 — Sources and automatic planning
 
-**On screen:** Start a session, load the standard Demo, show the two source files and exact line locations.
+**On screen:** Start a session, select **Try sample material**, show the two files inside the upload panel, and open an exact line location.
 
-**Narration:** “Uploaded PDFs, Markdown, text files, or pasted notes are the primary source. StartFrame preserves real source locations, shows partial and failed parsing honestly, and lets the learner set a goal, time, energy, and support preferences.”
+**Narration:** “Uploaded PDFs, Markdown, text files, or pasted notes are the primary source. StartFrame preserves real source locations and shows parsing results inside the upload panel. One button lets AI select a learning focus and build the path—there is no setup form.”
 
 ## 0:42–1:02 — Map and first action
 
@@ -34,7 +34,7 @@ Use English narration or complete English captions. Do not include copyrighted m
 
 ## 1:55–2:20 — Four-gate search
 
-**On screen:** Controlled-search Demo, Agent `request_search`, separate confirmation, cited results.
+**On screen:** A prepared learning session reaches Agent `request_search`, then the separate confirmation and cited results.
 
 **Narration:** “External search is impossible until four gates pass: the session permits suggestions, the server validates a named material gap, the Agent requests search, and the learner confirms this exact scope. Only that execution call receives the required web-search tool. External results remain supplements; uploaded material stays primary.”
 
@@ -48,4 +48,4 @@ Use English narration or complete English captions. Do not include copyrighted m
 
 **On screen:** Repository tests/build log, then the running app.
 
-**Narration:** “Codex transformed a 22-screen prototype and 42 acceptance cases into the tested application, while I set the product boundaries and corrected issues found in browser QA. GPT-5.6 powers the structured learning and planning paths in real mode; the public judge Demo is deterministic, visibly labeled, and key-free.”
+**Narration:** “Codex transformed the product specification and acceptance cases into this tested application, while I set the learning boundaries and corrected issues found in browser QA. GPT-5.6 powers the public structured learning and planning flow; deterministic fixtures remain isolated to automated tests.”

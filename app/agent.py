@@ -996,7 +996,6 @@ def _evidence_summary(context: dict[str, Any]) -> dict[str, Any]:
 def _feasibility_context(context: dict[str, Any]) -> dict[str, Any]:
     return {
         "remaining_minutes": max(0, context["remaining_seconds"] // 60),
-        "energy_level": context["session"].get("energy_level"),
         "route": context["route"],
         "active_concept_key": context["concept"]["concept_key"],
         "prerequisite_keys": json.loads(str(context["concept"]["prerequisite_keys_json"])),

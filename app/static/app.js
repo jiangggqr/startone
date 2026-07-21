@@ -11,7 +11,6 @@ const state = {
   deleteTarget: null,
   sessionDeleteTarget: null,
   sessionDeleteTrigger: null,
-  topicSessionId: null,
   sourceReturn: null,
   sourceReturnTrigger: null,
   pollTimer: null,
@@ -35,7 +34,6 @@ const state = {
 const views = {
   home: document.querySelector("#home-view"),
   sources: document.querySelector("#source-view"),
-  setup: document.querySelector("#setup-view"),
   coverage: document.querySelector("#coverage-view"),
   path: document.querySelector("#path-view"),
   start: document.querySelector("#start-action-view"),
@@ -49,11 +47,15 @@ const views = {
   summary: document.querySelector("#summary-view"),
 };
 
-const modeBadge = document.querySelector("#mode-badge");
 const runtimeStatus = document.querySelector("#runtime-status");
 const startButtons = document.querySelectorAll("#start-session, #empty-start");
-const openTopicButton = document.querySelector("#open-topic");
 const libraryLink = document.querySelector("#library-link");
+const openSettingsPanelButton = document.querySelector("#open-settings-panel");
+const closeSettingsPanelButton = document.querySelector("#close-settings-panel");
+const settingsDialog = document.querySelector("#settings-dialog");
+const openHelpPanelButton = document.querySelector("#open-help-panel");
+const closeHelpPanelButton = document.querySelector("#close-help-panel");
+const helpDialog = document.querySelector("#help-dialog");
 const sourceTitle = document.querySelector("#sources-title");
 const backHomeButton = document.querySelector("#back-home");
 const saveForLaterButton = document.querySelector("#save-for-later");
@@ -74,6 +76,9 @@ const preferenceLargeText = document.querySelector("#preference-large-text");
 const preferenceReducedMotion = document.querySelector("#preference-reduced-motion");
 const preferenceShowTimer = document.querySelector("#preference-show-timer");
 const preferenceSearchSuggestions = document.querySelector("#preference-search-suggestions");
+const uploadPanel = document.querySelector("#upload-panel");
+const sourceInventory = document.querySelector("#source-inventory");
+const learningReady = document.querySelector("#learning-ready");
 const sourceCount = document.querySelector("#source-count");
 const sourceEmpty = document.querySelector("#source-empty");
 const sourceList = document.querySelector("#source-list");
@@ -82,6 +87,8 @@ const connectionBanner = document.querySelector("#connection-banner");
 const chooseFilesButton = document.querySelector("#choose-files");
 const fileInput = document.querySelector("#file-input");
 const dropZone = document.querySelector("#drop-zone");
+const dropZoneTitle = document.querySelector("#drop-zone-title");
+const dropZoneCopy = document.querySelector("#drop-zone-copy");
 const previewEmpty = document.querySelector("#preview-empty");
 const previewContent = document.querySelector("#preview-content");
 const previewFilename = document.querySelector("#preview-filename");
@@ -94,15 +101,7 @@ const chunkNavigation = document.querySelector("#chunk-navigation");
 const reviewCoverageButton = document.querySelector("#review-coverage");
 const coverageNote = document.querySelector("#coverage-note");
 const loadDemoButton = document.querySelector("#load-demo-materials");
-const loadSearchDemoButton = document.querySelector("#load-search-demo-material");
 const demoMaterialNote = document.querySelector("#demo-material-note");
-
-const topicDialog = document.querySelector("#topic-dialog");
-const topicForm = document.querySelector("#topic-form");
-const topicInput = document.querySelector("#topic-input");
-const topicError = document.querySelector("#topic-error");
-const cancelTopicButton = document.querySelector("#cancel-topic");
-const submitTopicButton = document.querySelector("#submit-topic");
 
 const pasteDialog = document.querySelector("#paste-dialog");
 const pasteForm = document.querySelector("#paste-form");
@@ -125,13 +124,6 @@ const sourceReportError = document.querySelector("#source-report-error");
 const cancelSourceReportButton = document.querySelector("#cancel-source-report");
 const submitSourceReportButton = document.querySelector("#submit-source-report");
 
-const setupForm = document.querySelector("#setup-form");
-const setupTitle = document.querySelector("#setup-title");
-const setupMessage = document.querySelector("#setup-message");
-const setupSaveStatus = document.querySelector("#setup-save-status");
-const generateCoverageButton = document.querySelector("#generate-coverage");
-const backToSourcesButton = document.querySelector("#back-to-sources");
-
 const coverageTitle = document.querySelector("#coverage-title");
 const coverageMessage = document.querySelector("#coverage-message");
 const coveredList = document.querySelector("#covered-list");
@@ -144,12 +136,13 @@ const gapCount = document.querySelector("#gap-count");
 const coverageGenerationLabel = document.querySelector("#coverage-generation-label");
 const regenerateCoverageButton = document.querySelector("#regenerate-coverage");
 const generateMapButton = document.querySelector("#generate-map");
-const backToSetupButton = document.querySelector("#back-to-setup");
+const backToSourcesFromCoverageButton = document.querySelector("#back-to-sources-from-coverage");
 
 const pathTitle = document.querySelector("#path-title");
 const pathMessage = document.querySelector("#path-message");
 const mapCount = document.querySelector("#map-count");
 const conceptMap = document.querySelector("#concept-map");
+const suggestedOutcome = document.querySelector("#suggested-outcome");
 const routeList = document.querySelector("#route-list");
 const routeTotal = document.querySelector("#route-total");
 const pathGenerationLabel = document.querySelector("#path-generation-label");
@@ -398,16 +391,11 @@ async function checkRuntime() {
     const health = await api("/api/health");
     state.runtimeMode = health.mode;
     const isDemo = health.mode === "demo";
-    modeBadge.textContent = isDemo ? "Demo mode" : "Live GPT-5.6 mode";
-    modeBadge.dataset.mode = health.mode;
-    runtimeStatus.textContent = `Service healthy · ${isDemo ? "Demo" : "Live GPT-5.6"} mode · Database schema ${health.schema_version}`;
+    runtimeStatus.textContent = "Service ready.";
     loadDemoButton.hidden = !isDemo;
-    loadSearchDemoButton.hidden = !isDemo;
     demoMaterialNote.hidden = !isDemo;
   } catch (error) {
-    modeBadge.textContent = "Service offline";
-    modeBadge.dataset.mode = "offline";
-    runtimeStatus.textContent = "Could not reach the service. Refresh to retry; page content remains available.";
+    runtimeStatus.textContent = "Service unavailable. Refresh to retry; page content remains available.";
   }
 }
 
@@ -573,7 +561,7 @@ function resumeLabel(session) {
   if (session.state === "learning_concept") return "Resume current concept";
   if (session.state === "start_action") return "Open start action";
   if (session.state === "path_drafting") return "Review learning path";
-  if (session.setup_completed) return "Review source coverage";
+  if (session.setup_completed) return "Continue with this material";
   return "Continue session";
 }
 
@@ -614,7 +602,7 @@ async function resumeSession(sessionId) {
         await showCoverage();
       }
     } else if (session.setup_completed) {
-      await showCoverage();
+      await showSources();
     } else {
       await showSources();
     }
@@ -655,6 +643,25 @@ async function showHome(event) {
   window.clearInterval(state.focusTimer);
   showView("home", "library", document.querySelector("#hero-title"));
   await loadSessions();
+}
+
+function openSettingsPanel() {
+  setMessage(dataControlMessage, "");
+  settingsDialog.showModal();
+}
+
+function closeSettingsPanel() {
+  settingsDialog.close();
+  openSettingsPanelButton.focus({ preventScroll: true });
+}
+
+function openHelpPanel() {
+  helpDialog.showModal();
+}
+
+function closeHelpPanel() {
+  helpDialog.close();
+  openHelpPanelButton.focus({ preventScroll: true });
 }
 
 function savedPreference(name) {
@@ -715,7 +722,7 @@ async function openAiActivity() {
         element(
           "p",
           "micro-copy",
-          `${activity.session_name} · ${activity.generation_mode === "demo" ? "Demo" : "Live"} · ${activity.model || "No model"} · ${formatAccessedAt(activity.created_at)}`,
+          `${activity.session_name} · ${formatAccessedAt(activity.created_at)}`,
         ),
       );
       if (activity.error_code) item.append(element("p", "field-error", `Recoverable error: ${activity.error_code}`));
@@ -729,6 +736,7 @@ async function openAiActivity() {
 
 function closeAiActivity() {
   aiActivityDialog.close();
+  if (!settingsDialog.open) settingsDialog.showModal();
   openAiActivityButton.focus({ preventScroll: true });
 }
 
@@ -740,6 +748,7 @@ function openWorkspaceDelete() {
 
 function closeWorkspaceDelete() {
   workspaceDeleteDialog.close();
+  if (!settingsDialog.open) settingsDialog.showModal();
   openDeleteWorkspaceButton.focus({ preventScroll: true });
 }
 
@@ -774,6 +783,7 @@ async function confirmWorkspaceDelete() {
         : "All database records were deleted, but one stored file needs deployment-owner cleanup.",
       body.file_cleanup_complete ? "success" : "error",
     );
+    settingsDialog.showModal();
   } catch (error) {
     setMessage(workspaceDeleteMessage, `${error.message} Your workspace data remains available.`, "error");
     setButtonBusy(confirmWorkspaceDeleteButton, false, "", "Delete everything permanently");
@@ -841,13 +851,19 @@ async function loadSources() {
 
 function renderSources() {
   sourceList.replaceChildren();
-  sourceEmpty.hidden = state.sources.length > 0;
+  const hasSources = state.sources.length > 0;
+  sourceInventory.hidden = !hasSources;
+  sourceEmpty.hidden = hasSources;
+  uploadPanel.classList.toggle("has-sources", hasSources);
+  dropZoneTitle.textContent = hasSources ? "Add more material" : "Drop files here";
+  dropZoneCopy.textContent = hasSources ? "Drop another file here or choose from this device" : "or choose files from this device";
   sourceCount.textContent = `${state.sources.length} ${state.sources.length === 1 ? "source" : "sources"}`;
   const readySources = state.sources.filter((source) => ["success", "partial_success"].includes(source.parse_status));
   reviewCoverageButton.disabled = readySources.length === 0;
+  learningReady.hidden = readySources.length === 0;
   coverageNote.textContent = readySources.length
-    ? `${readySources.length} readable ${readySources.length === 1 ? "source is" : "sources are"} ready. Continue when you are satisfied with the material.`
-    : "Add at least one readable source to continue.";
+    ? `${readySources.length} readable ${readySources.length === 1 ? "source is" : "sources are"} ready. StartFrame will identify the core concepts, organize a short route, and use your first response to begin learning your starting level.`
+    : "StartFrame will identify the core concepts, organize a short route, and use your first response to begin learning your starting level.";
 
   state.sources.forEach((source) => {
     const item = element("li", "source-item");
@@ -877,6 +893,13 @@ function renderSources() {
   });
 }
 
+function revealReadyMaterial() {
+  if (sourceInventory.hidden) return;
+  sourceInventory.scrollIntoView({ behavior: "smooth", block: "start" });
+  const firstReadyControl = sourceList.querySelector(".source-select:not(:disabled)");
+  if (firstReadyControl) firstReadyControl.focus({ preventScroll: true });
+}
+
 async function uploadFiles(fileList) {
   const files = [...fileList];
   if (!files.length) return;
@@ -894,7 +917,10 @@ async function uploadFiles(fileList) {
     }
     await loadSources();
     const firstReady = state.sources.find((source) => ["success", "partial_success"].includes(source.parse_status));
-    if (firstReady) await selectSource(firstReady.id);
+    if (firstReady) {
+      await selectSource(firstReady.id);
+      revealReadyMaterial();
+    }
   } catch (error) {
     const rejected = error.body?.rejected;
     if (Array.isArray(rejected) && rejected.length) {
@@ -909,30 +935,27 @@ async function uploadFiles(fileList) {
   }
 }
 
-async function loadDemoMaterials(scenario = "standard") {
-  const controlledSearch = scenario === "controlled_search";
-  const button = controlledSearch ? loadSearchDemoButton : loadDemoButton;
-  const idleLabel = controlledSearch ? "Load controlled-search Demo" : "Load standard Demo";
-  setButtonBusy(button, true, "Loading Demo materials…", idleLabel);
+async function loadSampleMaterials() {
+  const idleLabel = "Try sample material";
+  setButtonBusy(loadDemoButton, true, "Loading sample material…", idleLabel);
   try {
-    const body = await api(`/api/sessions/${state.sessionId}/demo-materials?scenario=${scenario}`, { method: "POST" });
+    const body = await api(`/api/sessions/${state.sessionId}/demo-materials?scenario=standard`, { method: "POST" });
     setUploadMessage(
       body.created_count
-        ? controlledSearch
-          ? "The Transformer notes were loaded. Their missing dot-product prerequisite creates the controlled-search Demo gap."
-          : "Two clearly labeled Demo materials were copied into this private session."
-        : controlledSearch
-          ? "The controlled-search source is already present. Use a fresh session if the matrix prerequisite is also listed."
-          : "The standard Demo materials are already in this session.",
+        ? "Two sample learning materials were added to this session."
+        : "The sample materials are already in this session.",
       "success",
     );
     await loadSources();
     const firstReady = state.sources.find((source) => ["success", "partial_success"].includes(source.parse_status));
-    if (firstReady) await selectSource(firstReady.id);
+    if (firstReady) {
+      await selectSource(firstReady.id);
+      revealReadyMaterial();
+    }
   } catch (error) {
     setUploadMessage(`${error.message} Existing sources are unchanged.`, "error");
   } finally {
-    setButtonBusy(button, false, "", idleLabel);
+    setButtonBusy(loadDemoButton, false, "", idleLabel);
   }
 }
 
@@ -1135,6 +1158,7 @@ async function submitPastedSource(event) {
     setUploadMessage("Pasted text was saved and parsed with paragraph locations.", "success");
     await loadSources();
     await selectSource(body.source.id);
+    revealReadyMaterial();
   } catch (error) {
     pasteError.textContent = `${error.message} Your pasted text remains in this form.`;
     pasteError.hidden = false;
@@ -1144,178 +1168,37 @@ async function submitPastedSource(event) {
   }
 }
 
-function openTopicFallback() {
-  state.topicSessionId = null;
-  topicForm.reset();
-  topicInput.value = state.runtimeMode === "demo" ? "Self-attention" : "";
-  topicError.hidden = true;
-  topicDialog.showModal();
-  topicInput.focus();
-}
-
-async function cancelTopicFallback() {
-  topicDialog.close();
-  const emptySessionId = state.topicSessionId;
-  state.topicSessionId = null;
-  if (emptySessionId) {
-    try {
-      await api(`/api/sessions/${emptySessionId}`, { method: "DELETE" });
-      if (state.sessionId === emptySessionId) {
-        state.sessionId = null;
-        state.session = null;
-        window.localStorage.removeItem("startframe_session_id");
-      }
-      await loadSessions();
-    } catch (error) {
-      setMessage(recentMessage, `${error.message} The empty session remains available in learning history.`, "error");
-    }
-  }
-  openTopicButton.focus({ preventScroll: true });
-}
-
-async function submitTopicFallback(event) {
-  event.preventDefault();
-  topicError.hidden = true;
-  if (!topicForm.reportValidity()) return;
-  const topic = topicInput.value.trim();
-  if (state.runtimeMode === "demo" && !["self attention", "self-attention", "selfattention"].includes(topic.toLowerCase())) {
-    topicError.textContent = "Demo mode includes one fixed topic-only fixture: Self-attention.";
-    topicError.hidden = false;
-    topicError.focus();
-    return;
-  }
-  setButtonBusy(submitTopicButton, true, "Generating supplemental source…", "Generate supplemental source");
-  cancelTopicButton.disabled = true;
-  try {
-    if (!state.topicSessionId) {
-      const created = await api("/api/sessions", { method: "POST" });
-      state.topicSessionId = created.session.id;
-      state.sessionId = created.session.id;
-      state.session = created.session;
-      window.localStorage.setItem("startframe_session_id", state.sessionId);
-    }
-    const body = await api(`/api/sessions/${state.topicSessionId}/topic-source`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ topic }),
-    });
-    state.topicSessionId = null;
-    topicDialog.close();
-    topicForm.reset();
-    await showSources();
-    setUploadMessage(
-      `${body.source.filename} is ready and labeled as an ${sourceOriginLabel(body.source.source_origin)}. No internet search ran.`,
-      "success",
-    );
-    await selectSource(body.source.id);
-  } catch (error) {
-    topicError.textContent = `${error.message} ${error.body?.saved_state || "Your topic remains in this form."}`;
-    topicError.hidden = false;
-    topicError.focus();
-  } finally {
-    cancelTopicButton.disabled = false;
-    setButtonBusy(submitTopicButton, false, "", "Generate supplemental source");
-  }
-}
-
-function setupDraftKey() {
-  return `startframe_setup_${state.sessionId}`;
-}
-
 function startDraftKey() {
   return `startframe_start_answer_${state.sessionId}`;
 }
 
-function setupValues() {
-  const data = new FormData(setupForm);
-  return {
-    goal: String(data.get("goal") || "").trim(),
-    prior_knowledge: String(data.get("prior_knowledge") || "").trim(),
-    available_minutes: Number(data.get("available_minutes")),
-    energy_level: String(data.get("energy_level")),
-    current_question: String(data.get("current_question") || "").trim() || null,
-    support_preferences: data.getAll("support").map(String),
-    show_timer: data.get("show_timer") === "on",
-    search_permission: data.get("search_permission") === "on",
-  };
-}
-
-function fillSetup(values) {
-  if (!values) return;
-  setupForm.elements.goal.value = values.goal || "";
-  setupForm.elements.prior_knowledge.value = values.prior_knowledge || "";
-  setupForm.elements.available_minutes.value = String(values.available_minutes || 25);
-  setupForm.elements.energy_level.value = values.energy_level || "medium";
-  setupForm.elements.current_question.value = values.current_question || "";
-  const supports = new Set(values.support_preferences || []);
-  setupForm.querySelectorAll('input[name="support"]').forEach((input) => {
-    input.checked = supports.has(input.value);
-  });
-  setupForm.elements.show_timer.checked = Boolean(values.show_timer);
-  setupForm.elements.search_permission.checked = Boolean(values.search_permission);
-}
-
-async function showSetup() {
+async function prepareLearningPath() {
   window.clearTimeout(state.pollTimer);
-  const session = await getCurrentSession();
-  const localDraft = JSON.parse(window.localStorage.getItem(setupDraftKey()) || "null");
-  const serverValues = session.setup_completed ? session : null;
-  const firstSource = state.sources[0];
-  const sourceTopic = firstSource?.filename
-    ?.replace(/^AI supplemental - /, "")
-    .replace(/\.(md|markdown|txt|pdf)$/i, "")
-    || "my learning material";
-  const isTransformerDemo = state.sources.some((source) => source.filename === "transformer_notes.md");
-  fillSetup(localDraft || serverValues || {
-    goal: isTransformerDemo
-      ? "Understand self-attention and explain its basic flow"
-      : `Understand and explain the main ideas in ${sourceTopic}`,
-    prior_knowledge: isTransformerDemo
-      ? "Basic machine learning, but no detailed Transformer knowledge"
-      : "I know some basic context, but have not studied this material in depth",
-    available_minutes: 25,
-    energy_level: "medium",
-    current_question: isTransformerDemo ? "How do relevance scores become a new token representation?" : "",
-    support_preferences: ["direct_explanation", "define_terms", "short_steps"],
-    show_timer: savedPreference("show_timer"),
-    search_permission: savedPreference("search_suggestions"),
-  });
-  setMessage(setupMessage, "");
-  showView("setup", `setup/${state.sessionId}`, setupTitle);
-}
-
-function saveSetupDraft() {
-  window.localStorage.setItem(setupDraftKey(), JSON.stringify(setupValues()));
-  setupSaveStatus.textContent = "Draft saved on this device.";
-}
-
-async function saveSetup() {
-  const values = setupValues();
-  const body = await api(`/api/sessions/${state.sessionId}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...values, version: state.session.version }),
-  });
-  state.session = body.session;
-  window.localStorage.removeItem(setupDraftKey());
-  setupSaveStatus.textContent = "Saved to this session.";
-  return body.session;
-}
-
-async function submitSetup(event) {
-  event.preventDefault();
-  if (!setupForm.reportValidity()) return;
-  setMessage(setupMessage, "");
-  setButtonBusy(generateCoverageButton, true, "Saving setup…", "Save setup and review source coverage");
+  setButtonBusy(reviewCoverageButton, true, "Analyzing your material…", "Build my learning path");
+  setUploadMessage("Analyzing the material, checking coverage, and building a short concept path…");
   try {
-    await saveSetup();
-    await createCoverage();
+    const session = await getCurrentSession();
+    const result = await api(`/api/sessions/${state.sessionId}/learning-path`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        version: session.version,
+        show_timer: savedPreference("show_timer"),
+        search_permission: savedPreference("search_suggestions"),
+      }),
+    });
+    state.coverage = result.coverage;
+    const path = result.path;
+    state.knowledgeMap = path;
+    state.fullRoute = path.knowledge_map.concepts.map((concept) => concept.concept_key);
+    showView("path", `path/${state.sessionId}`, pathTitle);
+    renderPath(path);
+    confirmPathButton.disabled = false;
+    setMessage(pathMessage, "Your learning path is ready. StartFrame will learn your starting level from the first short response and later practice evidence.", "success");
   } catch (error) {
-    const saved = error.body?.saved_state || "Your form values remain on this device.";
-    setMessage(setupMessage, `${error.message} ${saved}`, "error");
-    setupMessage.focus();
+    setUploadMessage(`${error.message} ${error.body?.saved_state || "Your material is still saved."}`, "error");
   } finally {
-    setButtonBusy(generateCoverageButton, false, "", "Save setup and review source coverage");
+    setButtonBusy(reviewCoverageButton, false, "", "Build my learning path");
   }
 }
 
@@ -1352,7 +1235,8 @@ async function showCoverage() {
     generateMapButton.disabled = false;
   } catch (error) {
     if (error.body?.error_code === "coverage_not_generated") {
-      await showSetup();
+      await showSources();
+      setUploadMessage("Build the learning path first. Your material is ready.");
       return;
     }
     setMessage(coverageMessage, `${error.message} Your sources remain saved.`, "error");
@@ -1396,9 +1280,9 @@ function renderCoverage(body) {
       : "Saved learning source";
   uploadedPolicyText.textContent = origins.has("uploaded")
     ? "Primary source for this map and later learning activities."
-    : "No uploaded material is present in this topic-only session.";
+    : "No uploaded material is available in this session.";
   aiPolicyText.textContent = origins.has("ai_supplement")
-    ? "Current fallback source; it stays labeled and does not claim uploaded or external provenance."
+    ? "Supplemental explanations stay labeled and never claim uploaded or external provenance."
     : "Must stay labeled and cannot invent source locations.";
   coveredList.replaceChildren();
   gapList.replaceChildren();
@@ -1427,10 +1311,7 @@ function renderCoverage(body) {
       gapList.append(card);
     });
   }
-  const generation = body.generation;
-  coverageGenerationLabel.textContent = generation.mode === "demo"
-    ? "Deterministic Demo fixture · No model call · No internet search"
-    : `${generation.model} Structured Output · Source references validated · No internet search`;
+  coverageGenerationLabel.textContent = "Source references verified · No external search used";
 }
 
 async function createMap() {
@@ -1469,6 +1350,7 @@ function renderPath(body) {
   const conceptsByKey = new Map(map.concepts.map((concept) => [concept.concept_key, concept]));
   conceptMap.replaceChildren();
   routeList.replaceChildren();
+  suggestedOutcome.textContent = map.map_title;
   mapCount.textContent = `${map.concepts.length} concepts`;
   map.concepts.forEach((concept, index) => {
     const item = element("li", "concept-node");
@@ -1504,9 +1386,7 @@ function renderPath(body) {
   startActionInstruction.textContent = map.start_action.instruction;
   startActionCondition.textContent = map.start_action.completion_condition;
   startActionReason.textContent = `${map.start_action.why_this_first} · About ${map.start_action.estimated_seconds} seconds.`;
-  pathGenerationLabel.textContent = body.generation.mode === "demo"
-    ? "Deterministic Demo fixture · Source references validated · No internet search"
-    : `${body.generation.model} Structured Output · Source references validated · No internet search`;
+  pathGenerationLabel.textContent = "Built from this session's material · Source references verified";
 }
 
 async function adjustRoute(route) {
@@ -1528,7 +1408,7 @@ async function adjustRoute(route) {
 }
 
 async function confirmPath() {
-  setButtonBusy(confirmPathButton, true, "Confirming route…", "Confirm this route and show the start action");
+  setButtonBusy(confirmPathButton, true, "Starting your path…", "Start with this learning path");
   try {
     const body = await api(`/api/sessions/${state.sessionId}/path/confirm`, { method: "POST" });
     state.knowledgeMap = body;
@@ -1536,7 +1416,7 @@ async function confirmPath() {
   } catch (error) {
     setMessage(pathMessage, `${error.message} Your map is still saved.`, "error");
   } finally {
-    setButtonBusy(confirmPathButton, false, "", "Confirm this route and show the start action");
+    setButtonBusy(confirmPathButton, false, "", "Start with this learning path");
   }
 }
 
@@ -1811,9 +1691,7 @@ function renderTutor(body) {
   const tutorPrimaryOrigin = concept.source_ref_details.some((item) => item.source_origin === "uploaded")
     ? "uploaded"
     : "ai_supplement";
-  tutorModeLabel.textContent = body.generation?.mode === "real"
-    ? `${body.generation.model} · ${sourceOriginLabel(tutorPrimaryOrigin)}`
-    : sourceOriginLabel(tutorPrimaryOrigin);
+  tutorModeLabel.textContent = sourceOriginLabel(tutorPrimaryOrigin);
 
   tutorContextSources.replaceChildren();
   concept.source_refs.forEach((reference) => {
@@ -2972,11 +2850,29 @@ async function chooseConflictVersion(choice) {
 
 startButtons.forEach((button) => button.addEventListener("click", beginSession));
 libraryLink.addEventListener("click", showHome);
+openSettingsPanelButton.addEventListener("click", openSettingsPanel);
+closeSettingsPanelButton.addEventListener("click", closeSettingsPanel);
+settingsDialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  closeSettingsPanel();
+});
+openHelpPanelButton.addEventListener("click", openHelpPanel);
+closeHelpPanelButton.addEventListener("click", closeHelpPanel);
+helpDialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  closeHelpPanel();
+});
 exportJsonButton.addEventListener("click", () => downloadWorkspaceExport("json"));
 exportMarkdownButton.addEventListener("click", () => downloadWorkspaceExport("markdown"));
-openAiActivityButton.addEventListener("click", openAiActivity);
+openAiActivityButton.addEventListener("click", () => {
+  settingsDialog.close();
+  openAiActivity();
+});
 closeAiActivityButton.addEventListener("click", closeAiActivity);
-openDeleteWorkspaceButton.addEventListener("click", openWorkspaceDelete);
+openDeleteWorkspaceButton.addEventListener("click", () => {
+  settingsDialog.close();
+  openWorkspaceDelete();
+});
 cancelWorkspaceDeleteButton.addEventListener("click", closeWorkspaceDelete);
 confirmWorkspaceDeleteButton.addEventListener("click", confirmWorkspaceDelete);
 cancelSessionDeleteButton.addEventListener("click", closeSessionDelete);
@@ -2984,17 +2880,9 @@ confirmSessionDeleteButton.addEventListener("click", confirmSessionDelete);
 backHomeButton.addEventListener("click", leaveSourceView);
 saveForLaterButton.addEventListener("click", showHome);
 chooseFilesButton.addEventListener("click", () => fileInput.click());
-openTopicButton.addEventListener("click", openTopicFallback);
-topicForm.addEventListener("submit", submitTopicFallback);
-cancelTopicButton.addEventListener("click", cancelTopicFallback);
-topicDialog.addEventListener("cancel", (event) => {
-  event.preventDefault();
-  cancelTopicFallback();
-});
 fileInput.addEventListener("change", () => uploadFiles(fileInput.files));
-loadDemoButton.addEventListener("click", () => loadDemoMaterials("standard"));
-loadSearchDemoButton.addEventListener("click", () => loadDemoMaterials("controlled_search"));
-reviewCoverageButton.addEventListener("click", showSetup);
+loadDemoButton.addEventListener("click", loadSampleMaterials);
+reviewCoverageButton.addEventListener("click", prepareLearningPath);
 openPasteButton.addEventListener("click", () => pasteDialog.showModal());
 cancelPasteButton.addEventListener("click", () => pasteDialog.close());
 pasteForm.addEventListener("submit", submitPastedSource);
@@ -3012,11 +2900,7 @@ sessionFilter.addEventListener("change", renderSessions);
 [preferenceLargeText, preferenceReducedMotion, preferenceShowTimer, preferenceSearchSuggestions]
   .forEach((control) => control.addEventListener("change", savePreferences));
 
-setupForm.addEventListener("input", saveSetupDraft);
-setupForm.addEventListener("change", saveSetupDraft);
-setupForm.addEventListener("submit", submitSetup);
-backToSourcesButton.addEventListener("click", () => showSources());
-backToSetupButton.addEventListener("click", showSetup);
+backToSourcesFromCoverageButton.addEventListener("click", () => showSources());
 regenerateCoverageButton.addEventListener("click", createCoverage);
 generateMapButton.addEventListener("click", createMap);
 backToCoverageButton.addEventListener("click", showCoverage);
@@ -3162,8 +3046,7 @@ async function initialize() {
   if (!state.sessionId) return;
   const hash = window.location.hash;
   try {
-    if (hash.startsWith("#setup/")) await showSetup();
-    else if (hash.startsWith("#coverage/")) await showCoverage();
+    if (hash.startsWith("#coverage/")) await showCoverage();
     else if (hash.startsWith("#path/")) await showPath();
     else if (hash.startsWith("#start/")) await showStartAction();
     else if (hash.startsWith("#tutor/")) await showTutor();

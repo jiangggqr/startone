@@ -6,7 +6,8 @@ Read `STARTFRAME_FULL_SPEC_CN.md`, `PLANS.md`, the relevant numbered files in `d
 
 ## Product boundaries
 
-- Uploaded learning material is the default primary source.
+- Uploaded learning material is the required primary source and the only product entry path.
+- Do not gate learning behind a goal, prior-knowledge, time or energy form. AI proposes the learning focus and map from the material; the learner's starting response and later evidence calibrate support.
 - Guided Mastery Loop teaches and evaluates the active concept.
 - Adaptive Planning Agent only selects one next action from validated evidence.
 - `LearningEvidence` contains observations, never recommendations.
@@ -29,7 +30,7 @@ Read `STARTFRAME_FULL_SPEC_CN.md`, `PLANS.md`, the relevant numbered files in `d
 - Static HTML/CSS/JS is preferred; do not introduce a Node build system unless a documented decision changes this.
 - OpenAI API calls stay on the server. Never expose keys in client code or commits.
 - Use Responses API, schema-validated Structured Outputs and bounded tool/function calls.
-- Keep deterministic Demo mode and real-model mode separate and visibly labeled.
+- Keep deterministic fixtures and real-model execution separate internally and in tests. Do not expose evaluator controls or a global mode badge in the learner product UI.
 
 ## Definition of done
 

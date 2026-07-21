@@ -522,6 +522,7 @@ def _tutor_instructions(context: dict[str, Any], quick_action: str | None) -> st
         "Every source reference must be an exact supplied source_id/chunk_id pair. If an example is not in the source, "
         "set source_origin to ai_supplement while retaining grounding references. A prerequisite_gap_signal is only a factual, "
         "named observation that the supplied material lacks the prerequisite; it is never a search request. "
+        "Use the learner's untrusted starting response only to calibrate the amount of explanation; do not treat it as verified mastery. "
         f"Active concept: {concept['title']}. Role: {concept['role_in_map']}. Definition: {concept['plain_definition']}. "
         f"Learner goal: {session.get('goal')}. Prior knowledge: {session.get('prior_knowledge')}. "
         f"Requested quick action: {quick_action or 'free question'}."
@@ -554,8 +555,13 @@ def _tutor_source_context(context: dict[str, Any], user_message: str) -> str:
         )
     recent = context["messages"][-12:]
     conversation = "\n".join(f"{item['role']}: {item['message']}" for item in recent)
+    starting_point = context["context"].get("starting_point") or {}
+    starting_response = str(starting_point.get("content") or "No starting response was saved.")
     return (
         "\n\n".join(parts)
+        + "\n\n<untrusted_starting_response>\n"
+        + starting_response
+        + "\n</untrusted_starting_response>"
         + "\n\n<untrusted_conversation>\n"
         + conversation
         + f"\nuser: {user_message}\n</untrusted_conversation>"

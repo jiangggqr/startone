@@ -1,7 +1,7 @@
 import asyncio
 from pathlib import Path
 
-from tests.test_learning_path import app_client, create_session, make_app, save_setup
+from tests.test_learning_path import app_client, build_learning_path, create_session, make_app
 
 
 async def prepare_start_action(client, *, demo_scenario: str = "standard"):
@@ -10,9 +10,7 @@ async def prepare_start_action(client, *, demo_scenario: str = "standard"):
         f"/api/sessions/{session['id']}/demo-materials?scenario={demo_scenario}"
     )
     session = (await client.get(f"/api/sessions/{session['id']}")).json()["session"]
-    await save_setup(client, session)
-    await client.post(f"/api/sessions/{session['id']}/coverage")
-    await client.post(f"/api/sessions/{session['id']}/path")
+    await build_learning_path(client, session)
     await client.post(f"/api/sessions/{session['id']}/path/confirm")
     return (await client.get(f"/api/sessions/{session['id']}")).json()["session"]
 

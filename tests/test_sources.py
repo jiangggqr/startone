@@ -2,12 +2,14 @@ import asyncio
 from contextlib import asynccontextmanager
 from io import BytesIO
 from pathlib import Path
+import sqlite3
 
 import httpx
 from pypdf import PdfWriter
 from pypdf.generic import DecodedStreamObject, DictionaryObject, NameObject
 
 from app.config import Settings
+from app.db import connect, initialize_database
 from app.main import create_app
 
 
@@ -296,3 +298,62 @@ def test_source_location_report_is_owned_and_exported(tmp_path: Path) -> None:
                 assert "filename" not in denied.text
 
     asyncio.run(scenario())
+
+
+def test_schema_10_migrates_existing_sources_without_losing_child_rows(tmp_path: Path) -> None:
+    database_path = tmp_path / "old.sqlite3"
+    connection = sqlite3.connect(database_path)
+    connection.executescript(
+        """
+        PRAGMA foreign_keys = ON;
+        CREATE TABLE schema_migrations(version INTEGER PRIMARY KEY, applied_at TEXT DEFAULT CURRENT_TIMESTAMP);
+        CREATE TABLE workspaces(id TEXT PRIMARY KEY);
+        CREATE TABLE learning_sessions(id TEXT PRIMARY KEY, workspace_id TEXT REFERENCES workspaces(id) ON DELETE CASCADE);
+        CREATE TABLE source_blobs(id TEXT PRIMARY KEY, workspace_id TEXT REFERENCES workspaces(id), checksum TEXT, storage_path TEXT, byte_size INTEGER);
+        CREATE TABLE source_documents(
+            id TEXT PRIMARY KEY,
+            workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+            session_id TEXT NOT NULL REFERENCES learning_sessions(id) ON DELETE CASCADE,
+            blob_id TEXT NOT NULL REFERENCES source_blobs(id),
+            filename TEXT NOT NULL,
+            media_type TEXT NOT NULL,
+            media_kind TEXT NOT NULL CHECK(media_kind IN ('pdf', 'markdown', 'text', 'pasted')),
+            source_origin TEXT NOT NULL DEFAULT 'uploaded' CHECK(source_origin = 'uploaded'),
+            parse_status TEXT NOT NULL,
+            page_count INTEGER,
+            line_count INTEGER,
+            error_code TEXT,
+            error_message TEXT,
+            version INTEGER NOT NULL DEFAULT 1,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX idx_sources_session_created ON source_documents(session_id, created_at);
+        CREATE TABLE source_chunks(
+            id TEXT PRIMARY KEY,
+            source_id TEXT NOT NULL REFERENCES source_documents(id) ON DELETE CASCADE,
+            heading_path TEXT, page_number INTEGER, page_chunk_index INTEGER,
+            paragraph_number INTEGER, start_line INTEGER, end_line INTEGER,
+            start_char INTEGER NOT NULL, end_char INTEGER NOT NULL,
+            text TEXT NOT NULL, search_text TEXT NOT NULL, checksum TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+        INSERT INTO schema_migrations(version) VALUES (1),(2),(3),(4),(5),(6),(7),(8),(9);
+        INSERT INTO workspaces(id) VALUES ('workspace');
+        INSERT INTO learning_sessions(id, workspace_id) VALUES ('session', 'workspace');
+        INSERT INTO source_blobs(id, workspace_id, checksum, storage_path, byte_size)
+            VALUES ('blob', 'workspace', 'sum', '/tmp/old', 4);
+        INSERT INTO source_documents(id, workspace_id, session_id, blob_id, filename, media_type, media_kind, parse_status)
+            VALUES ('source', 'workspace', 'session', 'blob', 'notes.md', 'text/markdown', 'markdown', 'success');
+        INSERT INTO source_chunks(id, source_id, start_char, end_char, text, search_text, checksum)
+            VALUES ('chunk', 'source', 0, 4, 'text', 'text', 'sum');
+        """
+    )
+    connection.close()
+
+    initialize_database(database_path)
+    with connect(database_path) as migrated:
+        assert migrated.execute("SELECT source_origin FROM source_documents WHERE id = 'source'").fetchone()[0] == "uploaded"
+        assert migrated.execute("SELECT source_id FROM source_chunks WHERE id = 'chunk'").fetchone()[0] == "source"
+        assert migrated.execute("PRAGMA foreign_key_check").fetchall() == []
+        migrated.execute("UPDATE source_documents SET source_origin = 'ai_supplement' WHERE id = 'source'")

@@ -27,7 +27,7 @@ Constraints:
 Implement:
 1. FastAPI app on port 8000.
 2. GET /api/health.
-3. Accessible app shell with global navigation and visible Demo mode label.
+3. Accessible app shell with global navigation; runtime and evaluator controls stay outside the learner UI.
 4. Static homepage matching prototype screen 01 at low-fidelity level.
 5. SQLite schema version table.
 6. Config and .env.example with demo/real mode, but no OpenAI call.
@@ -86,7 +86,7 @@ Acceptance:
 
 ```text
 Goal:
-Implement Milestone 2: learner setup, source coverage, knowledge map, route and first action.
+Implement Milestone 2: automatic material analysis, source coverage, knowledge map, route and first action without a learner setup form.
 
 Read first:
 prototype screens 02, 04, 05 and 06,
@@ -111,7 +111,7 @@ Boundaries:
 - Do not call web search.
 - Do not send whole documents when relevant chunks suffice.
 
-Verify setup-to-start-action in browser and add contract/grounding tests.
+Verify upload-to-start-action in browser and add contract/grounding tests.
 ```
 
 ---
@@ -165,7 +165,7 @@ docs/13_DATA_AI_API_CONTRACTS.md.
 
 Implement:
 - Quick actions and free questions.
-- Context: active concept, source chunks, map relation, user setup, recent attempts and confusion signals.
+- Context: active concept, source chunks, map relation, first learner response, recent attempts and confusion signals.
 - TutorResponse Structured Output.
 - Guidance ladder: clarify, direction, structure, keywords, partial example, concise explanation, checking question.
 - Source origin labels and validated refs.
@@ -291,7 +291,7 @@ Implement:
 1. Four gates: session permission, validated named SourceGap, Agent request_search and runtime user confirmation.
 2. Runtime confirmation page showing gap, goal and alternatives; the execute endpoint revalidates all four gates.
 3. OpenAI Responses API web_search in real mode.
-4. Deterministic mock results in Demo mode.
+4. Deterministic mock results in internal acceptance mode only.
 5. Small candidate set with title, URL, publisher, selection reason and filled gap.
 6. Preview, select, ignore and retry.
 7. Persistent external source refs and labels.
@@ -323,7 +323,7 @@ Tasks:
 - Perform keyboard-only and focus-management checks.
 - Verify source origin and citation validation everywhere.
 - Verify Agent/Tutor boundaries and search gates.
-- Test no-key Demo end to end.
+- Test the no-key deterministic fixture path end to end without exposing it in learner UI.
 - Run one real GPT-5.6 smoke flow without committing secrets.
 - Review privacy, file handling and HTML escaping.
 - Remove dead code, caches and stale fixtures.
@@ -340,7 +340,7 @@ Goal:
 Prepare StartFrame Agent for judging and submission.
 
 Implement or update:
-- Final README with clean setup, Demo mode, real mode and judge path.
+- Final README with clean installation, internal deterministic tests, real product mode and judge path.
 - License.
 - Sample data and expected demo behavior.
 - Deployment instructions or reliable local test path.

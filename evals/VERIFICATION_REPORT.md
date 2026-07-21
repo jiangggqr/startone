@@ -1,8 +1,8 @@
 # StartFrame Agent verification report
 
 Date: 2026-07-21  
-Application mode: deterministic Demo  
-Automated result: `45 passed`
+Application verification: deterministic fixtures plus isolated real GPT-5.6 smoke flow
+Automated result: `43 passed`
 Browser widths exercised: 390 px, 640 px zoom-equivalent, and desktop  
 Live GPT-5.6 status: passed an isolated real-mode core flow on 2026-07-21
 
@@ -44,7 +44,7 @@ Live GPT-5.6 status: passed an isolated real-mode core flow on 2026-07-21
 | U05 Non-color meaning | Pass | Text, symbols, status labels, and `aria-current` accompany every state. |
 | U06 Target size | Pass | The 390 px computed audit found no visible control below 24×24 CSS px; primary/frequent controls meet the 44 px product target. |
 | U07 200% zoom | Pass | The 640 px zoom-equivalent audit retained all core controls with document width equal to viewport width. |
-| U08 Mobile core flow | Pass | Tutor, Quiz, recall, feedback, Agent, search, summary, topic fallback, settings, and data controls were exercised at 390 px without document overflow. |
+| U08 Mobile core flow | Pass | Knowledge map, Tutor, Quiz, recall, feedback, Agent, search, summary, settings, and data controls were exercised at 390 px without document overflow. |
 | U09 Loading clarity | Pass | Upload, generation, feedback, Tutor, Agent, export, report, and search actions use specific busy text and saved-state messages. |
 | U10 Partial success | Pass | Partial upload/PDF states are visibly distinct from total error and expose retry/continue actions. |
 | U11 Offline save | Pass | Offline events preserve local drafts, announce pending sync, and resync on reconnect. |
@@ -60,15 +60,16 @@ Live GPT-5.6 status: passed an isolated real-mode core flow on 2026-07-21
 
 ## Additional hardening
 
-- Topic-only fallback is secondary to upload, uses a fixed Self-attention fixture in Demo, uses structured GPT-5.6 output in real mode, never browses, and persists as `ai_supplement`.
+- Upload or pasted material is the only learning entry; the app has no topic-only substitute or setup form.
+- Automated coverage verifies upload → AI-selected focus/map → starting response → explanation/Tutor/Quiz/recall visibility.
 - Source-location reports are workspace-owned, tied to an exact chunk, exportable, and do not alter learning progress.
 - History search/filter, session copy/delete, JSON/Markdown export, AI activity, full workspace deletion, larger text, reduced motion, and new-session defaults are user-accessible.
 - API responses are `no-store`; CSP, frame denial, MIME sniff prevention, referrer policy, permissions policy, opener isolation, secure-cookie support, and conditional HSTS are enabled.
 - Public-release defaults enforce 20 sessions and 50 sources per anonymous workspace; quota failures preserve existing data and return a recoverable English error envelope.
 - Export excludes API keys, server paths, hidden answer keys, internal prompts, and model response IDs.
-- The 1.0.0 release browser check loaded the standard two-source judge fixture; at 390 px the document width equaled the viewport, no visible control was below 24×24 CSS px, no Chinese UI was present, and the computed body background image was `none`.
+- The browser check loaded the standard two-source fixture; at 390 px the document width equaled the viewport, no visible control was below 24×24 CSS px, no Chinese UI was present, and the computed body background image was `none`.
 - Secret scan, Python compilation, dependency integrity, diff hygiene, English UI scan, no-gradient scan, and deployment YAML parsing pass.
 
 ## Live GPT-5.6 verification
 
-With `OPENAI_API_KEY` configured only in the ignored local `.env`, `scripts/live_smoke.py` passed an isolated temporary-database flow using the configured `gpt-5.6` model for source coverage, knowledge-map generation, Tutor guidance, Quiz generation, structured feedback and one bounded Agent decision. The flow also rechecked recommendation-free `LearningEvidence` and the Agent's exactly-one-action boundary. No credential or generated learning content was printed or persisted to the normal application database. Real web-search request shape and citation filtering remain contract-tested with a fake Responses client; the public judge deployment remains deterministic no-key Demo mode.
+With `OPENAI_API_KEY` configured only in the ignored local `.env`, `scripts/live_smoke.py` passed an isolated temporary-database flow using the configured `gpt-5.6` model for source coverage, knowledge-map generation, Tutor guidance, Quiz generation, structured feedback and one bounded Agent decision. The flow also rechecked recommendation-free `LearningEvidence` and the Agent's exactly-one-action boundary. No credential or generated learning content was printed or persisted to the normal application database. Real web-search request shape and citation filtering remain contract-tested with a fake Responses client; the public deployment uses the server-side real-model path.

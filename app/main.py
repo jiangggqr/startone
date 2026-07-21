@@ -49,7 +49,7 @@ from app.learning import (
     get_knowledge_map,
     list_source_gaps,
     load_demo_materials,
-    update_session_setup,
+    initialize_learning_context,
 )
 from app.mastery import (
     complete_feedback,
@@ -98,7 +98,6 @@ from app.records import (
     workspace_export_markdown,
 )
 from app.tutor import close_tutor, get_tutor, open_tutor, send_tutor_message
-from app.topic import create_topic_source
 
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
@@ -119,27 +118,15 @@ class PastedSourceRequest(BaseModel):
     text: str = Field(min_length=1, max_length=2_000_000)
 
 
-class TopicSourceRequest(BaseModel):
-    topic: str = Field(min_length=2, max_length=120)
-
-
 class SourceReferenceReportRequest(BaseModel):
     reason: Literal["location_incorrect", "content_mismatch", "other"]
     note: str | None = Field(default=None, max_length=500)
 
 
-class SessionSetupRequest(BaseModel):
-    goal: str = Field(min_length=5, max_length=500)
-    prior_knowledge: str = Field(min_length=2, max_length=500)
-    available_minutes: int = Field(ge=5, le=240)
-    energy_level: Literal["low", "medium", "high"]
-    current_question: str | None = Field(default=None, max_length=1000)
-    support_preferences: list[
-        Literal["direct_explanation", "define_terms", "short_steps", "examples_on_request"]
-    ] = Field(default_factory=list, max_length=4)
+class AutomaticLearningPathRequest(BaseModel):
+    version: int = Field(ge=1)
     show_timer: bool = False
     search_permission: bool = False
-    version: int = Field(ge=1)
 
 
 class PathAdjustmentRequest(BaseModel):
@@ -432,20 +419,43 @@ def create_app(
             _workspace_id(request),
         )
 
-    @application.patch("/api/sessions/{session_id}")
-    async def update_session(
+    @application.post("/api/sessions/{session_id}/learning-path")
+    async def build_automatic_learning_path(
         session_id: str,
-        payload: SessionSetupRequest,
+        payload: AutomaticLearningPathRequest,
         request: Request,
     ) -> dict:
-        session = update_session_setup(
-            resolved_settings.database_path,
-            _workspace_id(request),
+        workspace_id = _workspace_id(request)
+        session = get_session(resolved_settings.database_path, workspace_id, session_id)
+        if int(session["version"]) != payload.version:
+            raise SourceError(
+                "session_version_conflict",
+                "This session changed in another page. Reload the saved material before building the learning path.",
+                status_code=409,
+                saved_state="Your uploaded material is unchanged.",
+            )
+        if not session.get("setup_completed"):
+            session = initialize_learning_context(
+                resolved_settings.database_path,
+                workspace_id,
+                session_id,
+                payload.version,
+                show_timer=payload.show_timer,
+                search_permission=payload.search_permission,
+            )
+        coverage = generate_coverage(
+            resolved_settings,
+            workspace_id,
             session_id,
-            payload.model_dump(exclude={"version"}),
-            payload.version,
+            client_factory=ai_client_factory,
         )
-        return {"session": _public_session(session)}
+        path = generate_knowledge_map(
+            resolved_settings,
+            workspace_id,
+            session_id,
+            client_factory=ai_client_factory,
+        )
+        return {"coverage": coverage, "path": path}
 
     @application.post("/api/sessions/{session_id}/sources", status_code=202)
     async def upload_sources(
@@ -550,22 +560,6 @@ def create_app(
             str(source["id"]),
         )
         return {"status": "processing", "source": _public_source(source)}
-
-    @application.post("/api/sessions/{session_id}/topic-source", status_code=201)
-    async def add_topic_source(
-        session_id: str,
-        payload: TopicSourceRequest,
-        request: Request,
-    ) -> dict:
-        result = create_topic_source(
-            resolved_settings,
-            _workspace_id(request),
-            session_id,
-            payload.topic,
-            client_factory=ai_client_factory,
-        )
-        result["source"] = _public_source(result["source"])
-        return result
 
     @application.get("/api/sessions/{session_id}/sources")
     async def sources(session_id: str, request: Request) -> dict:
@@ -1219,16 +1213,12 @@ def _public_session(session: dict) -> dict:
         "id",
         "name",
         "state",
-        "mode",
         "version",
         "source_count",
         "ready_source_count",
         "goal",
-        "prior_knowledge",
         "available_minutes",
-        "energy_level",
         "language",
-        "current_question",
         "show_timer",
         "search_permission",
         "setup_completed",
@@ -1247,10 +1237,6 @@ def _public_session(session: dict) -> dict:
         "updated_at",
     }
     result = {key: session.get(key) for key in fields if key in session}
-    if "support_preferences_json" in session:
-        import json
-
-        result["support_preferences"] = json.loads(session.get("support_preferences_json") or "[]")
     for key in ("show_timer", "search_permission", "setup_completed", "is_paused", "tutor_open"):
         if key in result:
             result[key] = bool(result[key])

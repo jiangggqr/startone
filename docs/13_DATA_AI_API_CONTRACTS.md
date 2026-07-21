@@ -69,6 +69,8 @@ ended_at
 
 The current recommendation is derived from the latest accepted `AgentDecision`; it is not duplicated as an unconstrained writable session field.
 
+`goal` 由材料分析后的 `map_title` 派生。`prior_knowledge` 初始固定为未评估，真实基础只从首次短回答和后续活动逐步校准。`available_minutes` 是内部紧凑会话默认值；`energy_level` 为兼容既有数据库迁移保留且新会话写入 `NULL`。这些字段不构成用户设置表单，也不由产品 API 接收。
+
 ### Workspace
 
 ```text
@@ -353,17 +355,6 @@ confusion_signal
 prerequisite_gap_signal
 ```
 
-### TopicSourceOutput
-
-```text
-title
-overview
-sections[] {heading, explanation}
-verification_note
-```
-
-This output is available only for the secondary topic-only fallback. It uses no search tool, is persisted with `source_origin=ai_supplement`, and never claims uploaded or externally cited provenance.
-
 ### QuizActivityOutput
 
 ```text
@@ -421,11 +412,11 @@ confidence
 
 Implemented endpoint groups. FastAPI's generated schema at `/api/docs` is authoritative for request and response fields.
 
-### Session and setup
+### Session and automatic preparation
 
 - `POST /api/sessions`
 - `GET /api/sessions/{id}`
-- `PATCH /api/sessions/{id}`
+- `POST /api/sessions/{id}/learning-path`（从材料自动完成覆盖、学习重点和地图生成，不接收目标、基础、时间或精力字段）
 - `POST /api/sessions/{id}/pause`
 - `POST /api/sessions/{id}/resume`
 - `DELETE /api/sessions/{id}`
@@ -435,7 +426,6 @@ Implemented endpoint groups. FastAPI's generated schema at `/api/docs` is author
 
 - `POST /api/sessions/{id}/sources`
 - `POST /api/sessions/{id}/pasted-sources`
-- `POST /api/sessions/{id}/topic-source`
 - `GET /api/sessions/{id}/sources`
 - `GET /api/sources/{source_id}`
 - `GET /api/sources/{source_id}/chunks/{chunk_id}`
@@ -520,18 +510,16 @@ request_id
 
 `user_message` must be understandable without exposing stack traces. `saved_state` tells the UI what was preserved.
 
-## 6. Demo and real modes
+## 6. Internal deterministic tests and real mode
 
-### Demo mode
+### Internal deterministic path
 
 - deterministic fixtures
 - no API key
-- visible Demo label
 - mock search results
-- stable judge path
+- automated and local acceptance tests only; no global mode badge or evaluator control in the learner UI
 - a normal fixture containing `transformer_notes.md` and `matrix_prerequisite.md`
 - a controlled-search fixture containing only `transformer_notes.md`
-- one fixed topic-only `Self-attention` AI-supplement fixture
 
 ### Real mode
 
@@ -541,6 +529,6 @@ request_id
 - real web search only after gates
 - default model alias `gpt-5.6`, configurable on the server
 
-Demo data must never be presented as a real model response.
+Fixture data must never be presented as a real model response or used for arbitrary public uploads.
 
-The real OpenAI path begins in Milestone 2. Missing credentials, refused output, invalid schemas and invalid source references return explicit recoverable errors; they never silently switch to Demo mode.
+The real OpenAI path begins in Milestone 2. Missing credentials, refused output, invalid schemas and invalid source references return explicit recoverable errors; they never silently switch to deterministic fixtures.

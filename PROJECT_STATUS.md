@@ -10,7 +10,7 @@
 - Acceptance scenarios and Codex prompts: complete
 - Milestone 0 application foundation: complete
 - Milestone 1 source ingestion and grounding: complete
-- Milestone 2 learner setup, coverage and knowledge map: complete
+- Milestone 2 automatic material analysis, coverage and knowledge map: complete
 - Milestone 3 production focus-session shell: complete
 - Milestone 4A contextual Tutor: complete
 - Milestone 4B Quiz and free recall: complete
@@ -29,19 +29,19 @@
 
 - Python 3.11+ FastAPI/Uvicorn service and versioned SQLite initialization
 - Static responsive application shell with accessible landmarks, controls and dialog
-- Visible Demo/live-model mode and `GET /api/health`
+- Internal runtime health reporting through `GET /api/health`; no mode or evaluator controls in the learner UI
 - Empty state, offline health state and honest not-yet-implemented state
 - Automated foundation tests and real desktop/mobile browser inspection
 - Anonymous workspace Cookie isolation and private UUID-based source storage
 - PDF, Markdown, TXT and pasted-text parsing with real source locations
 - Stable source/chunk IDs, checksums, local retrieval, retry and source deletion
 - Source inventory, preview, empty/error/partial-success/offline/recovery UI states
-- English learner setup with local draft recovery and optimistic server versioning
+- Material-driven automatic learning focus and map with no goal, prior-knowledge, time or energy setup gate
 - Grounded source coverage with candidate gaps that never authorize search
 - A 2–5 concept dependency map, adjustable route and one 60–120 second start action
 - Shared server-side GPT-5.6 Responses API gateway with Pydantic Structured Outputs
 - Server validation of every generated source/chunk reference before persistence or rendering
-- Explicit Demo/live-model separation, AI activity metadata and recoverable no-key/model errors
+- Internal fixture/real-model separation, AI activity metadata and recoverable no-key/model errors
 - Server-versioned start-action and focus-note drafts with visible save/offline/failure/conflict states
 - Explicit two-copy draft conflict comparison and user-selected resolution
 - One-current-concept focus workspace with compact route, source-backed explanation and one dominant action
@@ -53,41 +53,43 @@
 - Strict typed Tutor responses with validated source references and explicit uploaded/AI-supplement labels
 - Factual confusion/prerequisite signals that are visibly not Agent decisions or search requests
 - Tutor pause/resume, refresh recovery, source-view return focus and full-screen 390 px mobile flow
-- Real GPT-5.6 Tutor contract path with no tools exposed; deterministic Demo Tutor remains visibly labeled
+- Real GPT-5.6 Tutor contract path with no tools exposed; deterministic Tutor remains test-only
 - One-question Quiz with server-only answer keys and misconception-based distractors
 - Free recall with server-only key points, acceptable paraphrases and misconception patterns
 - Progressive 0–3 hint disclosure with saved depth, answer autosave and explicit conflict recovery
 - Persistent activity attempts with source references, pause/refresh recovery and no premature evidence or Agent decision
-- Strict GPT-5.6 Quiz/recall Structured Output contracts with deterministic, visibly labeled Demo activities
+- Strict GPT-5.6 Quiz/recall Structured Output contracts with deterministic test activities
 - Full-screen practice flows with English-only copy, flat backgrounds and a verified 390 px layout
 - Fixed five-part feedback: mastered points, missing/unclear points, compact correction, specific encouragement and one current-concept micro-action
 - Server-validated factual `LearningEvidence` for Quiz, recall, remedial and Tutor-close boundaries with no recommendation columns
 - Targeted remedial practice with five bounded strategy types and no immediate strategy repetition after an unsuccessful result
 - Durable `feedback_shown`, `remedial_practice` and `evidence_ready` states with pause/refresh recovery
-- Strict GPT-5.6 feedback/remedial Structured Output contracts with no model tools and a deterministic Demo evaluator
+- Strict GPT-5.6 feedback/remedial Structured Output contracts with no model tools and a deterministic test evaluator
 - Responsive English feedback, evidence and remedial screens using flat solid backgrounds
 - Exactly-one Adaptive Planning Agent decisions from validated `LearningEvidence` only
 - Eight-action bounded enum with server-validated targets, tools, prerequisites and state transitions
 - Penalty-free user override with only valid alternatives and no hidden reasoning display
 - Prerequisite/review detours that return to the interrupted concept after mastery
 - Named-gap validation and `request_search` gating that stops before any external request
-- Strict real GPT-5.6 function calling with one forced tool call, disabled parallel calls and a deterministic Demo policy
+- Strict real GPT-5.6 function calling with one forced tool call, disabled parallel calls and a deterministic test policy
 - Durable `agent_decision`, `search_confirmation` and `session_summary` transitions with pause/refresh recovery
 - Responsive English Agent screen with one visually dominant recommendation and flat solid backgrounds
 - A separate search confirmation that visibly proves all four gates and states that no search has run before confirmation
 - Execution-time revalidation of session permission, named gap, accepted Agent request and exact-scope user confirmation
 - Required real-mode Responses API web search with cited public HTTPS result filtering and server-only credentials
-- Deterministic Demo search results, controlled-search one-source fixture and explicit Demo/live generation labels
+- Deterministic search results and a controlled-search one-source fixture for internal testing only
 - Canonical URL, publisher, access time, cited summary, selection reason and `external` origin on every result
 - One-source selection or penalty-free ignore, with uploaded material retained as the primary source
 - Durable search confirmation, running, result, failure, cancel and focus-return recovery states
-- Topic-only fallback with a fixed Demo fixture, a strict real GPT-5.6 output, and durable `ai_supplement` provenance
 - Searchable/filterable learning history, session copy/delete, JSON/Markdown export, AI activity log and full workspace deletion
 - Saved larger-text, reduced-motion, timer-default and search-suggestion preferences
 - Exact source-location issue reporting without learning-progress side effects
 - API no-store policy and hardened CSP, frame, MIME, referrer, permissions and opener headers
-- Schema-preserving migration from uploaded-only source origins and 43 passing automated tests
+- Schema-preserving migration from uploaded-only source origins and a complete automated regression suite
+- Upload-flow refinement keeps file status and the next learning action inside the primary upload panel; the homepage no longer exposes administrative/system-boundary cards
+- Uploaded files and their status remain inside the upload panel; the next action builds the learning focus and map directly
+- Knowledge map, source-grounded explanation, Tutor, Quiz and free recall are visible in the primary post-upload flow
 
 ## Next action
 
-Publish the repository and no-key Demo, record/upload the under-three-minute English video, replace the three pending URLs in `submission/DEVPOST_SUBMISSION.md`, and obtain user confirmation before the final Devpost submission action.
+Publish the repository and server-keyed GPT-5.6 app, record/upload the under-three-minute English video, replace the three pending URLs in `submission/DEVPOST_SUBMISSION.md`, and obtain user confirmation before the final Devpost submission action.

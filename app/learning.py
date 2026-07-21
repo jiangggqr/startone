@@ -1,4 +1,4 @@
-"""Learner setup, grounded coverage, knowledge maps, and start actions."""
+"""Automatic learning-path preparation, grounding, maps, and start actions."""
 
 from __future__ import annotations
 
@@ -30,30 +30,25 @@ READY_SOURCE_STATES = ("success", "partial_success")
 DEMO_MODEL = "deterministic-demo-v1"
 
 
-def update_session_setup(
+def initialize_learning_context(
     database_path: Path,
     workspace_id: str,
     session_id: str,
-    values: dict[str, Any],
     expected_version: int,
+    *,
+    show_timer: bool = False,
+    search_permission: bool = False,
 ) -> dict[str, Any]:
     session = get_session(database_path, workspace_id, session_id)
-    goal = values["goal"].strip()
-    prior_knowledge = values["prior_knowledge"].strip()
-    if len(goal) < 5 or len(prior_knowledge) < 2:
-        raise SourceError(
-            "session_setup_invalid",
-            "Add a specific learning goal and a short description of what you already know.",
-            saved_state="Your form values remain in the browser.",
-        )
     if int(session["version"]) != expected_version:
         raise SourceError(
             "session_version_conflict",
-            "This session was updated in another page. Your form values are still here; reload the saved version and review your changes.",
+            "This session was updated in another page. Reload the saved material before building the learning path.",
             status_code=409,
-            saved_state="Both the saved session and your unsent form values are preserved.",
+            saved_state="Your uploaded material is unchanged.",
         )
-    name = _session_name(goal)
+    goal = "Identify and learn the material's core concepts in a dependency-aware order."
+    prior_knowledge = "Not assessed yet. Calibrate support from the learner's starting response and later learning evidence."
     with connect(database_path) as connection:
         cursor = connection.execute(
             """
@@ -65,15 +60,15 @@ def update_session_setup(
             WHERE id = ? AND workspace_id = ? AND version = ?
             """,
             (
-                name,
+                "Learning path in preparation",
                 goal,
                 prior_knowledge,
-                values["available_minutes"],
-                values["energy_level"],
-                (values.get("current_question") or "").strip() or None,
-                json.dumps(values["support_preferences"]),
-                int(values["show_timer"]),
-                int(values["search_permission"]),
+                25,
+                None,
+                None,
+                json.dumps(["direct_explanation", "define_terms", "short_steps"]),
+                int(show_timer),
+                int(search_permission),
                 session_id,
                 workspace_id,
                 expected_version,
@@ -82,9 +77,9 @@ def update_session_setup(
         if cursor.rowcount != 1:
             raise SourceError(
                 "session_version_conflict",
-                "This session changed before your setup could be saved. Reload the saved version and review your form values.",
+                "This session changed before its learning context could be prepared. Reload the saved material and try again.",
                 status_code=409,
-                saved_state="Your browser still holds the form values.",
+                saved_state="Your uploaded material is unchanged.",
             )
     return get_session(database_path, workspace_id, session_id)
 
@@ -99,7 +94,7 @@ def load_demo_materials(
     if settings.mode != "demo":
         raise SourceError(
             "demo_fixture_unavailable",
-            "Demo materials can only be loaded while the app is in Demo mode.",
+            "Sample materials are unavailable in this product environment.",
             status_code=409,
             saved_state="Your current session and sources are unchanged.",
         )
@@ -177,7 +172,7 @@ def generate_coverage(
             exc.error_code,
             exc.user_message,
             status_code=503,
-            saved_state="Your setup and uploaded sources are saved.",
+            saved_state="Your uploaded material is saved.",
         ) from exc
     except SourceError as exc:
         _finish_ai_activity(settings, activity_id, "failed", error_code=exc.error_code)
@@ -186,9 +181,9 @@ def generate_coverage(
         _finish_ai_activity(settings, activity_id, "failed", error_code="coverage_generation_failed")
         raise SourceError(
             "coverage_generation_failed",
-            "Source coverage could not be generated. Your setup and sources are saved; retry generation.",
+            "Source coverage could not be generated. Your material is saved; retry generation.",
             status_code=500,
-            saved_state="Your setup and uploaded sources are saved.",
+            saved_state="Your uploaded material is saved.",
         )
 
 
@@ -204,7 +199,7 @@ def get_coverage(database_path: Path, workspace_id: str, session_id: str) -> dic
             "coverage_not_generated",
             "Source coverage has not been generated yet.",
             status_code=404,
-            saved_state="Your setup and uploaded sources are saved.",
+            saved_state="Your uploaded material is saved.",
         )
     output = SourceCoverageOutput.model_validate_json(str(row["output_json"]))
     return _coverage_payload(database_path, workspace_id, session_id, output, str(row["model"]))
@@ -251,7 +246,7 @@ def generate_knowledge_map(
             exc.error_code,
             exc.user_message,
             status_code=503,
-            saved_state="Your setup, sources, and coverage review are saved.",
+            saved_state="Your material and coverage review are saved.",
         ) from exc
     except SourceError as exc:
         _finish_ai_activity(settings, activity_id, "failed", error_code=exc.error_code)
@@ -262,7 +257,7 @@ def generate_knowledge_map(
             "map_generation_failed",
             "The learning map could not be generated. Your coverage review is saved; retry generation.",
             status_code=500,
-            saved_state="Your setup, sources, and coverage review are saved.",
+            saved_state="Your material and coverage review are saved.",
         )
 
 
@@ -278,7 +273,7 @@ def get_knowledge_map(database_path: Path, workspace_id: str, session_id: str) -
             "map_not_generated",
             "A learning map has not been generated yet.",
             status_code=404,
-            saved_state="Your setup, sources, and coverage review are saved.",
+            saved_state="Your material and coverage review are saved.",
         )
     output = KnowledgeMapOutput.model_validate_json(str(row["output_json"]))
     return _map_payload(
@@ -347,10 +342,15 @@ def adjust_knowledge_map(
         connection.execute(
             """
             UPDATE learning_sessions
-            SET state = 'path_drafting', version = version + 1, updated_at = CURRENT_TIMESTAMP
+            SET name = ?, goal = ?, state = 'path_drafting', version = version + 1, updated_at = CURRENT_TIMESTAMP
             WHERE id = ? AND workspace_id = ?
             """,
-            (session_id, workspace_id),
+            (
+                output.map_title[:180],
+                f"Understand and explain {output.map_title}.",
+                session_id,
+                workspace_id,
+            ),
         )
     return _map_payload(database_path, workspace_id, session_id, adjusted, payload["generation"]["model"], False)
 
@@ -416,10 +416,10 @@ def _require_ready_session(database_path: Path, workspace_id: str, session_id: s
     session = get_session(database_path, workspace_id, session_id)
     if not session.get("setup_completed"):
         raise SourceError(
-            "session_setup_required",
-            "Complete the short session setup before generating a learning path.",
+            "learning_path_context_required",
+            "Start the learning-path analysis from your uploaded material.",
             status_code=409,
-            saved_state="Your uploaded sources are saved.",
+            saved_state="Your uploaded material is saved.",
         )
     if int(session.get("ready_source_count") or 0) < 1:
         raise SourceError(
@@ -721,7 +721,7 @@ def _validate_source_references(
             "source_reference_invalid",
             "Generated content referenced a source location that does not exist, so it was not saved or displayed. Retry generation.",
             status_code=422,
-            saved_state="Your setup and uploaded sources are saved.",
+            saved_state="Your uploaded material is saved.",
         )
 
 
@@ -829,10 +829,16 @@ def _persist_map(
         connection.execute(
             """
             UPDATE learning_sessions
-            SET state = 'path_drafting', version = version + 1, updated_at = CURRENT_TIMESTAMP
+            SET name = ?, goal = ?, state = 'path_drafting', version = version + 1,
+                updated_at = CURRENT_TIMESTAMP
             WHERE id = ? AND workspace_id = ?
             """,
-            (session_id, workspace_id),
+            (
+                output.map_title[:180],
+                f"Understand and explain {output.map_title}.",
+                session_id,
+                workspace_id,
+            ),
         )
 
 
@@ -933,7 +939,7 @@ def _coverage_instructions(session: dict[str, Any], chunks: list[dict[str, Any]]
         "Identify what is explicitly covered and only concrete candidate gaps. A gap is not a search request. "
         "Use only exact source_id and chunk_id pairs supplied in the excerpts. Never invent a citation, page, line, "
         "fact, or source. Do not browse and do not suggest that browsing already occurred. Keep every user-facing field concise. "
-        f"Learner goal: {session.get('goal')}. Prior knowledge: {session.get('prior_knowledge')}."
+        "Infer a useful instructional focus from the material, but do not infer or claim anything about the learner's prior mastery."
     )
 
 
@@ -948,19 +954,16 @@ def _map_instructions(
         f"{source_policy} Every concept needs at least one exact supplied source reference. "
         "Use only exact source_id and chunk_id pairs supplied in the excerpts. Never browse or invent citations. "
         "Create exactly one start action lasting 60 to 120 seconds with a concrete completion condition. "
-        "Candidate gaps remain observations and do not authorize search. "
-        f"Goal: {session.get('goal')}. Available minutes: {session.get('available_minutes')}. "
-        f"Energy: {session.get('energy_level')}. Coverage: {coverage.model_dump_json()}."
+        "Candidate gaps remain observations and do not authorize search. Choose a concise map title that states the learning focus. "
+        "Do not infer prior mastery; the start action will collect the first learner signal. "
+        f"Use a compact default session length of about {session.get('available_minutes')} minutes. Coverage: {coverage.model_dump_json()}."
     )
 
 
 def _generation_source_policy(chunks: list[dict[str, Any]]) -> str:
     if any(chunk.get("source_origin") == "uploaded" for chunk in chunks):
         return "Uploaded material is present and is the primary source; other origins remain labeled supplements."
-    return (
-        "No uploaded material is present. The supplied AI-generated topic source must remain labeled as an "
-        "AI supplemental explanation and must never be described as uploaded or externally cited."
-    )
+    return "Every supplied source must retain its verified origin label; never invent or relabel a source."
 
 
 def _start_ai_activity(
@@ -1000,8 +1003,3 @@ def _finish_ai_activity(
             """,
             (status, response_id, error_code, activity_id),
         )
-
-
-def _session_name(goal: str) -> str:
-    compact = " ".join(goal.split())
-    return compact if len(compact) <= 72 else compact[:69].rstrip() + "…"

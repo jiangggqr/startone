@@ -54,22 +54,19 @@
 
 README 首页提供：
 
-1. 无 API Key 的 Demo mode
-2. 固定样例材料
-3. 一条完整流程
-4. 真实模式配置
+1. 无需学习者账户的公开 GPT-5.6 应用
+2. 可从仓库下载的样例材料
+3. 上传 → 自动学习重点/地图 → 启动回答 → Tutor/Quiz/复述的一条完整流程
+4. 服务端密钥与本地配置说明
 5. 预期 Agent 行为
-6. 已知限制
+6. 已知限制与使用配额
 
-受控搜索的稳定评委路径：
+受控搜索的验证方式：
 
-1. 新建会话并点击英文按钮 `Load controlled-search Demo`
-2. 确认只有 `transformer_notes.md` 一份上传材料；完成设置时勾选允许系统建议外部搜索
-3. 生成覆盖和路线；学习到 scaled dot-product attention 时向 Tutor 询问材料没有定义的 dot product
-4. 完成一次未掌握的 Quiz 或自由复述并结束反馈，让事实性 `LearningEvidence.source_gap_signal` 与表现证据同时可用
-5. 运行 Agent；它只能推荐一个 `request_search`，此时尚未发送任何搜索请求
-6. 接受后检查独立确认页的命名缺口、范围、理由和四项门；点击确认才执行 Demo 搜索
-7. 检查三个明确标记为 Demo 的 cited external sources；选择一个或无惩罚忽略，回到以上传材料为主的当前概念
+1. 最终学习界面不显示模式、测试夹具或 evaluator 控件
+2. 自动化测试用单一 `transformer_notes.md` 夹具验证 dot-product 命名缺口、表现证据与 `request_search`
+3. 产品视频可在预先准备的真实会话中展示独立确认页、四项门和 cited external source
+4. 公开应用中的真实搜索仍只能由正常学习证据推进，不能从 Help 或隐藏按钮直接触发
 
 ## 必须提交
 
@@ -89,7 +86,7 @@ README 首页提供：
 - Codex 如何把详细规格、原型和验收案例转成代码
 - 你决定了 Agent/Tutor 边界、四重搜索门和 ADHD-informed UX
 - GPT-5.6 如何通过 Structured Outputs 和受控工具调用实现可靠行为
-- Demo 与真实模式怎样让评委稳定测试
+- 自动化确定性测试与公开真实 GPT-5.6 产品怎样既可验证又不混淆用户
 
 ## 提交前硬性复核
 

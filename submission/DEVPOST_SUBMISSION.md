@@ -18,14 +18,15 @@ StartFrame Agent turns a learner's PDFs, Markdown notes, text files, or pasted m
 
 ## Inspiration
 
-Many learning tools assume that the learner has already started: they wait for a good question, a clean plan, and enough working memory to decide what to do next. The harder moment is often earlier. A learner already has course material and a goal but cannot turn them into a manageable first action or tell whether understanding is improving.
+Many learning tools assume that the learner has already started: they wait for a good question, a clean plan, and enough working memory to decide what to do next. The harder moment is often earlier. A learner already has course material but cannot decide on the right goal, turn it into a manageable first action, or tell whether understanding is improving.
 
 StartFrame Agent was designed around that initiation-to-mastery gap. It is ADHD-informed without making medical, diagnostic, or treatment claims.
 
 ## What it does
 
 - Treats uploaded material as the primary learning source and preserves real page, heading, line, paragraph, and character locations.
-- Builds source coverage, named gaps, a compact dependency map, a 2–5 concept route, and one 60–120 second start action.
+- Uses GPT-5.6 to select a learning focus from the material and build source coverage, named gaps, a compact dependency map, a 2–5 concept route, and one 60–120 second start action.
+- Removes the goal, prior-knowledge, time, and energy setup form; the first response and later practice evidence calibrate support instead.
 - Keeps one active concept and one visually dominant recommended action in a responsive focus workspace.
 - Uses a contextual Tutor for explanation, questions, and guided checks inside the current concept.
 - Runs Quiz, free recall, three-level hints, immediate feedback, specific encouragement, and targeted remediation as one Guided Mastery Loop.
@@ -40,15 +41,13 @@ The app uses Python 3.11+, FastAPI, Uvicorn, SQLite, and dependency-free static 
 
 Real mode uses GPT-5.6 through the Responses API for source coverage, the knowledge map and start action, Tutor guidance, Quiz and recall generation, structured feedback, remediation, and the final bounded planning decision. Fixed UI-facing model results use schema-validated Pydantic Structured Outputs. The Agent uses one forced strict function call with parallel calls disabled. The search execution endpoint exposes only `web_search`, requires it for that call, and persists only cited public HTTPS results after all four gates are revalidated.
 
-An isolated release smoke test completed a real GPT-5.6 flow across source coverage, knowledge-map generation, Tutor, Quiz, structured feedback, and the bounded Agent. The public judge deployment intentionally stays in no-key Demo mode so anonymous visitors cannot spend model credits.
-
-Deterministic Demo mode is a separate, visibly labeled judge path. It does not require a key or internet access and never presents fixture output as a live model response.
+An isolated release smoke test completed a real GPT-5.6 flow across source coverage, knowledge-map generation, Tutor, Quiz, structured feedback, and the bounded Agent. The public app uses the same server-side real-model path with workspace quotas and deployment-side budget controls. Deterministic fixtures remain isolated to automated tests and are never presented as learner-selected modes.
 
 ## How we used Codex
 
 Codex turned a detailed Chinese product specification, a 22-screen low-fidelity prototype, and 42 acceptance cases into a dependency-ordered implementation. It accelerated schema design, source parsers, strict AI contracts, state-machine transitions, responsive UI implementation, security review, automated tests, and repeated browser verification.
 
-The human product decisions remained explicit: uploaded-source primacy; the Tutor/Guided Mastery/Agent responsibility boundary; observation-only `LearningEvidence`; the four-gate search policy; flat, English-only UI; anonymous workspace privacy; and the choice to keep Demo and real model modes visibly separate. When browser testing exposed reversed Tutor message order, clipped mobile headers, a missing topic-only flow, and provenance relabeling risk, Codex corrected the underlying implementation and added regression coverage.
+The human product decisions remained explicit: uploaded-source primacy; AI-selected learning focus without an upfront setup form; the Tutor/Guided Mastery/Agent responsibility boundary; observation-only `LearningEvidence`; the four-gate search policy; flat, English-only UI; and anonymous workspace privacy. When browser testing exposed reversed Tutor message order, clipped mobile headers, hidden learning features, unnecessary evaluator UI, and provenance relabeling risk, Codex corrected the implementation and added regression coverage.
 
 ## Challenges
 
@@ -64,7 +63,7 @@ Grounding was another challenge. Locations cannot be invented by a model, so the
 - Search that is structurally gated rather than governed by prompt wording alone.
 - Exact pause, refresh, draft-conflict, and activity recovery across desktop and mobile.
 - English-only production UI with flat solid backgrounds, semantic controls, visible focus, and 390 px coverage.
-- A deterministic judge path plus isolated real GPT-5.6 contracts.
+- A real GPT-5.6 product path plus isolated deterministic regression fixtures.
 
 ## What we learned
 
@@ -76,11 +75,11 @@ The hackathon release uses anonymous workspaces and SQLite. A post-hackathon ver
 
 ## Testing instructions
 
-Use the no-key public Demo and follow `submission/JUDGE_TESTING_GUIDE.md`. No account is required. The Demo uses resettable anonymous data and remains visibly labeled.
+Use the public app and follow `submission/JUDGE_TESTING_GUIDE.md`. No learner account is required; the server-side GPT-5.6 credential is never exposed to the browser. Anonymous learning data is resettable.
 
 ## Required links and identifiers
 
-- Public Demo: `PUBLIC_DEMO_URL_PENDING`
+- Public app: `PUBLIC_DEMO_URL_PENDING`
 - Code repository: `REPOSITORY_URL_PENDING`
 - Public YouTube demo: `YOUTUBE_URL_PENDING`
 - Codex `/feedback` Session ID: `019f7ff7-6b6a-74d1-98b2-2f895e28bbce`

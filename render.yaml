@@ -8,7 +8,9 @@ services:
     autoDeployTrigger: commit
     envVars:
       - key: STARTFRAME_MODE
-        value: demo
+        value: real
+      - key: OPENAI_API_KEY
+        sync: false
       - key: STARTFRAME_HOST
         value: 0.0.0.0
       - key: STARTFRAME_SECURE_COOKIES

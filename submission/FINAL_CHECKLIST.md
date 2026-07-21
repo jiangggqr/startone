@@ -14,16 +14,16 @@ Official deadline: July 21, 2026 at 5:00 PM Pacific Time.
 
 - [ ] Push the final Git history to a judge-accessible repository.
 - [ ] Make the repository public, or share a private repository with `testing@devpost.com` and `build-week-event@openai.com`.
-- [x] English README includes setup, sample data, Demo/real modes, Codex collaboration, human decisions, and GPT-5.6 responsibilities.
-- [x] No-key deterministic Demo path and controlled-search path are documented.
+- [x] English README includes installation, sample data, internal deterministic tests, Codex collaboration, human decisions, and GPT-5.6 responsibilities.
+- [x] The learner UI contains no mode/evaluator controls; deterministic and controlled-search fixtures remain documented as internal tests.
 - [x] Automated tests, dependency check, secret scan, responsive browser flow, and security headers are verified.
 - [x] Complete and record one live GPT-5.6 core-flow smoke test with a server-side key; real web-search request shape remains contract-tested.
 
-## Public Demo
+## Public app
 
-- [ ] Deploy the no-key Demo to a free, publicly accessible HTTPS URL.
+- [ ] Deploy the GPT-5.6 product to a free, publicly accessible HTTPS URL with the key stored only as a server secret.
 - [ ] Verify `/api/health` and the complete judge path on that exact URL.
-- [ ] Confirm no login, payment, API key, or rebuild is required.
+- [ ] Confirm judges need no login, payment, personal API key, or rebuild.
 - [ ] Confirm the URL will remain available through the judging period ending August 5, 2026 at 5:00 PM Pacific Time.
 - [ ] Replace `PUBLIC_DEMO_URL_PENDING` in submission copy.
 
@@ -41,6 +41,6 @@ Official deadline: July 21, 2026 at 5:00 PM Pacific Time.
 - [x] English project description is drafted.
 - [x] Codex `/feedback` Session ID: `019f7ff7-6b6a-74d1-98b2-2f895e28bbce`.
 - [ ] Replace `REPOSITORY_URL_PENDING` in submission copy.
-- [ ] Add the public Demo, repository, and public YouTube links to the form.
+- [ ] Add the public app, repository, and public YouTube links to the form.
 - [ ] Review every field against the official rules and preview the final project page.
 - [ ] Submit before the deadline only after the entrant confirms the final public action.
