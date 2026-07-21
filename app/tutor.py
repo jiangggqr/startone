@@ -140,7 +140,7 @@ def get_tutor(database_path: Path, workspace_id: str, session_id: str) -> dict[s
         "boundaries": {
             "active_concept_only": True,
             "can_change_route": False,
-            "can_search": False,
+            "uses_uploaded_material_only": True,
             "creates_agent_decision": False,
         },
     }
@@ -213,7 +213,6 @@ def send_tutor_message(
     payload["generation"] = {
         "mode": settings.mode,
         "model": model,
-        "internet_search_performed": False,
     }
     return payload
 
@@ -381,8 +380,8 @@ def _demo_tutor_response(
 ) -> TutorResponseOutput:
     active_refs = [SourceReference.model_validate(item) for item in context["context"]["concept"]["source_refs"]]
     primary_ref = active_refs[0]
-    primary_origin = str(context["chunks"][0]["source_origin"])
-    source_label = "AI supplemental source" if primary_origin == "ai_supplement" else "uploaded material"
+    primary_origin = "uploaded"
+    source_label = "uploaded material"
     lowered = user_message.lower()
     prior = context["context"].get("previous_concept_title") or "the previous concept"
     has_matrix_source = "matrix_prerequisite.md" in context["available_filenames"]
@@ -409,10 +408,10 @@ def _demo_tutor_response(
         )
     if quick_action == "concrete_example":
         return TutorResponseOutput(
-            message="AI supplemental example: in 'The animal did not cross the street because it was tired,' the position for 'it' can give more weight to 'animal' than to 'street,' then combine more of the animal-related value information.",
+            message="For example, in 'The animal did not cross the street because it was tired,' the mechanism described in your material lets 'it' give more weight to 'animal' than to 'street,' then combine more animal-related information.",
             guidance_level=5,
             checking_question="In this example, why should 'animal' contribute more than 'street'?",
-            source_origin="ai_supplement",
+            source_origin="uploaded",
             source_refs=[primary_ref],
             confusion_signal=None,
             prerequisite_gap_signal=None,
@@ -452,7 +451,7 @@ def _demo_tutor_response(
         message = (
             f"The {source_label} defines a dot product as multiplying matching vector components and adding them to produce one score. For this concept, that score is used only to decide relevance before values are combined."
             if has_matrix_source
-            else f"That question points to the dot-product prerequisite, which the current {source_label} does not define. I can keep the gap visible, but I cannot change the route or search."
+            else f"That question points to the dot-product prerequisite, which the current {source_label} does not define. I can keep the gap visible so StartOne can ask you to add material that covers it."
         )
         ref = _find_chunk_ref(context["chunks"], "dot product") if has_matrix_source else primary_ref
         return TutorResponseOutput(
@@ -506,21 +505,16 @@ def _find_chunk_ref(chunks: list[dict[str, Any]], term: str) -> SourceReference:
 def _tutor_instructions(context: dict[str, Any], quick_action: str | None) -> str:
     concept = context["context"]["concept"]
     session = context["session_record"]
-    has_uploaded = any(chunk.get("source_origin") == "uploaded" for chunk in context["chunks"])
-    origin_rule = (
-        "Uploaded material is the primary source."
-        if has_uploaded
-        else "The only source is an AI supplemental explanation; preserve that label and never describe it as uploaded."
-    )
+    origin_rule = "Uploaded material is the only learning source."
     return (
         "You are the Contextual Tutor inside an English learning app. Stay strictly inside the active concept. "
         f"{origin_rule} Use the least sufficient guidance by default, following levels 1 through 7. "
-        "You may explain, clarify, give a labeled AI supplemental example, or ask a checking question. "
+        "You may explain, clarify, give a simple example grounded in the supplied material, or ask a checking question. "
         "You must not change the route, choose a next concept, score mastery, create a recommendation, end the session, "
-        "offer or perform internet search, or make medical claims. Never reveal hidden reasoning. "
-        "Every source reference must be an exact supplied source_id/chunk_id pair. If an example is not in the source, "
-        "set source_origin to ai_supplement while retaining grounding references. A prerequisite_gap_signal is only a factual, "
-        "named observation that the supplied material lacks the prerequisite; it is never a search request. "
+        "use outside material, or make medical claims. Never reveal hidden reasoning. "
+        "Every source reference must be an exact supplied source_id/chunk_id pair and source_origin must be uploaded. "
+        "A prerequisite_gap_signal is only a factual, named observation that the supplied material lacks the prerequisite; "
+        "it may allow the Planning Agent to ask the learner for more material, but it is not itself a recommendation. "
         "Do not infer prior mastery or assume a pre-test exists; calibrate support from the current conversation and validated evidence only. "
         f"Active concept: {concept['title']}. Role: {concept['role_in_map']}. Definition: {concept['plain_definition']}. "
         f"Learner goal: {session.get('goal')}. Prior knowledge: {session.get('prior_knowledge')}. "

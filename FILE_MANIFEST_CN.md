@@ -20,14 +20,14 @@
 - `db.py`：SQLite schema、迁移和连接管理。
 - `sources.py`、`learning.py`、`focus.py`：来源、地图与可恢复专注会话。
 - `tutor.py`、`activities.py`、`mastery.py`：Guided Mastery Loop。
-- `agent.py`、`search.py`：单动作规划 Agent 与四重门受控搜索。
+- `agent.py`：单动作规划 Agent 与命名材料缺口后的补充上传请求；网络搜索不属于产品能力。
 - `ai.py`、`topic.py`：GPT-5.6 Responses API、结构化输出与主题备用来源。
 - `records.py`：会话复制/删除、总结、导出、AI 活动和 workspace 数据控制。
 - `static/`：全英文、纯色背景的生产 HTML/CSS/JavaScript UI。
 
 ## `tests/`
 
-- 覆盖基础服务、来源、学习路径、专注会话、Tutor、练习、反馈、Evidence、Agent、搜索、主题备用路径与数据控制的自动化测试。
+- 覆盖基础服务、来源、学习路径、专注会话、Tutor、练习、反馈、Evidence、Agent、材料缺口恢复与数据控制的自动化测试。
 
 ## `scripts/`
 
@@ -39,7 +39,7 @@
 
 ## `submission/`
 
-- `JUDGE_TESTING_GUIDE.md`：无需 Key 的主评委路径与受控搜索路径。
+- `JUDGE_TESTING_GUIDE.md`：无需学习者 Key 的主评委路径与材料缺口恢复路径。
 - `DEVPOST_SUBMISSION.md`：完整英文 Devpost 文案和待替换链接。
 - `DEMO_VIDEO_SCRIPT.md`：目标 2 分 50 秒的英文分镜与旁白。
 - `FINAL_CHECKLIST.md`：官方提交规则、外部发布步骤和最终确认清单。
@@ -61,7 +61,7 @@
 7. `07_ADHD_INFORMED_UX_CN.md`：学习痛点到设计机制的映射及医学表述边界。
 8. `08_GUIDED_MASTERY_LOOP_CN.md`：Tutor、Quiz、复述、提示、反馈、鼓励和补救练习。
 9. `09_ADAPTIVE_AGENT_CN.md`：Agent 输入、动作、工具、决策边界和循环保护。
-10. `10_SOURCE_GROUNDING_AND_SEARCH_CN.md`：来源解析、定位、标签、缺口和受控搜索。
+10. `10_SOURCE_GROUNDING_AND_MATERIAL_GAPS_CN.md`：来源解析、定位、标签、材料缺口和补充上传恢复。
 11. `11_PRODUCTION_UX_STANDARDS_CN.md`：生产级加载、错误、保存、隐私、性能和可解释性规则。
 12. `12_ACCESSIBILITY_RESPONSIVE_CN.md`：WCAG 2.2 AA 目标、键盘、焦点、语义和响应式布局。
 13. `13_DATA_AI_API_CONTRACTS.md`：状态、数据实体、模型结构、API 语义和事件记录。

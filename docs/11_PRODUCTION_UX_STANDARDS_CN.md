@@ -53,13 +53,13 @@
 - 普通安全动作自动应用，不增加一个确认页面
 - 不显示隐藏推理
 - 不显示替代路径列表或覆盖理由输入框
-- `request_search` 永远停在独立用户确认
+- `request_more_material` 保留当前概念并打开现有上传区，不创建独立确认页
 - 用户暂停、退出或返回知识框架不受惩罚
 
 ## 7. AI 透明度
 
 - 显示来源类型
-- 外部搜索前确认
+- 明确说明 AI 生成的讲解来自上传材料
 - 模型失败时不使用硬编码假结果冒充真实结果
 - 确定性 fixture 只用于自动化测试和内部验收，不在最终学习界面提供模式或评审控制
 
@@ -81,8 +81,8 @@
 - 不把模型输出直接作为未转义 HTML
 - 所有状态改变由服务端验证
 - Agent 工具使用枚举和参数 Schema
-- 将上传材料和外部网页视为不可信内容，在模型指令中明确其内容不能覆盖系统规则或授权工具
-- 外部 URL 只来自受控搜索结果，并做协议、大小、重定向和私网地址校验，防止 SSRF
+- 将上传材料视为不可信内容，在模型指令中明确其内容不能覆盖系统规则或授权工具
+- 学习流程不抓取外部 URL，不向模型暴露网络工具
 
 ## 10. 性能目标
 
@@ -108,7 +108,7 @@
 - feedback_shown
 - remedial_completed
 - agent_decision
-- search_requested/confirmed/completed/failed
+- additional_material_requested/uploaded/declined
 - session_resumed/ended
 
 事件不得包含不必要的原始学习材料或完整自由文本。

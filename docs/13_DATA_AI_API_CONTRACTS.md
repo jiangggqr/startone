@@ -18,14 +18,10 @@ idle
 → remedial_practice (optional)
 → evidence_ready
 → agent_decision
-→ learning_concept | search_confirmation | session_summary
+→ learning_concept | material_upload_requested | session_summary
 
-search_confirmation
-→ search_running | learning_concept (declined)
-search_running
-→ search_results | learning_concept (failed)
-search_results
-→ learning_concept (selected or ignored)
+material_upload_requested
+→ sources_processing (learner adds material) | learning_concept (learner continues current scope)
 
 session_summary (terminal saved summary; a copied session starts with fresh learning progress)
 ```
@@ -48,7 +44,6 @@ available_minutes
 energy_level
 language
 support_preferences
-search_permission
 mode: demo | real
 state
 resume_state
@@ -102,7 +97,7 @@ blob_id
 filename
 media_type
 media_kind: pdf | markdown | text | pasted
-source_origin: uploaded | ai_supplement
+source_origin: uploaded
 parse_status
 page_count
 line_count
@@ -134,9 +129,7 @@ Location validation by media kind:
 - PDF requires `page_number`, `page_chunk_index`, `start_char`, `end_char`
 - Markdown/TXT requires `heading_path`, `start_line`, `end_line`, `start_char`, `end_char`
 - pasted text requires `paragraph_number`, `start_char`, `end_char`
-- external web content requires an `ExternalSource` record and may include a verified text-fragment locator
-
-Locations must come from parsing or verified retrieval, never model generation.
+Locations must come from parsing uploaded or pasted material, never model generation.
 
 ### SourceGap
 
@@ -148,28 +141,10 @@ description
 why_needed
 evidence
 current_source_refs
-suggested_query_scope
+requested_material_scope
 status: candidate | validated | resolved | dismissed
 created_at
 resolved_at
-```
-
-### ExternalSource
-
-```text
-id
-workspace_id
-session_id
-source_gap_id
-canonical_url
-title
-publisher
-accessed_at
-selection_reason
-citation_excerpt
-locator
-status: candidate | selected | inaccessible | ignored
-created_at
 ```
 
 ### Concept
@@ -196,7 +171,7 @@ concept_id
 type: quiz | recall | remedial
 prompt
 source_refs
-source_origin: uploaded | external | ai_supplement
+source_origin: uploaded
 hint_levels
 misconception_targets
 created_at
@@ -223,7 +198,8 @@ concept_id
 role: user | tutor
 message
 guidance_level
-source_origin
+source_origin: uploaded
+generation_disclosure
 source_refs
 confusion_signal
 prerequisite_gap_signal
@@ -283,29 +259,7 @@ created_at
 user_override
 ```
 
-### SearchRequest
-
-```text
-id
-workspace_id
-session_id
-concept_id
-source_gap_id
-agent_decision_id
-query_scope
-reason_for_user
-permission_snapshot
-confirmation_status
-search_status
-generation_mode
-model
-response_id
-error_code
-version
-created_at
-```
-
-Execution additionally records `confirmed_at`, `executed_at` and `completed_at`. The server revalidates all four gates at execution time. `ExternalSource` stores the canonical public HTTPS URL, title, publisher, access time, citation excerpt, locator (empty when unavailable), selection reason, rank and status. A selected source is linked to one concept; it supplements rather than replaces uploaded material.
+`request_more_material` is represented by an `AgentDecision` with `required_tool=open_material_upload`, a validated `SourceGap`, and the current concept preserved as the return point. It creates no source until the learner uploads or pastes material.
 
 ## 3. Structured model outputs
 
@@ -315,7 +269,7 @@ All model outputs must be validated against JSON Schema or equivalent typed mode
 
 ```text
 covered_concepts[]
-source_gaps[] {description, why_needed, evidence, current_source_refs, suggested_query_scope}
+source_gaps[] {description, why_needed, evidence, current_source_refs, requested_material_scope}
 ignored_sections[]
 source_refs[]
 ```
@@ -397,7 +351,7 @@ source_origin
 source_refs[]
 ```
 
-`next_micro_action` is restricted to the active concept and must not encode an Agent action, route change, search request or session end.
+`next_micro_action` is restricted to the active concept and must not encode an Agent action, route change, material-upload request or session end.
 
 For a submitted Quiz, the public feedback response additionally includes a post-submission `quiz_result` projection:
 
@@ -501,19 +455,13 @@ Implemented endpoint groups. FastAPI's generated schema at `/api/docs` is author
 - `POST /api/agent-decisions/{decision_id}/accept`
 - `POST /api/agent-decisions/{decision_id}/override`
 
-The production client does not expose a separate Evidence review or ordinary Agent confirmation step. After the learner selects Keep going on feedback, it completes the feedback boundary, requests exactly one Agent decision and automatically accepts the safe action. `request_search` still stops at the separate search confirmation. The API separation remains mandatory so `LearningEvidence` cannot contain or silently become a recommendation.
+The production client does not expose a separate Evidence review or ordinary Agent confirmation step. After the learner selects Keep going on feedback, it completes the feedback boundary, requests exactly one Agent decision and automatically accepts the safe action. `request_more_material` preserves the current concept and opens the existing upload area with the named gap; it does not create a separate confirmation page. The API separation remains mandatory so `LearningEvidence` cannot contain or silently become a recommendation.
 
-### Search
+### Material-gap recovery
 
-- `POST /api/sessions/{id}/search-requests`
-- `GET /api/sessions/{id}/search-requests/latest`
-- `GET /api/search-requests/{id}`
-- `POST /api/search-requests/{id}/confirm`
-- `POST /api/search-requests/{id}/execute`
-- `POST /api/search-requests/{id}/cancel`
-- `POST /api/search-requests/{id}/ignore`
-- `GET /api/external-sources/{id}`
-- `POST /api/external-sources/{id}/select`
+- `GET /api/sessions/{id}/source-gaps`
+- `POST /api/agent-decisions/{decision_id}/accept` with `action=request_more_material` and `required_tool=open_material_upload`
+- existing source upload or pasted-source endpoints add the requested material; coverage is then revalidated
 
 ### Summary and records
 
@@ -543,17 +491,17 @@ request_id
 
 - deterministic fixtures
 - no API key
-- mock search results
+- deterministic named-gap fixtures
 - automated and local acceptance tests only; no global mode badge or evaluator control in the learner UI
 - a normal fixture containing `transformer_notes.md` and `matrix_prerequisite.md`
-- a controlled-search fixture containing only `transformer_notes.md`
+- a one-source fixture containing only `transformer_notes.md` to verify the upload-more-material path
 
 ### Real mode
 
 - server-side OpenAI key
 - Responses API
 - schema validation
-- real web search only after gates
+- no network tools; all generated learning content is grounded in uploaded material
 - default model `gpt-5.6-luna`, configurable on the server; the low-latency GPT-5.6 variant is used for interactive learning generation
 
 Fixture data must never be presented as a real model response or used for arbitrary public uploads.

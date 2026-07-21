@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import replace
+import json
 import os
 from pathlib import Path
 import sys
@@ -88,18 +89,31 @@ async def _run() -> None:
                     "source-ready session",
                     {200},
                 )["session"]
-                prepared = _body(
-                    await client.post(
+                prepared = None
+                for generation_attempt in range(3):
+                    response = await client.post(
                         f"/api/sessions/{session_id}/learning-path",
                         json={
                             "version": current["version"],
                             "show_timer": False,
-                            "search_permission": True,
                         },
-                    ),
-                    "automatic GPT-5.6 learning path",
-                    {200},
-                )
+                    )
+                    if response.status_code == 200:
+                        prepared = _body(
+                            response,
+                            "automatic GPT-5.6 learning path",
+                            {200},
+                        )
+                        break
+                    payload = response.json()
+                    if (
+                        generation_attempt < 2
+                        and payload.get("error_code") == "source_reference_invalid"
+                    ):
+                        continue
+                    _body(response, "automatic GPT-5.6 learning path", {200})
+                if prepared is None:
+                    raise RuntimeError("GPT-5.6 learning path retries were exhausted.")
                 coverage = prepared["coverage"]
                 if coverage["generation"]["model"] != settings.openai_model:
                     raise RuntimeError("Coverage did not report the configured GPT-5.6 model.")
@@ -175,11 +189,18 @@ async def _run() -> None:
                     "GPT-5.6 Quiz generation",
                     {201},
                 )
-                option_id = activity["quiz"]["options"][0]["id"]
+                answers = {
+                    question["id"]: question["options"][0]["id"]
+                    for question in activity["quiz"]["questions"]
+                }
                 _body(
                     await client.put(
                         f"/api/sessions/{session_id}/drafts/quiz",
-                        json={"content": option_id, "hint_depth": 0, "version": 0},
+                        json={
+                            "content": json.dumps(answers, sort_keys=True),
+                            "hint_depth": 0,
+                            "version": 0,
+                        },
                     ),
                     "Quiz answer save",
                     {200},

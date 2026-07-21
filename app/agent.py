@@ -24,7 +24,7 @@ ACTION_LABELS: dict[str, str] = {
     "simplify_current": "Ask Tutor to simplify this concept",
     "insert_prerequisite": "Insert one short prerequisite",
     "review_previous": "Review the previous concept",
-    "request_search": "Request an external source search",
+    "request_more_material": "Upload material for the missing prerequisite",
     "finish_session": "Finish this session",
 }
 TOOL_BY_ACTION = {
@@ -34,7 +34,7 @@ TOOL_BY_ACTION = {
     "simplify_current": "open_tutor",
     "insert_prerequisite": "activate_concept",
     "review_previous": "activate_concept",
-    "request_search": "request_search",
+    "request_more_material": "open_material_upload",
     "finish_session": "create_summary",
 }
 
@@ -213,15 +213,13 @@ def get_agent_decision(
         "generation": {
             "mode": row["generation_mode"],
             "model": row["model"],
-            "internet_search_performed": False,
         },
         "boundaries": {
             "learning_performance_basis": "LearningEvidence only",
             "exactly_one_recommended_action": True,
             "agent_teaching_content": False,
             "user_override_penalty": False,
-            "search_requested": selected_action == "request_search",
-            "internet_search_performed": False,
+            "more_material_requested": selected_action == "request_more_material",
         },
     }
 
@@ -575,18 +573,18 @@ def _allowed_action_metadata(context: dict[str, Any]) -> dict[str, dict[str, Any
     )
     if (
         not mastered
-        and bool(context["session"].get("search_permission"))
         and validated_gaps
         and local_support_exhausted
     ):
         gap = validated_gaps[0]
-        metadata["request_search"] = {
-            "reason_for_user": f"A named material gap remains after local support: {gap['description']} Search is only a request; you must confirm before anything runs.",
+        metadata["request_more_material"] = {
+            "reason_for_user": f"Your material does not yet cover this needed prerequisite: {gap['description']} Add a short source that covers it, then continue from this concept.",
             "estimated_minutes": 2,
             "target_concept_id": concept["id"],
             "return_to_concept_id": concept["id"],
-            "required_tool": TOOL_BY_ACTION["request_search"],
+            "required_tool": TOOL_BY_ACTION["request_more_material"],
             "source_gap_id": gap["id"],
+            "requested_material": gap["requested_material"],
         }
 
     # Finishing is selectable only when no validated learning action remains.
@@ -607,8 +605,8 @@ def _demo_decision(
 ) -> AgentDecisionOutput:
     if "continue_next" in allowed:
         action = "continue_next"
-    elif "request_search" in allowed:
-        action = "request_search"
+    elif "request_more_material" in allowed:
+        action = "request_more_material"
     elif "insert_prerequisite" in allowed:
         action = "insert_prerequisite"
     elif "finish_session" in allowed:
@@ -688,7 +686,7 @@ def _real_decision(
                 "type": "string",
                 "enum": [
                     "activate_concept", "create_activity", "open_tutor",
-                    "request_search", "create_summary",
+                    "open_material_upload", "create_summary",
                 ],
             },
             "confidence": {"type": "number", "minimum": 0, "maximum": 1},
@@ -715,7 +713,7 @@ def _real_decision(
                 "Select exactly one allowed learning action. LearningEvidence is the sole basis for any learning-performance claim. "
                 "Time, route, prerequisites, source coverage, permission, retries, and user override history are feasibility constraints only. "
                 "Copy the target IDs and required_tool from the chosen allowed action exactly. Give one short learner-facing reason. "
-                "Do not teach, reveal hidden reasoning, invent evidence, execute a search, or propose any unlisted action."
+                "Do not teach, reveal hidden reasoning, invent evidence, use outside sources, or propose any unlisted action."
             ),
             input=json.dumps(prompt_context),
             tools=[{
@@ -832,7 +830,6 @@ def _persist_decision(
             "decision_id": decision_id,
             "action": output.action,
             "evidence_ids": snapshot["evidence_ids"],
-            "internet_search_performed": False,
         })
     return decision_id
 
@@ -886,8 +883,6 @@ def _apply_controlled_transition(
             ),
         )
         _reset_focus_note(connection, workspace_id, session_id)
-    elif action == "request_search":
-        next_state = "search_confirmation"
     elif action == "finish_session":
         connection.execute("UPDATE concepts SET status = 'completed' WHERE id = ?", (current_id,))
         next_state = "session_summary"
@@ -924,7 +919,7 @@ def _execution_payload(
     payload: dict[str, Any] = {
         "action": action,
         "destination": {
-            "request_search": "search_confirmation",
+            "request_more_material": "material_upload",
             "finish_session": "session_summary",
             "simplify_current": "tutor",
             "retry_current": "activity",
@@ -946,10 +941,9 @@ def _execution_payload(
         payload["activity_type"] = (
             previous_type if action == "retry_current" else ("quiz" if previous_type == "recall" else "recall")
         )
-    if action == "request_search":
+    if action == "request_more_material":
         payload["source_gap_id"] = metadata.get("source_gap_id")
-        payload["confirmation_required"] = True
-        payload["internet_search_performed"] = False
+        payload["requested_material"] = metadata.get("requested_material")
     if action == "finish_session":
         with connect(database_path) as connection:
             concept = connection.execute(
@@ -998,7 +992,6 @@ def _feasibility_context(context: dict[str, Any]) -> dict[str, Any]:
         "route": context["route"],
         "active_concept_key": context["concept"]["concept_key"],
         "prerequisite_keys": json.loads(str(context["concept"]["prerequisite_keys_json"])),
-        "search_permission": bool(context["session"].get("search_permission")),
         "validated_source_gap_ids": [
             gap["id"] for gap in context["source_gaps"] if gap["status"] == "validated"
         ],
@@ -1022,7 +1015,7 @@ def _validate_named_source_gaps(
             if gap["status"] != "candidate":
                 continue
             gap_terms = _meaningful_terms(
-                f"{gap['description']} {gap['why_needed']} {gap['suggested_query_scope']}"
+                f"{gap['description']} {gap['why_needed']} {gap['requested_material']}"
             )
             if any(len(gap_terms & _meaningful_terms(signal)) >= 2 for signal in signals):
                 connection.execute(
@@ -1063,7 +1056,6 @@ def _evidence_fingerprint(context: dict[str, Any]) -> str:
     raw = json.dumps({
         "concept_id": context["concept"]["id"],
         "evidence_ids": [item["id"] for item in context["evidence"]],
-        "search_permission": bool(context["session"].get("search_permission")),
         "route": context["route"],
         "active_detour_id": context["detour"]["id"] if context.get("detour") else None,
     }, sort_keys=True)

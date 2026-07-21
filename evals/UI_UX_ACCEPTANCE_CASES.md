@@ -30,7 +30,7 @@ At 200% zoom, content remains readable and no core operation is lost.
 
 ## U08 Mobile core flow
 
-At 390px width, the app has no horizontal scrolling for core content and supports Tutor, Quiz, Recall, feedback, automatic safe continuation, search confirmation and summary.
+At 390px width, the app has no horizontal scrolling for core content and supports Tutor, Quiz, Recall, feedback, automatic safe continuation, material-gap upload recovery and summary.
 
 ## U09 Loading clarity
 
@@ -48,13 +48,13 @@ Offline draft status is visible and the user is told what will sync later.
 
 Deleting a source, session or all data clearly states scope and offers cancel.
 
-## U13 Search consent
+## U13 Material-gap recovery
 
-The user sees the named gap and intended search scope before confirming.
+The user sees the named gap and why it matters, while the current concept remains active. The primary action opens upload; the secondary action continues the current scope.
 
 ## U14 AI origin labels
 
-Uploaded, external and AI-supplemental content are consistently labeled in concept, activity, feedback and source views.
+Uploaded or pasted material is consistently labeled as the source. AI-generated wording is disclosed as generated from that material and never shown as a second source.
 
 ## U15 Reduced motion
 
@@ -74,8 +74,8 @@ A conflict keeps both local and server drafts visible until the user explicitly 
 
 ## U19 Automatic safe continuation
 
-After Keep going, the learner sees no Agent decision or alternative-path page. The server applies one validated safe action automatically; `request_search` alone stops at an exact-scope confirmation, and prerequisite insertion remains unavailable without supporting evidence.
+After Keep going, the learner sees no Agent decision or alternative-path page. The server applies one validated safe action automatically; `request_more_material` preserves the concept and opens upload, and prerequisite insertion remains unavailable without supporting evidence.
 
 ## U20 Source metadata
 
-Every concept, activity, feedback and example shows uploaded, external or AI-supplemental origin. External candidates also show URL, publisher, access time, citation excerpt and selection reason.
+Every concept, activity, feedback and example resolves to uploaded material. Generated explanations disclose that they were generated from the learner's material and retain verified source references.

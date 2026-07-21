@@ -37,7 +37,6 @@ def initialize_learning_context(
     expected_version: int,
     *,
     show_timer: bool = False,
-    search_permission: bool = False,
 ) -> dict[str, Any]:
     session = get_session(database_path, workspace_id, session_id)
     if int(session["version"]) != expected_version:
@@ -55,7 +54,7 @@ def initialize_learning_context(
             UPDATE learning_sessions
             SET name = ?, goal = ?, prior_knowledge = ?, available_minutes = ?,
                 energy_level = ?, language = 'English', current_question = ?,
-                support_preferences_json = ?, show_timer = ?, search_permission = ?,
+                support_preferences_json = ?, show_timer = ?,
                 setup_completed = 1, version = version + 1, updated_at = CURRENT_TIMESTAMP
             WHERE id = ? AND workspace_id = ? AND version = ?
             """,
@@ -68,7 +67,6 @@ def initialize_learning_context(
                 None,
                 json.dumps(["direct_explanation", "define_terms", "short_steps"]),
                 int(show_timer),
-                int(search_permission),
                 session_id,
                 workspace_id,
                 expected_version,
@@ -89,7 +87,6 @@ def load_demo_materials(
     workspace_id: str,
     session_id: str,
     sample_dir: Path,
-    scenario: Literal["standard", "controlled_search"] = "standard",
 ) -> list[dict[str, Any]]:
     if settings.mode != "demo":
         raise SourceError(
@@ -108,11 +105,7 @@ def load_demo_materials(
                 (session_id, workspace_id),
             )
         }
-    filenames = (
-        ("transformer_notes.md",)
-        if scenario == "controlled_search"
-        else ("transformer_notes.md", "matrix_prerequisite.md")
-    )
+    filenames = ("transformer_notes.md", "matrix_prerequisite.md")
     for filename in filenames:
         if filename in existing:
             continue
@@ -407,7 +400,7 @@ def list_source_gaps(database_path: Path, workspace_id: str, session_id: str) ->
             "why_needed": row["why_needed"],
             "evidence": row["evidence"],
             "current_source_refs": json.loads(str(row["current_source_refs_json"])),
-            "suggested_query_scope": row["suggested_query_scope"],
+            "requested_material": row["requested_material"],
             "status": row["status"],
         }
         for row in rows
@@ -487,7 +480,7 @@ def _demo_coverage(chunks: list[dict[str, Any]]) -> SourceCoverageOutput:
                     why_needed="A learner who lacks this prerequisite may not understand how query-key comparisons become one score.",
                     evidence="The attention notes name the dot product without a worked prerequisite explanation.",
                     current_source_refs=[_ref(scaled)],
-                    suggested_query_scope="A short beginner explanation of vector dot products in attention.",
+                    requested_material="A short beginner section that defines vector dot products in attention.",
                 )
             )
         gaps.append(
@@ -497,7 +490,7 @@ def _demo_coverage(chunks: list[dict[str, Any]]) -> SourceCoverageOutput:
                 why_needed="This is useful only if the learner needs a deeper explanation of the square-root scaling factor.",
                 evidence="The source gives the stabilization claim without a derivation or numeric example.",
                 current_source_refs=[_ref(scaled)],
-                suggested_query_scope="A concise derivation of variance scaling in scaled dot-product attention.",
+                requested_material="A concise section deriving variance scaling in scaled dot-product attention.",
             )
         )
         all_refs = []
@@ -795,7 +788,7 @@ def _persist_coverage(
                 """
                 INSERT INTO source_gaps(
                     id, workspace_id, session_id, concept_key, description, why_needed,
-                    evidence, current_source_refs_json, suggested_query_scope, status
+                    evidence, current_source_refs_json, requested_material, status
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'candidate')
                 """,
                 (
@@ -807,7 +800,7 @@ def _persist_coverage(
                     gap.why_needed,
                     gap.evidence,
                     json.dumps([ref.model_dump() for ref in gap.current_source_refs]),
-                    gap.suggested_query_scope,
+                    gap.requested_material,
                 ),
             )
         connection.execute(
@@ -897,7 +890,6 @@ def _coverage_payload(
         "generation": {
             "mode": "demo" if model == DEMO_MODEL else "real",
             "model": model,
-            "internet_search_performed": False,
         },
     }
 
@@ -917,7 +909,6 @@ def _map_payload(
         "generation": {
             "mode": "demo" if model == DEMO_MODEL else "real",
             "model": model,
-            "internet_search_performed": False,
         },
     }
 
@@ -1034,7 +1025,7 @@ def _coverage_instructions(session: dict[str, Any], chunks: list[dict[str, Any]]
     return (
         "You generate source coverage for an English learning interface. "
         f"{source_policy} "
-        "Identify what is explicitly covered and only concrete candidate gaps. A gap is not a search request. "
+        "Identify what is explicitly covered and only concrete candidate gaps. A gap records what additional uploaded material may be needed; it is not a recommendation. "
         "Use only exact source_id and chunk_id pairs supplied in the excerpts. Never invent a citation, page, line, "
         "fact, or source. Do not browse and do not suggest that browsing already occurred. Keep every user-facing field concise. "
         "Infer a useful instructional focus from the material, but do not infer or claim anything about the learner's prior mastery."
@@ -1050,20 +1041,19 @@ def _map_instructions(
     return (
         "You generate a grounded English knowledge map with 2 to 5 concepts and a dependency-respecting route. "
         f"{source_policy} Every concept needs at least one exact supplied source reference. "
-        "Use only exact source_id and chunk_id pairs supplied in the excerpts. Never browse or invent citations. "
+        "Use only exact source_id and chunk_id pairs supplied in the excerpts. Never use outside material or invent citations. "
         "For each concept, write a plain-language definition, two to four short teaching key points, and one concrete example. "
         "The explanation must teach a beginner before asking them to retrieve or apply anything. "
         "Create the legacy start_action field for schema compatibility only; it is not a learner-facing prerequisite or assessment. "
-        "Candidate gaps remain observations and do not authorize search. Choose a concise map title that states the learning focus. "
+        "Candidate gaps remain observations; a later validated gap may only lead the Agent to ask for another upload. "
+        "Choose a concise map title that states the learning focus. "
         "Do not infer prior mastery. Later practice inside the Guided Mastery Loop supplies learning evidence. "
         f"Use a compact default session length of about {session.get('available_minutes')} minutes. Coverage: {coverage.model_dump_json()}."
     )
 
 
 def _generation_source_policy(chunks: list[dict[str, Any]]) -> str:
-    if any(chunk.get("source_origin") == "uploaded" for chunk in chunks):
-        return "Uploaded material is present and is the primary source; other origins remain labeled supplements."
-    return "Every supplied source must retain its verified origin label; never invent or relabel a source."
+    return "Uploaded material is the only learning source; every supplied excerpt must retain its verified source location."
 
 
 def _start_ai_activity(

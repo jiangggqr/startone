@@ -53,7 +53,7 @@ STARTFRAME_OPENAI_MODEL=gpt-5.6-luna
 STARTFRAME_SECURE_COOKIES=false
 ```
 
-Restart the service, upload the included sample materials, and exercise knowledge-map generation, Tutor, practice feedback, an Agent decision, and the confirmed search path. Remove the key from the environment when verification is complete. Never paste it into chat, browser storage, screenshots, videos, logs, or Git.
+Restart the service, upload the included sample materials, and exercise knowledge-map generation, Tutor, practice feedback, an Agent decision, and the named-gap request-more-material path. Remove the key from the environment when verification is complete. Never paste it into chat, browser storage, screenshots, videos, logs, or Git.
 
 For the isolated automated core-flow check used by the 1.0.0 release:
 
@@ -61,4 +61,4 @@ For the isolated automated core-flow check used by the 1.0.0 release:
 STARTFRAME_RUN_LIVE_SMOKE=1 python scripts/live_smoke.py
 ```
 
-The runner uses temporary storage and does not print the key or generated learning content. Controlled real web-search request shape and citation filtering are verified separately by the automated contract suite.
+The runner uses temporary storage and does not print the key or generated learning content. The application never exposes a web-search tool; named-gap handling is verified as a request for additional uploaded material.

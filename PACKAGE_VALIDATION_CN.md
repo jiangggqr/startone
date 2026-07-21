@@ -1,6 +1,6 @@
 # V4 修订规格与 UI/UX 原型基线检查报告
 
-> 历史基线说明：本报告与 `PACKAGE_MANIFEST.json` 只证明应用代码创建前的规格包状态。下方“无生产应用代码”和结论描述的是基线 commit，不是当前仓库状态；当前实现与验证结果以 `PROJECT_STATUS.md`、`CODEX_BUILD_LOG.md` 和 `evals/VERIFICATION_REPORT.md` 为准。
+> 历史基线说明：本报告与 `PACKAGE_MANIFEST.json` 只证明应用代码创建前的规格包状态。下方屏幕清单和搜索相关检查记录的是已废弃的 2026-07-20 基线，不是当前产品能力；最终产品不搜索网络，当前实现与验证结果以 `PROJECT_STATUS.md`、`CODEX_BUILD_LOG.md` 和 `evals/VERIFICATION_REPORT.md` 为准。
 
 - Overall: PASS
 - Files checked before manifest: 35
@@ -15,7 +15,7 @@
 - [x] **doc 07** — 07_ADHD_INFORMED_UX_CN.md
 - [x] **doc 08** — 08_GUIDED_MASTERY_LOOP_CN.md
 - [x] **doc 09** — 09_ADAPTIVE_AGENT_CN.md
-- [x] **doc 10** — 10_SOURCE_GROUNDING_AND_SEARCH_CN.md
+- [x] **doc 10** — current file `10_SOURCE_GROUNDING_AND_MATERIAL_GAPS_CN.md`; the archived baseline manifest retains the former filename
 - [x] **doc 11** — 11_PRODUCTION_UX_STANDARDS_CN.md
 - [x] **doc 12** — 12_ACCESSIBILITY_RESPONSIVE_CN.md
 - [x] **doc 13** — 13_DATA_AI_API_CONTRACTS.md

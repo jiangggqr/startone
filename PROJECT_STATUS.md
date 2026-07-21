@@ -16,7 +16,7 @@
 - Milestone 4B Quiz and free recall: complete
 - Milestone 4C feedback, remediation and LearningEvidence: complete
 - Milestone 5 Adaptive Planning Agent: complete
-- Milestone 6 controlled external search: complete
+- Milestone 6 material-gap recovery: complete; external retrieval removed from final product scope
 - Milestone 7 production hardening: complete, including isolated live GPT-5.6 core-flow verification
 - Milestone 8 submission readiness: public repository and public GPT-5.6 deployment live; video upload and Devpost submission remain
 - Production UI language: English
@@ -39,7 +39,7 @@
 - Stable source/chunk IDs, checksums, local retrieval, retry and source deletion
 - Source inventory with empty/error/partial-success/offline/recovery states; no competing full-panel preview in the upload flow
 - Material-driven automatic learning focus and map with no goal, prior-knowledge, time or energy setup gate
-- Grounded source coverage with candidate gaps that never authorize search
+- Grounded source coverage with candidate gaps that can only request additional learner uploads
 - A connected 2–5 concept visual framework followed by a direct first-concept explanation; no route-adjustment decision or pre-test gate
 - Shared server-side GPT-5.6 Responses API gateway with Pydantic Structured Outputs; the interactive default is the low-latency `gpt-5.6-luna` variant
 - Server validation of every generated source/chunk reference before persistence or rendering
@@ -52,8 +52,8 @@
 - Saved-exit summary with a concrete next restart action
 - Current-concept Tutor with persisted per-concept conversation and retry-safe unsent drafts
 - Six concrete Tutor quick actions, free questions and a visible seven-level guidance ladder
-- Strict typed Tutor responses with validated source references and explicit uploaded/AI-supplement labels
-- Factual confusion/prerequisite signals that are visibly not Agent decisions or search requests
+- Strict typed Tutor responses with validated uploaded-source references and generated-from-your-material disclosure
+- Factual confusion/prerequisite signals that are visibly not Agent decisions or material-upload requests
 - Tutor pause/resume, refresh recovery, inline source context and full-screen 390 px mobile flow
 - Real GPT-5.6 Tutor contract path with no tools exposed; deterministic Tutor remains test-only
 - Three-question concept Quiz covering definition, mechanism and application, with server-only answer keys and misconception-based distractors
@@ -72,19 +72,16 @@
 - Eight-action bounded enum with server-validated targets, tools, prerequisites and state transitions
 - Server-validated action execution with no hidden reasoning display or learner-facing alternative-path form
 - Prerequisite/review detours that return to the interrupted concept after mastery
-- Named-gap validation and `request_search` gating that stops before any external request
+- Named-gap validation and bounded `request_more_material` with `required_tool=open_material_upload`
 - Strict real GPT-5.6 function calling with one forced tool call, disabled parallel calls and a deterministic test policy
-- Durable `agent_decision`, `search_confirmation` and `session_summary` transitions with pause/refresh recovery
+- Durable `agent_decision`, `material_upload_requested` and `session_summary` transitions with pause/refresh recovery
 - Safe Agent actions apply automatically after Keep going; there is no ordinary next-step decision screen, and evidence/Agent architecture are not exposed as learning content
-- A separate search confirmation that visibly proves all four gates and states that no search has run before confirmation
-- Execution-time revalidation of session permission, named gap, accepted Agent request and exact-scope user confirmation
-- Required real-mode Responses API web search with cited public HTTPS result filtering and server-only credentials
-- Deterministic search results and a controlled-search one-source fixture for internal testing only
-- Canonical URL, publisher, access time, cited summary, selection reason and `external` origin on every result
-- One-source selection or penalty-free ignore, with uploaded material retained as the primary source
-- Durable search confirmation, running, result, failure, cancel and focus-return recovery states
+- The final product exposes no network-search permission, confirmation, result list or network tool
+- `request_more_material` preserves the current concept and opens the existing upload area without a separate confirmation page
+- New learner-supplied material uses the normal parse, ownership, source-location and coverage-validation path
+- Continue-current-scope and parse-failure recovery preserve learning progress without immediately repeating the request
 - Searchable/filterable learning history, session copy/delete, JSON/Markdown export, AI activity log and full workspace deletion
-- Saved larger-text, reduced-motion and search-suggestion preferences
+- Saved larger-text and reduced-motion preferences
 - Exact source-location validation and lightweight learner-facing citations without learning-progress side effects
 - API no-store policy and hardened CSP, frame, MIME, referrer, permissions and opener headers
 - Schema-preserving migration from uploaded-only source origins and a complete automated regression suite
@@ -100,13 +97,13 @@
 - Knowledge framework nodes are keyboard-operable and reveal each concept's definition, role and dependencies without bypassing the current route
 - The focus workspace is now a two-column knowledge-framework/lesson layout; the Session status rail and Agent alternative-path form are removed
 - Test selection is reduced to two compact choices: 3-question multiple choice or 1-response free recall
-- Keep going completes the evidence boundary, requests exactly one Agent action and applies safe actions automatically; only `request_search` stops for explicit confirmation
-- Source coverage and candidate-gap validation remain server-side and no longer occupy a learner page; only a real Agent `request_search` exposes the named gap in the required confirmation view
+- Keep going completes the evidence boundary, requests exactly one Agent action and applies safe actions automatically; `request_more_material` preserves the concept and opens upload only for a validated blocking gap
+- Source coverage and candidate-gap validation remain server-side and no longer occupy a learner page; a blocking named gap appears only as a concise prompt inside the existing upload flow
 - Session completion logic cannot end an unfinished route; a mastered final concept is marked complete before the summary is generated
 
 ## Latest verification
 
-- 52 automated tests pass after the StartOne Momentum Loop, hidden coverage-state and automatic-continuation refinements
+- 51 automated tests pass after the final uploaded-material-only boundary migration
 - JavaScript syntax, Python compilation, diff hygiene, English-only UI and no-gradient checks pass
 - Browser verification created a fresh real-model session from pasted material, generated a four-node connected framework, opened the explanation, completed a real three-question Quiz, displayed a 3/3 score with one explanation per question, and automatically opened concept 2 of 4 after Keep going
 - Every knowledge-framework node was exercised as a selectable explanation target without bypassing the current route

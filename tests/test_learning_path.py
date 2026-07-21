@@ -44,13 +44,10 @@ async def create_session(client: httpx.AsyncClient) -> dict:
     return response.json()["session"]
 
 
-async def build_learning_path(client: httpx.AsyncClient, session: dict, *, allow_search: bool = True) -> dict:
+async def build_learning_path(client: httpx.AsyncClient, session: dict) -> dict:
     response = await client.post(
         f"/api/sessions/{session['id']}/learning-path",
-        json={
-            "version": session["version"],
-            "search_permission": allow_search,
-        },
+        json={"version": session["version"]},
     )
     assert response.status_code == 200
     return response.json()
@@ -251,7 +248,6 @@ def test_automatic_coverage_map_adjust_and_confirm(tmp_path: Path) -> None:
             assert coverage["generation"] == {
                 "mode": "demo",
                 "model": "deterministic-demo-v1",
-                "internet_search_performed": False,
             }
             assert all(gap["status"] == "candidate" for gap in coverage["source_gaps"])
             assert all(detail["source_origin"] == "uploaded" for detail in coverage["source_ref_details"])
@@ -291,26 +287,21 @@ def test_automatic_coverage_map_adjust_and_confirm(tmp_path: Path) -> None:
     asyncio.run(scenario())
 
 
-def test_controlled_search_demo_loads_only_the_gap_source(tmp_path: Path) -> None:
+def test_demo_materials_are_uploaded_sources_only(tmp_path: Path) -> None:
     async def scenario() -> None:
         app = make_app(tmp_path)
         async with app_client(app) as client:
             session = await create_session(client)
-            response = await client.post(
-                f"/api/sessions/{session['id']}/demo-materials?scenario=controlled_search"
-            )
+            response = await client.post(f"/api/sessions/{session['id']}/demo-materials")
             assert response.status_code == 201
             body = response.json()
-            assert body["created_count"] == 1
-            assert body["scenario"] == "controlled_search"
-            assert [source["filename"] for source in body["sources"]] == [
-                "transformer_notes.md"
+            assert body["created_count"] == 2
+            assert body["scenario"] == "standard"
+            assert sorted(source["filename"] for source in body["sources"]) == [
+                "matrix_prerequisite.md",
+                "transformer_notes.md",
             ]
-
-            session = (await client.get(f"/api/sessions/{session['id']}")).json()["session"]
-            coverage = (await build_learning_path(client, session))["coverage"]
-            gap_descriptions = [gap["description"] for gap in coverage["source_gaps"]]
-            assert any("dot product" in description for description in gap_descriptions)
+            assert all(source["source_origin"] == "uploaded" for source in body["sources"])
 
     asyncio.run(scenario())
 

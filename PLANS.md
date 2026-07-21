@@ -10,7 +10,7 @@ Create FastAPI, SQLite initialization, static app shell, configuration, health e
 
 Implement PDF, Markdown, TXT and pasted-text ingestion; real page or line locations; stable source/chunk IDs; persistence; source inventory; preview; partial-success and parse-error states.
 
-**Status:** Complete and verified on 2026-07-20. No model or external search is used.
+**Status:** Complete and verified on 2026-07-20. No model or network tool is used.
 
 ## Milestone 2 — Automatic material analysis, coverage and knowledge map
 
@@ -26,9 +26,9 @@ Implement desktop/tablet/mobile layouts, one active concept, one primary action,
 
 ## Milestone 4A — Contextual Tutor
 
-Implement source-aware chat, quick actions, free questions, graduated guidance, checking questions, persistence, origin labels and prerequisite-gap signals. Tutor cannot change route or search.
+Implement source-aware chat, quick actions, free questions, graduated guidance, checking questions, persistence, origin labels and prerequisite-gap signals. Tutor cannot change route, request material or access outside information.
 
-**Status:** Complete and verified on 2026-07-21. Tutor messages persist per active concept; six quick supports and free questions follow a seven-level guidance ladder; every response uses validated source references and explicit source-origin labels; Tutor has no route or search capability.
+**Status:** Complete and verified on 2026-07-21. Tutor messages persist per active concept; six quick supports and free questions follow a seven-level guidance ladder; every response uses validated source references and explicit source disclosure; Tutor has no route, upload-request or outside-information capability.
 
 ## Milestone 4B — Quiz and free recall
 
@@ -44,15 +44,15 @@ Implement structured immediate feedback, specific encouragement, misconception d
 
 ## Milestone 5 — Adaptive Planning Agent
 
-Implement a bounded action enum, exactly one next decision, automatic execution of safe actions, prerequisite insertion/return and server-validated transitions. Do not add a learner-facing decision or alternative-path page; `request_search` is the only action that must stop for confirmation.
+Implement a bounded action enum, exactly one next decision, automatic execution of safe actions, prerequisite insertion/return and server-validated transitions. Do not add a learner-facing decision, alternative-path or separate gap-confirmation page; `request_more_material` may preserve the concept and open the existing upload area only when a validated named gap blocks learning.
 
-**Status:** Complete and verified on 2026-07-22. The Agent reads validated `LearningEvidence` as its sole learning-performance basis and proposes exactly one bounded action. Keep going requests that decision and applies safe actions automatically without a separate decision page. `request_search` still stops at explicit confirmation and performs no search on its own.
+**Status:** Complete and verified on 2026-07-22. The Agent reads validated `LearningEvidence` as its sole learning-performance basis and proposes exactly one bounded action. Keep going requests that decision and applies safe actions automatically without a separate decision page. A validated blocking gap can produce `request_more_material`; no Agent action can search the web.
 
-## Milestone 6 — Controlled external search
+## Milestone 6 — Material-gap recovery
 
-Implement session permission, runtime confirmation, named gap, Agent request, Responses API web search, selected cited sources, origin labels, mock mode and failure recovery.
+Implement validated named gaps, the bounded `request_more_material` Agent action, a concise inline explanation inside the existing upload area, a continue-with-current-scope path, and recovery without losing progress.
 
-**Status:** Complete and verified on 2026-07-21. Search execution revalidates all four gates, real mode requires the Responses API web-search tool and persists only cited public HTTPS results, deterministic tests cover the result set, and selection/ignore/cancel/failure states return safely to the uploaded-material-first learning flow. A dedicated one-source fixture makes the named-gap path testable without learner-facing evaluator controls.
+**Status:** Superseded by the final product decision on 2026-07-22. The earlier network-search implementation was removed from the learner product. StartOne now keeps uploaded material as the only source: a validated blocking gap can only ask the learner to upload relevant material or continue within the current scope. No model call receives a web-search tool.
 
 ## Milestone 7 — End-to-end production hardening
 
@@ -68,6 +68,6 @@ Finalize README, license, setup, deployment or judge path, sample data, under-th
 
 ## Product refinement — StartOne Momentum Loop
 
-Rename the learner-facing product to StartOne and make the initiation-to-completion mechanism explicit: one-click preparation, a connected visual knowledge map, one-concept focus, relationship visualization, a memory anchor, immediate retrieval, truthful small-win feedback and automatic application of the Agent's one safe next action. External search remains separately confirmed.
+Rename the learner-facing product to StartOne and make the initiation-to-completion mechanism explicit: one-click preparation, a connected visual knowledge map, one-concept focus, relationship visualization, a memory anchor, immediate retrieval, truthful small-win feedback and automatic application of the Agent's one safe next action. Uploaded material remains the only learning source.
 
 **Status:** Implemented in the production client and aligned across the core specification, prototype, tests and submission artifacts on 2026-07-22.

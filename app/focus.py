@@ -330,8 +330,7 @@ def pause_session(
         return session
     if session["state"] not in {
         "start_action", "learning_concept", "practicing", "feedback_shown",
-        "remedial_practice", "evidence_ready", "agent_decision", "search_confirmation",
-        "search_results",
+        "remedial_practice", "evidence_ready", "agent_decision",
     }:
         raise SourceError("invalid_session_transition", "This session cannot be paused from its current step.", status_code=409)
     elapsed, remaining = _timer_values(session)
@@ -363,7 +362,7 @@ def resume_session(
     resume_state = str(session.get("resume_state") or session["state"])
     timer_sql = "CURRENT_TIMESTAMP" if resume_state in {
         "learning_concept", "practicing", "feedback_shown", "remedial_practice", "evidence_ready",
-        "agent_decision", "search_confirmation", "search_results",
+        "agent_decision",
     } else "NULL"
     with connect(database_path) as connection:
         connection.execute(
@@ -429,11 +428,7 @@ def get_focus_workspace(database_path: Path, workspace_id: str, session_id: str)
     route = list(output["recommended_route"])
     concepts = [dict(row) for row in rows]
     concept_by_key = {item["concept_key"]: item for item in concepts}
-    primary_origin = (
-        "uploaded"
-        if any(item["source_origin"] == "uploaded" for item in source_ref_details)
-        else "ai_supplement"
-    )
+    primary_origin = "uploaded"
     elapsed, remaining = _timer_values(session)
     route_items = [concept_by_key[key] for key in route if key in concept_by_key]
     active_route_index = next(
@@ -442,11 +437,6 @@ def get_focus_workspace(database_path: Path, workspace_id: str, session_id: str)
     )
     start_draft = _draft_by_type(database_path, workspace_id, session_id, "start_action")
     focus_draft = _draft_by_type(database_path, workspace_id, session_id, "focus_note")
-    from app.search import selected_sources_for_concept
-
-    external_supplements = selected_sources_for_concept(
-        database_path, workspace_id, session_id, str(active["id"])
-    )
     return {
         "session": _focus_session(session),
         "active_concept": {
@@ -481,10 +471,8 @@ def get_focus_workspace(database_path: Path, workspace_id: str, session_id: str)
         },
         "timer": {"elapsed_seconds": elapsed, "remaining_seconds": remaining},
         "drafts": {"start_action": start_draft, "focus_note": focus_draft},
-        "external_supplements": external_supplements,
         "source_policy": {
             "primary_origin": primary_origin,
-            "internet_search_performed": bool(external_supplements),
         },
         "restart_action": f"Resume {active['title']} and read the saved focus note before continuing.",
     }
@@ -600,7 +588,7 @@ def _require_mutable_learning_state(session: dict[str, Any]) -> None:
         )
     if session["state"] not in {
         "start_action", "learning_concept", "practicing", "feedback_shown",
-        "remedial_practice", "evidence_ready", "agent_decision", "search_confirmation",
+        "remedial_practice", "evidence_ready", "agent_decision",
     }:
         raise SourceError(
             "draft_not_available",

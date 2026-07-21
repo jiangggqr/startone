@@ -83,7 +83,7 @@ Update PLANS.md and CODEX_BUILD_LOG.md, then create a focused Git commit.
 - Milestone 2：接入第一个 GPT-5.6 Structured Outputs 路径，同时保留确定性 Demo fixtures。
 - Milestone 3：使用已验证的 Demo/真实输出完成会话壳，不新增模型职责。
 - Milestone 4：复用同一 AI gateway 接入 Tutor、练习与反馈。
-- Milestone 5–6：接入 Agent 和搜索。
+- Milestone 5–6：接入 Agent 和命名材料缺口恢复。
 - 所有模型输出先做 Schema 和来源校验。
 
 ## 5. API Key

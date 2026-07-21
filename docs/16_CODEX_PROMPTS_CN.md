@@ -22,7 +22,7 @@ Constraints:
 - Python 3.11+, FastAPI, Uvicorn, SQLite, static HTML/CSS/JS.
 - No Node.js build system.
 - Keep all specification and prototype files.
-- Do not implement uploads, AI, Tutor, Quiz, Agent or search yet.
+- Do not implement uploads, AI, Tutor, Quiz, Agent or material-gap recovery yet.
 
 Implement:
 1. FastAPI app on port 8000.
@@ -53,7 +53,7 @@ Implement Milestone 1: source ingestion, stable grounding and production states.
 Read first:
 docs/05_SCREEN_AND_INTERACTION_SPEC_CN.md screens 03, 04 and 16,
 docs/06_COMPONENTS_AND_STATES_CN.md,
-docs/10_SOURCE_GROUNDING_AND_SEARCH_CN.md,
+docs/10_SOURCE_GROUNDING_AND_MATERIAL_GAPS_CN.md,
 docs/13_DATA_AI_API_CONTRACTS.md,
 evals/CORE_PRODUCT_ACCEPTANCE_CASES.md,
 and inspect prototype screens 03, 04, 16 and 20.
@@ -70,7 +70,7 @@ Implement:
 
 Do not implement:
 - Knowledge map generation
-- Tutor, activities, Agent or web search
+- Tutor, activities, Agent or any network retrieval
 
 Acceptance:
 - Every source reference resolves to a real stored location.
@@ -92,23 +92,21 @@ Read first:
 prototype screens 02, 04, 05 and 06,
 docs/03_END_TO_END_USER_FLOW_CN.md,
 docs/07_ADHD_INFORMED_UX_CN.md,
-docs/10_SOURCE_GROUNDING_AND_SEARCH_CN.md,
+docs/10_SOURCE_GROUNDING_AND_MATERIAL_GAPS_CN.md,
 docs/13_DATA_AI_API_CONTRACTS.md.
 
 Implement:
-1. Goal, prior knowledge, time, energy, language and support preferences.
-2. Search suggestion permission with runtime-confirmation explanation.
-3. SourceCoverage Structured Output.
-4. 2–5 concept map with dependencies and validated source refs.
-5. Named source gaps that do not automatically trigger search.
-6. Editable route and estimated time.
-7. One StartAction lasting 60–120 seconds with completion condition.
-8. Deterministic Demo fixtures and real GPT-5.6 code path.
-9. Loading, invalid-output and retry states.
+1. Automatic material analysis without goal, prior-knowledge, time or energy forms.
+2. SourceCoverage Structured Output.
+3. 2–5 concept map with dependencies and validated source refs.
+4. Named source gaps that never trigger network access.
+5. A concise route and direct beginner-friendly first explanation.
+6. Deterministic test fixtures and the real GPT-5.6 code path.
+7. Loading, invalid-output and retry states.
 
 Boundaries:
 - Do not implement post-activity Agent decisions.
-- Do not call web search.
+- Do not expose or call any network tool.
 - Do not send whole documents when relevant chunks suffice.
 
 Verify upload-to-knowledge-framework-to-first-explanation in browser and add contract/grounding tests.
@@ -160,7 +158,7 @@ Implement Milestone 4A: source-aware contextual Tutor and graduated guidance.
 Read first:
 prototype screen 08,
 docs/08_GUIDED_MASTERY_LOOP_CN.md,
-docs/10_SOURCE_GROUNDING_AND_SEARCH_CN.md,
+docs/10_SOURCE_GROUNDING_AND_MATERIAL_GAPS_CN.md,
 docs/13_DATA_AI_API_CONTRACTS.md.
 
 Implement:
@@ -174,7 +172,7 @@ Implement:
 - Deterministic Demo conversation.
 
 Boundaries:
-- Tutor cannot change route, grade Quiz/Recall, make Agent decisions or start search.
+- Tutor cannot change route, grade Quiz/Recall, make Agent decisions, request uploads or access outside information.
 - Default explanation is concise and non-metaphorical.
 - Missing coverage is declared, not invented.
 
@@ -266,44 +264,43 @@ Implement:
 - Deterministic decision fixtures and real model path.
 
 Boundaries:
-- Agent cannot teach, grade, write feedback or search directly.
-- request_search only creates a pending request.
+- Agent cannot teach, grade, write feedback or access outside information.
+- `request_more_material` requires a validated named gap, keeps the current concept active and uses `required_tool=open_material_upload`.
 - Invalid or impossible decisions are rejected server-side.
 
-Verify normal progression, retry, activity switch, prerequisite insertion/return, automatic continuation, search confirmation and safe finish.
+Verify normal progression, retry, activity switch, prerequisite insertion/return, automatic continuation, request-more-material upload return and safe finish.
 ```
 
 ---
 
-## Prompt 6：受控外部搜索
+## Prompt 6：材料缺口与补充上传恢复
 
 ```text
 Goal:
-Implement Milestone 6: controlled external supplementation.
+Implement Milestone 6: material-gap recovery without external retrieval.
 
 Read first:
-prototype screens 14 and 15,
-docs/10_SOURCE_GROUNDING_AND_SEARCH_CN.md,
+prototype screen 14,
+docs/10_SOURCE_GROUNDING_AND_MATERIAL_GAPS_CN.md,
 docs/11_PRODUCTION_UX_STANDARDS_CN.md,
 docs/13_DATA_AI_API_CONTRACTS.md.
 
 Implement:
-1. Four gates: session permission, validated named SourceGap, Agent request_search and runtime user confirmation.
-2. Runtime confirmation page showing gap, goal and alternatives; the execute endpoint revalidates all four gates.
-3. OpenAI Responses API web_search in real mode.
-4. Deterministic mock results in internal acceptance mode only.
-5. Small candidate set with title, URL, publisher, selection reason and filled gap.
-6. Preview, select, ignore and retry.
-7. Persistent external source refs and labels.
-8. Timeout, no-results, inaccessible-source and user-decline recovery.
+1. A server-validated named `SourceGap` connected to evidence that it blocks the current concept.
+2. Agent action `request_more_material` with `required_tool=open_material_upload`.
+3. Keep the current concept active and open the existing upload area with a concise missing-material explanation; do not add a separate confirmation page.
+4. Upload PDF/Markdown/TXT or paste text, then revalidate coverage and return to the preserved concept.
+5. A secondary continue-with-current-scope action with no penalty.
+6. Parse-failure, cancel and later-upload recovery.
+7. Tests proving that no model or Agent call receives a network tool.
 
 Acceptance:
-- Permission off means no network call.
-- No named gap means no search.
-- No runtime confirmation means no search.
-- Search failure preserves session.
-- External content is never labeled uploaded.
-- User can continue without search.
+- No validated blocking gap means no `request_more_material` action.
+- The action preserves the current concept and opens the upload area.
+- Uploaded material remains the only learning source.
+- Parse failure preserves the session.
+- The user can continue within the current scope.
+- No external URL, candidate list or network tool exists in the flow.
 ```
 
 ---
@@ -322,7 +319,7 @@ Tasks:
 - Verify desktop, tablet and mobile layouts.
 - Perform keyboard-only and focus-management checks.
 - Verify source origin and citation validation everywhere.
-- Verify Agent/Tutor boundaries and search gates.
+- Verify Agent/Tutor boundaries and the uploaded-material-only boundary.
 - Test the no-key deterministic fixture path end to end without exposing it in learner UI.
 - Run one real GPT-5.6 smoke flow without committing secrets.
 - Review privacy, file handling and HTML escaping.

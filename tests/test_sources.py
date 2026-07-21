@@ -5,6 +5,7 @@ from pathlib import Path
 import sqlite3
 
 import httpx
+import pytest
 from pypdf import PdfWriter
 from pypdf.generic import DecodedStreamObject, DictionaryObject, NameObject
 
@@ -101,12 +102,10 @@ def test_markdown_upload_has_real_lines_and_stable_chunks(tmp_path: Path) -> Non
             retried = (await client.get(f"/api/sources/{source_id}")).json()["source"]
             assert [chunk["id"] for chunk in retried["chunks"]] == first_ids
 
-            search = await client.get(
-                f"/api/sessions/{session_id}/source-search",
-                params={"q": "combined values"},
+            assert any(
+                "combined" in chunk["text"].lower()
+                for chunk in retried["chunks"]
             )
-            assert search.status_code == 200
-            assert search.json()["results"][0]["source_id"] == source_id
 
     asyncio.run(scenario())
 
@@ -318,7 +317,8 @@ def test_schema_10_migrates_existing_sources_without_losing_child_rows(tmp_path:
             filename TEXT NOT NULL,
             media_type TEXT NOT NULL,
             media_kind TEXT NOT NULL CHECK(media_kind IN ('pdf', 'markdown', 'text', 'pasted')),
-            source_origin TEXT NOT NULL DEFAULT 'uploaded' CHECK(source_origin = 'uploaded'),
+            source_origin TEXT NOT NULL DEFAULT 'uploaded'
+                CHECK(source_origin IN ('uploaded', 'ai_supplement')),
             parse_status TEXT NOT NULL,
             page_count INTEGER,
             line_count INTEGER,
@@ -347,6 +347,15 @@ def test_schema_10_migrates_existing_sources_without_losing_child_rows(tmp_path:
             VALUES ('source', 'workspace', 'session', 'blob', 'notes.md', 'text/markdown', 'markdown', 'success');
         INSERT INTO source_chunks(id, source_id, start_char, end_char, text, search_text, checksum)
             VALUES ('chunk', 'source', 0, 4, 'text', 'text', 'sum');
+        INSERT INTO source_documents(
+            id, workspace_id, session_id, blob_id, filename, media_type,
+            media_kind, source_origin, parse_status
+        ) VALUES (
+            'retired-ai-source', 'workspace', 'session', 'blob', 'topic.md',
+            'text/markdown', 'markdown', 'ai_supplement', 'success'
+        );
+        INSERT INTO source_chunks(id, source_id, start_char, end_char, text, search_text, checksum)
+            VALUES ('retired-ai-chunk', 'retired-ai-source', 0, 4, 'text', 'text', 'sum2');
         """
     )
     connection.close()
@@ -355,5 +364,12 @@ def test_schema_10_migrates_existing_sources_without_losing_child_rows(tmp_path:
     with connect(database_path) as migrated:
         assert migrated.execute("SELECT source_origin FROM source_documents WHERE id = 'source'").fetchone()[0] == "uploaded"
         assert migrated.execute("SELECT source_id FROM source_chunks WHERE id = 'chunk'").fetchone()[0] == "source"
+        assert migrated.execute(
+            "SELECT 1 FROM source_documents WHERE id = 'retired-ai-source'"
+        ).fetchone() is None
+        assert migrated.execute(
+            "SELECT 1 FROM source_chunks WHERE id = 'retired-ai-chunk'"
+        ).fetchone() is None
         assert migrated.execute("PRAGMA foreign_key_check").fetchall() == []
-        migrated.execute("UPDATE source_documents SET source_origin = 'ai_supplement' WHERE id = 'source'")
+        with pytest.raises(sqlite3.IntegrityError):
+            migrated.execute("UPDATE source_documents SET source_origin = 'external' WHERE id = 'source'")

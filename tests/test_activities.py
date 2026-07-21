@@ -17,8 +17,8 @@ from tests.test_focus_workspace import prepare_start_action
 from tests.test_learning_path import app_client, make_app
 
 
-async def prepare_focus(client, *, demo_scenario: str = "standard"):
-    session = await prepare_start_action(client, demo_scenario=demo_scenario)
+async def prepare_focus(client):
+    session = await prepare_start_action(client)
     saved = await client.put(
         f"/api/sessions/{session['id']}/drafts/start_action",
         json={
@@ -77,7 +77,6 @@ def test_quiz_hides_answer_and_restores_draft_hints_pause_and_attempt(tmp_path: 
             assert "explanation_by_option" not in serialized
             assert quiz["boundaries"]["creates_learning_evidence"] is False
             assert quiz["boundaries"]["creates_agent_decision"] is False
-            assert quiz["generation"]["internet_search_performed"] is False
 
             selected_id = quiz_answer_payload(quiz, correct=True)
             saved = await client.put(

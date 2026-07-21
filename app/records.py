@@ -26,7 +26,7 @@ def copy_session(
     copy_name = f"Copy of {original['name']}"[:180]
     setup_fields = (
         "goal", "prior_knowledge", "available_minutes", "energy_level", "language",
-        "current_question", "support_preferences_json", "show_timer", "search_permission",
+        "current_question", "support_preferences_json", "show_timer",
         "setup_completed",
     )
     with connect(database_path) as connection:
@@ -310,20 +310,6 @@ def workspace_export(database_path: Path, workspace_id: str) -> dict[str, Any]:
             """,
             (workspace_id,),
         ).fetchall())
-        searches = _dict_rows(connection.execute(
-            """
-            SELECT id, session_id, concept_id, source_gap_id, agent_decision_id,
-                   query_scope, reason_for_user, permission_snapshot, confirmation_status,
-                   search_status, generation_mode, model, error_code, created_at,
-                   confirmed_at, executed_at, completed_at
-            FROM search_requests WHERE workspace_id = ? ORDER BY created_at, rowid
-            """,
-            (workspace_id,),
-        ).fetchall())
-        external_sources = _dict_rows(connection.execute(
-            "SELECT * FROM external_sources WHERE workspace_id = ? ORDER BY created_at, rank",
-            (workspace_id,),
-        ).fetchall())
         ai_activity = _dict_rows(connection.execute(
             """
             SELECT session_id, operation, generation_mode, model, status, error_code,
@@ -357,8 +343,6 @@ def workspace_export(database_path: Path, workspace_id: str) -> dict[str, Any]:
         "feedback": feedback,
         "learning_evidence": evidence,
         "agent_decisions": decisions,
-        "search_requests": searches,
-        "external_sources": external_sources,
         "ai_activity": ai_activity,
         "session_events": events,
     }

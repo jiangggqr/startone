@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from pathlib import Path
+from typing import Any
 
 
-SCHEMA_VERSION = 11
+SCHEMA_VERSION = 12
 
 SOURCE_SCHEMA = """
 CREATE TABLE IF NOT EXISTS workspaces (
@@ -48,7 +50,7 @@ CREATE TABLE IF NOT EXISTS source_documents (
     media_type TEXT NOT NULL,
     media_kind TEXT NOT NULL CHECK(media_kind IN ('pdf', 'markdown', 'text', 'pasted')),
     source_origin TEXT NOT NULL DEFAULT 'uploaded'
-        CHECK(source_origin IN ('uploaded', 'ai_supplement')),
+        CHECK(source_origin = 'uploaded'),
     parse_status TEXT NOT NULL,
     page_count INTEGER,
     line_count INTEGER,
@@ -100,7 +102,6 @@ ALTER TABLE learning_sessions ADD COLUMN language TEXT NOT NULL DEFAULT 'English
 ALTER TABLE learning_sessions ADD COLUMN current_question TEXT;
 ALTER TABLE learning_sessions ADD COLUMN support_preferences_json TEXT NOT NULL DEFAULT '[]';
 ALTER TABLE learning_sessions ADD COLUMN show_timer INTEGER NOT NULL DEFAULT 0;
-ALTER TABLE learning_sessions ADD COLUMN search_permission INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE learning_sessions ADD COLUMN setup_completed INTEGER NOT NULL DEFAULT 0;
 
 CREATE TABLE source_coverages (
@@ -124,7 +125,7 @@ CREATE TABLE source_gaps (
     why_needed TEXT NOT NULL,
     evidence TEXT NOT NULL,
     current_source_refs_json TEXT NOT NULL,
-    suggested_query_scope TEXT NOT NULL,
+    requested_material TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'candidate'
         CHECK(status IN ('candidate', 'validated', 'resolved', 'dismissed')),
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -252,7 +253,7 @@ CREATE TABLE tutor_messages (
     quick_action TEXT,
     guidance_level INTEGER NOT NULL DEFAULT 0,
     checking_question TEXT,
-    source_origin TEXT CHECK(source_origin IN ('uploaded', 'ai_supplement')),
+    source_origin TEXT CHECK(source_origin = 'uploaded'),
     source_refs_json TEXT NOT NULL DEFAULT '[]',
     confusion_signal TEXT,
     prerequisite_gap_signal TEXT,
@@ -271,7 +272,7 @@ CREATE TABLE activities (
     type TEXT NOT NULL CHECK(type IN ('quiz', 'recall', 'remedial')),
     prompt TEXT NOT NULL,
     output_json TEXT NOT NULL,
-    source_origin TEXT NOT NULL CHECK(source_origin IN ('uploaded', 'external', 'ai_supplement')),
+    source_origin TEXT NOT NULL CHECK(source_origin = 'uploaded'),
     source_refs_json TEXT NOT NULL,
     generation_mode TEXT NOT NULL CHECK(generation_mode IN ('demo', 'real')),
     model TEXT,
@@ -315,7 +316,7 @@ CREATE TABLE feedbacks (
     activity_id TEXT NOT NULL REFERENCES activities(id) ON DELETE CASCADE,
     attempt_id TEXT NOT NULL UNIQUE REFERENCES attempts(id) ON DELETE CASCADE,
     output_json TEXT NOT NULL,
-    source_origin TEXT NOT NULL CHECK(source_origin IN ('uploaded', 'external', 'ai_supplement')),
+    source_origin TEXT NOT NULL CHECK(source_origin = 'uploaded'),
     source_refs_json TEXT NOT NULL,
     generation_mode TEXT NOT NULL CHECK(generation_mode IN ('demo', 'real')),
     model TEXT,
@@ -363,14 +364,14 @@ CREATE TABLE agent_decisions (
     evidence_snapshot_json TEXT NOT NULL,
     action TEXT NOT NULL CHECK(action IN (
         'continue_next', 'retry_current', 'switch_activity', 'simplify_current',
-        'insert_prerequisite', 'review_previous', 'request_search', 'finish_session'
+        'insert_prerequisite', 'review_previous', 'request_more_material', 'finish_session'
     )),
     reason_for_user TEXT NOT NULL,
     estimated_minutes INTEGER NOT NULL CHECK(estimated_minutes BETWEEN 0 AND 45),
     target_concept_id TEXT REFERENCES concepts(id),
     return_to_concept_id TEXT REFERENCES concepts(id),
     required_tool TEXT NOT NULL CHECK(required_tool IN (
-        'activate_concept', 'create_activity', 'open_tutor', 'request_search', 'create_summary'
+        'activate_concept', 'create_activity', 'open_tutor', 'open_material_upload', 'create_summary'
     )),
     confidence REAL NOT NULL CHECK(confidence BETWEEN 0 AND 1),
     generation_mode TEXT NOT NULL CHECK(generation_mode IN ('demo', 'real')),
@@ -378,7 +379,7 @@ CREATE TABLE agent_decisions (
     status TEXT NOT NULL DEFAULT 'proposed' CHECK(status IN ('proposed', 'accepted', 'overridden')),
     selected_action TEXT CHECK(selected_action IN (
         'continue_next', 'retry_current', 'switch_activity', 'simplify_current',
-        'insert_prerequisite', 'review_previous', 'request_search', 'finish_session'
+        'insert_prerequisite', 'review_previous', 'request_more_material', 'finish_session'
     )),
     override_reason TEXT,
     version INTEGER NOT NULL DEFAULT 1,
@@ -403,66 +404,6 @@ CREATE TABLE learning_detours (
 );
 CREATE INDEX idx_learning_detours_session_status
     ON learning_detours(session_id, status, created_at DESC);
-"""
-
-CONTROLLED_SEARCH_SCHEMA = """
-CREATE TABLE search_requests (
-    id TEXT PRIMARY KEY,
-    workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
-    session_id TEXT NOT NULL REFERENCES learning_sessions(id) ON DELETE CASCADE,
-    concept_id TEXT NOT NULL REFERENCES concepts(id) ON DELETE CASCADE,
-    source_gap_id TEXT NOT NULL REFERENCES source_gaps(id) ON DELETE CASCADE,
-    agent_decision_id TEXT NOT NULL UNIQUE REFERENCES agent_decisions(id) ON DELETE CASCADE,
-    query_scope TEXT NOT NULL,
-    reason_for_user TEXT NOT NULL,
-    permission_snapshot INTEGER NOT NULL CHECK(permission_snapshot IN (0, 1)),
-    confirmation_status TEXT NOT NULL DEFAULT 'pending'
-        CHECK(confirmation_status IN ('pending', 'confirmed', 'declined')),
-    search_status TEXT NOT NULL DEFAULT 'pending'
-        CHECK(search_status IN ('pending', 'running', 'completed', 'failed', 'cancelled', 'ignored')),
-    generation_mode TEXT NOT NULL CHECK(generation_mode IN ('demo', 'real')),
-    model TEXT,
-    response_id TEXT,
-    error_code TEXT,
-    version INTEGER NOT NULL DEFAULT 1,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    confirmed_at TEXT,
-    executed_at TEXT,
-    completed_at TEXT
-);
-CREATE INDEX idx_search_requests_session_created
-    ON search_requests(session_id, created_at DESC);
-
-CREATE TABLE external_sources (
-    id TEXT PRIMARY KEY,
-    workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
-    session_id TEXT NOT NULL REFERENCES learning_sessions(id) ON DELETE CASCADE,
-    concept_id TEXT NOT NULL REFERENCES concepts(id) ON DELETE CASCADE,
-    source_gap_id TEXT NOT NULL REFERENCES source_gaps(id) ON DELETE CASCADE,
-    search_request_id TEXT NOT NULL REFERENCES search_requests(id) ON DELETE CASCADE,
-    canonical_url TEXT NOT NULL,
-    title TEXT NOT NULL,
-    publisher TEXT NOT NULL,
-    accessed_at TEXT NOT NULL,
-    selection_reason TEXT NOT NULL,
-    citation_excerpt TEXT NOT NULL,
-    locator TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'candidate'
-        CHECK(status IN ('candidate', 'selected', 'inaccessible', 'ignored')),
-    rank INTEGER NOT NULL CHECK(rank BETWEEN 1 AND 10),
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    selected_at TEXT,
-    UNIQUE(search_request_id, canonical_url)
-);
-CREATE INDEX idx_external_sources_request_rank
-    ON external_sources(search_request_id, rank);
-
-CREATE TABLE concept_external_sources (
-    concept_id TEXT NOT NULL REFERENCES concepts(id) ON DELETE CASCADE,
-    external_source_id TEXT NOT NULL UNIQUE REFERENCES external_sources(id) ON DELETE CASCADE,
-    attached_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY(concept_id, external_source_id)
-);
 """
 
 SOURCE_REPORT_SCHEMA = """
@@ -533,7 +474,6 @@ def initialize_database(database_path: Path) -> None:
             connection.executescript(AGENT_SCHEMA)
             connection.execute("INSERT INTO schema_migrations(version) VALUES (8)")
         if 9 not in applied:
-            connection.executescript(CONTROLLED_SEARCH_SCHEMA)
             connection.execute("INSERT INTO schema_migrations(version) VALUES (9)")
         if 10 not in applied:
             _migrate_source_origin_constraint(connection)
@@ -541,6 +481,9 @@ def initialize_database(database_path: Path) -> None:
         if 11 not in applied:
             connection.executescript(SOURCE_REPORT_SCHEMA)
             connection.execute("INSERT INTO schema_migrations(version) VALUES (11)")
+        if 12 not in applied:
+            _migrate_uploaded_material_only(connection)
+            connection.execute("INSERT INTO schema_migrations(version) VALUES (12)")
         # A process restart cannot resume an in-flight synchronous model call.
         # Close stale records so the saved session returns to an honest,
         # retryable state instead of appearing to analyze forever.
@@ -559,14 +502,19 @@ def initialize_database(database_path: Path) -> None:
 
 
 def _migrate_source_origin_constraint(connection: sqlite3.Connection) -> None:
-    """Allow clearly labeled AI topic fixtures without weakening source ownership."""
+    """Keep the legacy migration slot without widening the source boundary."""
 
     row = connection.execute(
         "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'source_documents'"
     ).fetchone()
-    if not row or "ai_supplement" in str(row["sql"]):
+    if not row or "CHECK(source_origin = 'uploaded')" in str(row["sql"]):
         return
 
+    # Rows created by retired topic-only or supplemental-source flows cannot
+    # remain learning sources under the uploaded-material-only boundary.
+    connection.execute(
+        "DELETE FROM source_documents WHERE source_origin <> 'uploaded'"
+    )
     connection.commit()
     connection.execute("PRAGMA foreign_keys = OFF")
     try:
@@ -581,7 +529,7 @@ def _migrate_source_origin_constraint(connection: sqlite3.Connection) -> None:
                 media_type TEXT NOT NULL,
                 media_kind TEXT NOT NULL CHECK(media_kind IN ('pdf', 'markdown', 'text', 'pasted')),
                 source_origin TEXT NOT NULL DEFAULT 'uploaded'
-                    CHECK(source_origin IN ('uploaded', 'ai_supplement')),
+                    CHECK(source_origin = 'uploaded'),
                 parse_status TEXT NOT NULL,
                 page_count INTEGER,
                 line_count INTEGER,
@@ -612,6 +560,193 @@ def _migrate_source_origin_constraint(connection: sqlite3.Connection) -> None:
         connection.commit()
     finally:
         connection.execute("PRAGMA foreign_keys = ON")
+
+
+def _migrate_uploaded_material_only(connection: sqlite3.Connection) -> None:
+    """Remove the retired web-search surface and migrate its Agent action safely."""
+
+    _migrate_source_origin_constraint(connection)
+    connection.commit()
+    connection.execute("PRAGMA foreign_keys = OFF")
+    try:
+        connection.executescript(
+            """
+            DROP TABLE IF EXISTS concept_external_sources;
+            DROP TABLE IF EXISTS external_sources;
+            DROP TABLE IF EXISTS search_requests;
+            """
+        )
+
+        session_columns = {
+            str(row["name"])
+            for row in connection.execute("PRAGMA table_info(learning_sessions)")
+        }
+        if {"state", "resume_state", "updated_at"} <= session_columns:
+            connection.execute(
+                """
+                UPDATE learning_sessions
+                SET state = 'learning_concept',
+                    resume_state = CASE
+                        WHEN resume_state IN ('search_confirmation', 'search_running', 'search_results')
+                        THEN 'learning_concept' ELSE resume_state END,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE state IN ('search_confirmation', 'search_running', 'search_results')
+                """
+            )
+
+        gap_columns = {
+            str(row["name"])
+            for row in connection.execute("PRAGMA table_info(source_gaps)")
+        }
+        if "suggested_query_scope" in gap_columns and "requested_material" not in gap_columns:
+            connection.execute(
+                "ALTER TABLE source_gaps RENAME COLUMN suggested_query_scope TO requested_material"
+            )
+
+        _migrate_json_payload_column(
+            connection, "source_coverages", "output_json"
+        )
+        _migrate_json_payload_column(
+            connection, "knowledge_maps", "output_json"
+        )
+        _migrate_json_payload_column(
+            connection, "agent_decisions", "evidence_snapshot_json"
+        )
+
+        decision_sql = connection.execute(
+            "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'agent_decisions'"
+        ).fetchone()
+        if decision_sql and "request_more_material" not in str(decision_sql["sql"]):
+            connection.executescript(
+                """
+                CREATE TABLE agent_decisions_v12 (
+                    id TEXT PRIMARY KEY,
+                    workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+                    session_id TEXT NOT NULL REFERENCES learning_sessions(id) ON DELETE CASCADE,
+                    concept_id TEXT NOT NULL REFERENCES concepts(id) ON DELETE CASCADE,
+                    evidence_fingerprint TEXT NOT NULL,
+                    evidence_snapshot_json TEXT NOT NULL,
+                    action TEXT NOT NULL CHECK(action IN (
+                        'continue_next', 'retry_current', 'switch_activity', 'simplify_current',
+                        'insert_prerequisite', 'review_previous', 'request_more_material', 'finish_session'
+                    )),
+                    reason_for_user TEXT NOT NULL,
+                    estimated_minutes INTEGER NOT NULL CHECK(estimated_minutes BETWEEN 0 AND 45),
+                    target_concept_id TEXT REFERENCES concepts(id),
+                    return_to_concept_id TEXT REFERENCES concepts(id),
+                    required_tool TEXT NOT NULL CHECK(required_tool IN (
+                        'activate_concept', 'create_activity', 'open_tutor', 'open_material_upload', 'create_summary'
+                    )),
+                    confidence REAL NOT NULL CHECK(confidence BETWEEN 0 AND 1),
+                    generation_mode TEXT NOT NULL CHECK(generation_mode IN ('demo', 'real')),
+                    model TEXT,
+                    status TEXT NOT NULL DEFAULT 'proposed' CHECK(status IN ('proposed', 'accepted', 'overridden')),
+                    selected_action TEXT CHECK(selected_action IN (
+                        'continue_next', 'retry_current', 'switch_activity', 'simplify_current',
+                        'insert_prerequisite', 'review_previous', 'request_more_material', 'finish_session'
+                    )),
+                    override_reason TEXT,
+                    version INTEGER NOT NULL DEFAULT 1,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    resolved_at TEXT,
+                    UNIQUE(session_id, evidence_fingerprint)
+                );
+                INSERT INTO agent_decisions_v12(
+                    id, workspace_id, session_id, concept_id, evidence_fingerprint,
+                    evidence_snapshot_json, action, reason_for_user, estimated_minutes,
+                    target_concept_id, return_to_concept_id, required_tool, confidence,
+                    generation_mode, model, status, selected_action, override_reason,
+                    version, created_at, resolved_at
+                )
+                SELECT
+                    id, workspace_id, session_id, concept_id, evidence_fingerprint,
+                    evidence_snapshot_json,
+                    CASE WHEN action = 'request_search' THEN 'request_more_material' ELSE action END,
+                    reason_for_user, estimated_minutes, target_concept_id, return_to_concept_id,
+                    CASE WHEN required_tool = 'request_search' THEN 'open_material_upload' ELSE required_tool END,
+                    confidence, generation_mode, model, status,
+                    CASE WHEN selected_action = 'request_search' THEN 'request_more_material' ELSE selected_action END,
+                    override_reason, version, created_at, resolved_at
+                FROM agent_decisions;
+                DROP TABLE agent_decisions;
+                ALTER TABLE agent_decisions_v12 RENAME TO agent_decisions;
+                CREATE INDEX idx_agent_decisions_session_created
+                    ON agent_decisions(session_id, created_at DESC);
+                """
+            )
+
+        if "search_permission" in session_columns:
+            connection.execute("ALTER TABLE learning_sessions DROP COLUMN search_permission")
+
+        violations = connection.execute("PRAGMA foreign_key_check").fetchall()
+        if violations:
+            raise RuntimeError("Uploaded-material-only migration produced invalid foreign-key references.")
+        connection.commit()
+    finally:
+        connection.execute("PRAGMA foreign_keys = ON")
+
+
+def _migrate_json_payload_column(
+    connection: sqlite3.Connection,
+    table: str,
+    column: str,
+) -> None:
+    table_exists = connection.execute(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+        (table,),
+    ).fetchone()
+    if not table_exists:
+        return
+    columns = {
+        str(row["name"])
+        for row in connection.execute(f"PRAGMA table_info({table})")
+    }
+    if column not in columns:
+        return
+    for row in connection.execute(
+        f"SELECT rowid AS record_rowid, {column} AS payload FROM {table}"
+    ).fetchall():
+        try:
+            payload = json.loads(str(row["payload"]))
+        except (TypeError, ValueError):
+            continue
+        migrated = _rewrite_legacy_material_boundary(payload)
+        if migrated != payload:
+            connection.execute(
+                f"UPDATE {table} SET {column} = ? WHERE rowid = ?",
+                (json.dumps(migrated), row["record_rowid"]),
+            )
+
+
+def _rewrite_legacy_material_boundary(
+    value: Any,
+    *,
+    parent_key: str | None = None,
+) -> Any:
+    if isinstance(value, dict):
+        migrated: dict[str, Any] = {}
+        for key, child in value.items():
+            new_key = {
+                "suggested_query_scope": "requested_material",
+                "request_search": "request_more_material",
+            }.get(str(key), str(key))
+            migrated[new_key] = _rewrite_legacy_material_boundary(
+                child,
+                parent_key=new_key,
+            )
+        return migrated
+    if isinstance(value, list):
+        return [
+            _rewrite_legacy_material_boundary(item, parent_key=parent_key)
+            for item in value
+        ]
+    if value == "request_search":
+        return (
+            "open_material_upload"
+            if parent_key == "required_tool"
+            else "request_more_material"
+        )
+    return value
 
 
 def ensure_workspace(database_path: Path, workspace_id: str) -> None:

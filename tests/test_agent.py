@@ -68,7 +68,7 @@ def test_agent_selects_one_action_and_applies_validated_progression(tmp_path: Pa
             assert body["session"]["state"] == "agent_decision"
             assert body["boundaries"]["learning_performance_basis"] == "LearningEvidence only"
             assert body["boundaries"]["exactly_one_recommended_action"] is True
-            assert body["boundaries"]["internet_search_performed"] is False
+            assert body["boundaries"]["more_material_requested"] is False
             assert all(item["action"] != "continue_next" for item in body["allowed_alternatives"])
 
             repeated = await client.post(f"/api/sessions/{session_id}/agent-decisions")
@@ -152,16 +152,16 @@ def test_agent_override_is_penalty_free_and_invalid_paths_are_rejected(tmp_path:
             assert invalid.status_code == 422
             assert invalid.json()["error_code"] == "agent_override_not_allowed"
 
-            search_without_gap = await client.post(
+            material_request_without_gap = await client.post(
                 f"/api/agent-decisions/{proposed['decision']['id']}/override",
                 json={
-                    "action": "request_search",
-                    "reason": "Search anyway",
+                    "action": "request_more_material",
+                    "reason": "Ask for more material anyway",
                     "version": proposed["session"]["version"],
                 },
             )
-            assert search_without_gap.status_code == 422
-            assert search_without_gap.json()["error_code"] == "agent_override_not_allowed"
+            assert material_request_without_gap.status_code == 422
+            assert material_request_without_gap.json()["error_code"] == "agent_override_not_allowed"
 
             switched = await client.post(
                 f"/api/agent-decisions/{proposed['decision']['id']}/override",
@@ -233,7 +233,7 @@ def test_agent_inserts_and_returns_from_a_linked_prerequisite(tmp_path: Path) ->
     asyncio.run(scenario())
 
 
-def test_search_can_only_be_requested_after_named_gap_permission_and_local_support(tmp_path: Path) -> None:
+def test_more_material_is_requested_only_after_a_validated_gap_and_local_support(tmp_path: Path) -> None:
     async def scenario() -> None:
         app = make_app(tmp_path)
         async with app_client(app) as client:
@@ -273,18 +273,18 @@ def test_search_can_only_be_requested_after_named_gap_permission_and_local_suppo
             proposed = await client.post(f"/api/sessions/{session_id}/agent-decisions")
             assert proposed.status_code == 201
             body = proposed.json()
-            assert body["decision"]["action"] == "request_search"
-            assert body["boundaries"]["search_requested"] is True
-            assert body["boundaries"]["internet_search_performed"] is False
+            assert body["decision"]["action"] == "request_more_material"
+            assert body["decision"]["required_tool"] == "open_material_upload"
+            assert body["boundaries"]["more_material_requested"] is True
             accepted = await client.post(
                 f"/api/agent-decisions/{body['decision']['id']}/accept",
                 json={"version": body["session"]["version"]},
             )
             assert accepted.status_code == 200
             execution = accepted.json()["execution"]
-            assert execution["destination"] == "search_confirmation"
-            assert execution["confirmation_required"] is True
-            assert execution["internet_search_performed"] is False
+            assert execution["destination"] == "material_upload"
+            assert "variance scaling" in execution["requested_material"]
+            assert execution["session"]["state"] == "learning_concept"
 
     asyncio.run(scenario())
 

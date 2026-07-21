@@ -56,7 +56,7 @@
     .arrow{font-size:22px;color:#555;text-align:center}
     .concept-list{display:grid;gap:7px}.concept{display:flex;align-items:center;gap:9px;border:1px solid #aaa;border-radius:7px;padding:9px}.concept.active{background:#ddd;border-color:#333;font-weight:700}.concept.done::before{content:"✓"}.concept.locked{opacity:.55}
     .primary-action{border:2px solid #222;background:#f1f1f1;border-radius:10px;padding:16px}
-    .source-label{display:inline-flex;border:1px solid #777;border-radius:999px;padding:3px 8px;font-size:11px;margin-right:5px}.source-uploaded{background:#e7e7e7}.source-external{border-style:dashed}.source-ai{background:#fff}
+    .source-label{display:inline-flex;border:1px solid #777;border-radius:999px;padding:3px 8px;font-size:11px;margin-right:5px}.source-uploaded{background:#e7e7e7}.source-ai{background:#fff}
     .quick-actions{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:9px}
     .drawer{border-left:2px solid #555;background:#fff;padding:14px;min-height:570px}.chat{display:grid;gap:10px;max-height:360px;overflow:auto;padding-right:4px}.bubble{max-width:85%;border:1px solid #888;border-radius:10px;padding:10px}.bubble.user{justify-self:end;background:#eee}.bubble.tutor{justify-self:start}.chips{display:flex;flex-wrap:wrap;gap:7px}.chip{min-height:36px;border-radius:999px;padding:6px 10px;font-size:12px}
     .tabs{display:flex;border-bottom:1px solid #888}.tab{border-radius:0;border:0;border-bottom:3px solid transparent}.tab.active{border-bottom-color:#111;font-weight:700}
@@ -99,14 +99,14 @@
 
       <section class="screen" id="overview" data-title="00 总览与完整流程">
         <div class="screen-head"><div><h2>00 总览与完整流程</h2><p>产品信息架构、学习闭环、Agent 边界和生产级设计要求。</p></div></div>
-        <div class="frame"><div class="frame-bar"><span>StartOne · Product Blueprint</span><span>上传材料优先 · 搜索受控 · 一次一个下一步</span></div><div class="frame-body stack">
+        <div class="frame"><div class="frame-bar"><span>StartOne · Product Blueprint</span><span>上传材料是唯一来源 · 一次一个下一步</span></div><div class="frame-body stack">
           <div class="callout"><strong>一句话定义</strong>用户上传自己的学习材料，系统把材料转化为可核查的知识地图和短学习任务；Tutor 负责当前知识点的讲解与练习，规划 Agent 根据学习证据只选择一个下一步。</div>
           <div class="flow">
             <span class="step">上传材料</span><span class="arr">→</span><span class="step">可视化知识框架</span><span class="arr">→</span><span class="step">单概念理解</span><span class="arr">→</span><span class="step">主动提取</span><span class="arr">→</span><span class="step">真实小胜利</span><span class="arr">→</span><span class="step">自动进入下一任务</span><span class="arr">→</span><span class="step">总结与恢复</span>
           </div>
           <div class="grid-2">
-            <div class="card"><h3>Guided Mastery Loop</h3><p>Tutor、Quiz、复述、提示、反馈、鼓励、补救练习都围绕<strong>当前概念</strong>工作，并产生客观学习证据。</p><p class="small muted">不改变全局路线，不直接启动网络搜索。</p></div>
-            <div class="card"><h3>Adaptive Planning Agent</h3><p>读取证据后只选择一个动作：继续、重试、换练习、简化、插入前置知识、复习、请求搜索或结束。</p><p class="small muted">安全动作自动执行；只有外部搜索必须停下并获得用户逐次确认。</p></div>
+            <div class="card"><h3>Guided Mastery Loop</h3><p>Tutor、Quiz、复述、提示、反馈、鼓励、补救练习都围绕<strong>当前概念</strong>工作，并产生客观学习证据。</p><p class="small muted">不改变全局路线，不引入上传材料之外的事实。</p></div>
+            <div class="card"><h3>Adaptive Planning Agent</h3><p>读取证据后只选择一个动作：继续、重试、换练习、简化、插入前置知识、复习、请求补充材料或结束。</p><p class="small muted">安全动作自动执行；材料缺口只打开上传区并保留当前概念。</p></div>
           </div>
           <div class="grid-4">
             <div class="card"><h4>来源可信</h4><p class="small">每个概念、题目和解释都带来源标签和可打开的位置。</p></div>
@@ -114,7 +114,7 @@
             <div class="card"><h4>生产级状态</h4><p class="small">加载、空、错误、部分成功、离线、模型失败均有恢复路径。</p></div>
             <div class="card"><h4>无障碍与响应式</h4><p class="small">键盘可用、焦点清晰、语义正确、桌面至手机均可完成核心流程。</p></div>
           </div>
-          <div class="callout"><strong>实现顺序</strong>来源与状态 → 知识地图 → 专注学习界面 → Tutor → Quiz/复述/反馈 → Agent → 受控搜索 → 全流程测试。</div>
+          <div class="callout"><strong>实现顺序</strong>来源与状态 → 知识地图 → 专注学习界面 → Tutor → Quiz/复述/反馈 → Agent → 材料缺口恢复 → 全流程测试。</div>
         </div></div>
       </section>
 
@@ -163,7 +163,7 @@
         <div class="screen-head"><div><h2>08 情境化 Tutor 与连续引导</h2><p>Tutor 只解决当前概念的理解问题；默认先引导，不立即给完整答案。</p></div></div>
         <div class="frame"><div class="frame-bar"><span>Self-attention · Tutor</span><span><span class="source-label source-uploaded">基于上传材料</span> <button data-go="focus">关闭 Tutor</button></span></div><div class="frame-body grid-2">
           <div class="drawer stack"><div class="chat"><div class="bubble tutor"><strong>Tutor</strong><br>你刚才说 self-attention 是“关注其他词”。先想一个更小的问题：当前位置为什么不能只看自己？</div><div class="bubble user">因为一个词的意思会受到前后文影响。</div><div class="bubble tutor"><strong>Tutor</strong><br>对。那它还需要做哪一步，才能把前后文真正加入当前位置的表示？</div><div class="bubble user">把相关的信息加进来？</div><div class="bubble tutor"><strong>Tutor</strong><br>是。你已经得到两个关键动作：判断哪些位置相关，然后汇总相关位置的信息。你能用自己的话连成一句吗？</div></div><div class="chips"><button class="chip">解释简单一点</button><button class="chip">解释术语</button><button class="chip">给具体例子</button><button class="chip">和上一部分有什么关系</button><button class="chip">只给提示</button><button class="chip">检查我的理解</button></div><div class="row"><input placeholder="输入你的问题或回答" aria-label="Tutor 输入"><button class="primary">发送</button></div></div>
-          <div class="stack"><div class="card"><h3>当前上下文</h3><p class="small">概念：Self-attention</p><p class="small">来源：transformer_notes.md，第 7–13 行</p><p class="small">知识关系：Transformer 目标 → Self-attention → Q/K/V</p><p class="small">已出现困难：尚未清楚“汇总信息”</p></div><div class="card"><h3>引导阶梯</h3><ol class="small"><li>澄清用户具体不懂什么</li><li>给思考方向</li><li>给结构</li><li>给关键词</li><li>给部分例子</li><li>给简练解释</li><li>提出检查问题</li></ol></div><div class="callout small"><strong>边界</strong>Tutor 可以记录“可能缺少前置知识”，但不能改变路线或自行搜索。检查边界、明确困惑或关闭 Tutor 时才聚合 LearningEvidence。</div><div class="row"><button data-go="focus">返回概念</button><button class="primary" data-go="recall">现在复述</button></div></div>
+          <div class="stack"><div class="card"><h3>当前上下文</h3><p class="small">概念：Self-attention</p><p class="small">来源：transformer_notes.md，第 7–13 行</p><p class="small">知识关系：Transformer 目标 → Self-attention → Q/K/V</p><p class="small">已出现困难：尚未清楚“汇总信息”</p></div><div class="card"><h3>引导阶梯</h3><ol class="small"><li>澄清用户具体不懂什么</li><li>给思考方向</li><li>给结构</li><li>给关键词</li><li>给部分例子</li><li>给简练解释</li><li>提出检查问题</li></ol></div><div class="callout small"><strong>边界</strong>Tutor 可以记录“可能缺少前置知识”，但不能改变路线、请求材料或引入材料外事实。检查边界、明确困惑或关闭 Tutor 时才聚合 LearningEvidence。</div><div class="row"><button data-go="focus">返回概念</button><button class="primary" data-go="recall">现在复述</button></div></div>
         </div></div>
       </section>
 
@@ -188,28 +188,9 @@
       <section class="screen" id="remedial" data-title="12 错误驱动的补救练习">
         <div class="screen-head"><div><h2>12 错误驱动的补救练习</h2><p>补救内容由当前误解驱动，仍属于掌握循环，不是 Agent 的教学输出。</p></div></div>
         <div class="frame"><div class="frame-bar"><span>检测到具体缺口：不清楚“加权汇总”</span><span>约 60–90 秒</span></div><div class="frame-body stack">
-          <div class="grid-3" style="grid-template-columns:repeat(3,1fr)"><button class="card"><h3>更简单解释</h3><p class="small">只保留必要步骤，不使用新术语。</p></button><button class="card"><h3>更小问题</h3><p class="small">先回答一个局部问题，再返回完整概念。</p></button><button class="card"><h3>具体例子</h3><p class="small">明确标注为 AI 补充例子，不冒充原文。</p></button></div>
+          <div class="grid-3" style="grid-template-columns:repeat(3,1fr)"><button class="card"><h3>更简单解释</h3><p class="small">只保留必要步骤，不使用新术语。</p></button><button class="card"><h3>更小问题</h3><p class="small">先回答一个局部问题，再返回完整概念。</p></button><button class="card"><h3>具体例子</h3><p class="small">基于已验证的上传材料生成，不引入材料外事实。</p></button></div>
           <div class="card"><h3>更小问题</h3><p><span class="source-label source-uploaded">用户上传材料</span> matrix_prerequisite.md · 第 7–9 行</p><p>如果位置 A 与位置 B 的相关程度更高，位置 A 在更新自己时，应该怎样处理来自 B 的信息？</p><textarea aria-label="补救练习回答" placeholder="用一句话回答"></textarea><div class="row between"><button data-go="feedback">换一种帮助</button><button class="primary" data-go="focus">提交并继续下一步</button></div></div>
           <div class="callout small"><strong>循环保护</strong>连续两次补救仍未改善时，不继续重复同一题型；Agent 应选择简化概念、插入前置知识或结束本次会话。</div>
-        </div></div>
-      </section>
-
-      <section class="screen" id="search" data-title="14 受控外部搜索">
-        <div class="screen-head"><div><h2>14 受控外部搜索</h2><p>四重搜索门：会话允许、明确来源缺口、Agent 请求、用户本次确认。</p></div></div>
-        <div class="frame"><div class="frame-bar"><span>外部补充请求</span><span>当前未调用搜索</span></div><div class="frame-body stack">
-          <div class="callout"><strong>前三项已验证，本次确认待完成</strong><span class="small">会话允许建议搜索 ✓　命名 SourceGap ✓　Agent request_search ✓　用户本次确认：待完成</span><br><strong>检测到的材料缺口</strong>当前搜索场景只包含 transformer_notes.md；材料使用点积但没有解释点积怎样产生 Q/K 相关程度。你连续两次询问了该前置知识。</div>
-          <div class="grid-2"><div class="card"><h3>搜索将寻找什么</h3><p>一个适合初学者、解释矩阵乘法与向量点积的短资料。</p><p class="small">优先：大学课程官方讲义、教材、官方文档。</p><label class="row"><input type="checkbox" checked style="width:auto;min-height:auto"> 仅使用可公开访问的来源</label></div><div class="card"><h3>你的控制</h3><p class="small">搜索结果会明确标记为外部来源，不替代上传材料。拒绝搜索不会中断当前会话。</p><div class="row"><button data-go="focus">暂不搜索</button><button class="primary" data-go="search-results">确认搜索</button></div></div></div>
-          <div class="callout small"><strong>失败恢复</strong>搜索超时、无结果或来源打不开时，系统返回当前概念，并提供“基于现有材料继续”或“稍后再试”。</div>
-        </div></div>
-      </section>
-
-      <section class="screen" id="search-results" data-title="15 外部来源选择与引用">
-        <div class="screen-head"><div><h2>15 外部来源选择与引用</h2><p>不展示无差别链接列表；显示少量候选、选择原因和填补的具体缺口。</p></div></div>
-        <div class="frame"><div class="frame-bar"><span>找到 3 个候选来源</span><span><span class="source-label source-external">外部补充</span></span></div><div class="frame-body stack">
-          <div class="result selected"><div class="row between"><div><strong>MIT OpenCourseWare · Linear Algebra</strong><p class="small">官方课程 · 可公开访问 · 访问于 2026-07-20</p><p class="small">https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/</p></div><span class="badge">推荐</span></div><p><strong>引用片段：</strong>点积把两个同维向量的对应分量相乘后求和，得到一个标量。</p><p><strong>选择原因：</strong>短范围即可解释向量点积和加权组合。</p><p><strong>填补缺口：</strong>帮助理解 attention score 与 weighted sum。</p><div class="row"><button>在新标签打开</button><button class="primary" data-go="focus">使用该来源并插入前置任务</button></div></div>
-          <div class="result"><strong>Stanford CS229 Notes</strong><p class="small">官方课程 · URL 与访问时间已记录；内容可靠，但范围更大、数学密度较高。</p><button>选择该来源</button></div>
-          <div class="result"><strong>University short tutorial</strong><p class="small">大学教学资料 · URL 与访问时间已记录；解释较简洁，但引用位置不如第一项明确。</p><button>选择该来源</button></div>
-          <div class="row between"><button data-go="focus">忽略外部来源，继续现有路线</button><button>重新搜索</button></div>
         </div></div>
       </section>
 
@@ -223,7 +204,7 @@
 
       <section class="screen" id="history" data-title="18 学习记录与会话管理">
         <div class="screen-head"><div><h2>18 学习记录与会话管理</h2><p>支持继续、复制、删除和查看来源；避免用户不知道数据存在哪里。</p></div></div>
-        <div class="frame"><div class="frame-bar"><span>学习记录</span><span>搜索会话　筛选状态</span></div><div class="frame-body stack">
+        <div class="frame"><div class="frame-bar"><span>学习记录</span><span>按名称查找　筛选状态</span></div><div class="frame-body stack">
           <div class="file"><div><strong>Transformer 基础</strong><p class="small">最后学习：今天 · 进度 2/5 · 2 个来源</p></div><div class="row"><button data-go="focus">继续</button><button data-go="summary">总结</button><button>更多</button></div></div>
           <div class="file"><div><strong>正则化方法</strong><p class="small">最后学习：昨天 · 已结束 · 1 个来源</p></div><div class="row"><button data-go="summary">查看</button><button>复制为新会话</button><button>更多</button></div></div>
           <div class="callout"><strong>删除确认</strong>删除会话时必须说明会删除哪些学习记录和上传文件；提供取消，不使用模糊文案。</div>
@@ -232,10 +213,10 @@
       </section>
 
       <section class="screen" id="settings" data-title="19 设置、隐私与数据控制">
-        <div class="screen-head"><div><h2>19 设置、隐私与数据控制</h2><p>生产级产品必须让用户理解数据、搜索权限和 AI 行为。</p></div></div>
+        <div class="screen-head"><div><h2>19 设置、隐私与数据控制</h2><p>生产级产品必须让用户理解数据和 AI 行为。</p></div></div>
         <div class="frame"><div class="frame-bar"><span>设置</span><span>保存状态：已保存</span></div><div class="frame-body grid-2">
           <div class="stack"><div class="card"><h3>学习体验</h3><label class="row"><input type="checkbox" checked style="width:auto;min-height:auto"> 一屏一个概念</label><label class="row"><input type="checkbox" checked style="width:auto;min-height:auto"> 反馈先显示已掌握内容</label><label class="row"><input type="checkbox" style="width:auto;min-height:auto"> 默认显示倒计时</label><p class="small muted">产品界面固定使用 English。</p></div><div class="card"><h3>无障碍</h3><label class="row"><input type="checkbox" checked style="width:auto;min-height:auto"> 减少动画</label><label class="row"><input type="checkbox" style="width:auto;min-height:auto"> 更大字号</label><label class="row"><input type="checkbox" checked style="width:auto;min-height:auto"> 键盘焦点高亮</label></div></div>
-          <div class="stack"><div class="card"><h3>外部搜索</h3><label class="row"><input type="checkbox" checked style="width:auto;min-height:auto"> 允许系统建议搜索</label><label class="row"><input type="checkbox" checked style="width:auto;min-height:auto"> 每次搜索前都确认</label></div><div class="card"><h3>数据控制</h3><button>下载我的学习数据</button><button class="danger">删除全部上传材料</button><button class="danger">删除全部数据</button><p class="small muted">删除操作应二次确认，并明确是否可恢复。</p></div><div class="card"><h3>AI 透明度</h3><p class="small">查看模型输出来源标签、Agent 决策记录和搜索记录。</p><button>查看 AI 活动记录</button></div></div>
+          <div class="stack"><div class="card"><h3>数据控制</h3><button>下载我的学习数据</button><button class="danger">删除全部上传材料</button><button class="danger">删除全部数据</button><p class="small muted">删除操作应二次确认，并明确是否可恢复。</p></div><div class="card"><h3>AI 透明度</h3><p class="small">查看模型输出所依据的上传材料和 Agent 决策记录。</p><button>查看 AI 活动记录</button></div></div>
         </div></div>
       </section>
 
@@ -246,7 +227,7 @@
           <div class="state-card"><h3>空状态</h3><p>尚未上传材料。</p><button class="primary" data-go="upload">添加第一个文件</button><p class="small">空状态必须包含下一步，不只是空白。</p></div>
           <div class="state-card"><h3>部分成功</h3><p>2 个文件解析成功，1 个扫描 PDF 无法读取。</p><div class="row"><button>查看问题</button><button class="primary">继续使用成功文件</button></div></div>
           <div class="state-card"><h3>模型输出无效</h3><p>系统未能生成符合结构的学习地图。上传材料仍已保存。</p><button class="primary">重新生成并验证地图</button><p class="small">不得把原始 JSON 错误、运行模式或测试控制暴露给普通用户。</p></div>
-          <div class="state-card"><h3>网络或搜索失败</h3><p>外部搜索暂时不可用。你的学习进度已保存。</p><div class="row"><button data-go="focus">基于现有材料继续</button><button>稍后重试</button></div></div>
+          <div class="state-card"><h3>模型连接失败</h3><p>暂时无法生成下一段讲解。你的材料和学习进度已保存。</p><div class="row"><button data-go="focus">返回当前概念</button><button>稍后重试</button></div></div>
           <div class="state-card"><h3>离线与自动保存</h3><p>当前离线。新回答先保存在本地，恢复网络后同步。</p><button class="primary">查看待同步项目</button></div>
           <div class="state-card"><h3>保存失败</h3><p>回答暂时无法保存到服务器。本地草稿仍在。</p><div class="row"><button>导出草稿</button><button class="primary">重新保存</button></div></div>
           <div class="state-card"><h3>版本冲突</h3><p>另一页面保存了不同版本。两个版本都已保留。</p><div class="row"><button>比较两个版本</button><button class="primary">选择要保留的版本</button></div></div>
@@ -256,7 +237,7 @@
           <div class="state-card"><h3>恢复成功</h3><p>已恢复 Self-attention、复述草稿、1/3 级提示和剩余时间。</p><button class="primary" data-go="recall">返回未完成复述</button></div>
           <div class="state-card"><h3>材料未就绪</h3><p>还没有可读材料，无法生成学习路线。</p><button class="primary" data-go="upload">返回上传材料</button></div>
           <div class="state-card"><h3>无历史会话</h3><p>这里还没有学习记录。</p><button class="primary" data-go="upload">上传材料并新建会话</button></div>
-          <div class="state-card"><h3>搜索无结果</h3><p>没有找到能可靠填补当前缺口的公开来源。</p><button class="primary" data-go="focus">基于现有材料继续</button></div>
+          <div class="state-card"><h3>材料覆盖不足</h3><p>当前上传材料没有解释这个前置概念。</p><div class="row"><button class="primary" data-go="upload">上传补充材料</button><button data-go="focus">继续当前范围</button></div></div>
           <div class="state-card"><h3>来源引用无效</h3><p>生成内容引用了不存在的位置，因此没有显示。原材料仍可使用。</p><button class="primary">重新生成并验证引用</button></div>
           <div class="state-card"><h3>正在重试</h3><p>正在重新解析 scanned_appendix.pdf（第 1/1 次）。</p><button class="primary">停止重试</button></div>
         </div></div>

@@ -180,13 +180,11 @@ def get_feedback(database_path: Path, workspace_id: str, feedback_id: str) -> di
         "generation": {
             "mode": row["generation_mode"],
             "model": row["model"],
-            "internet_search_performed": False,
         },
         "boundaries": {
             "feedback_is_guided_mastery": True,
             "learning_evidence_is_factual_only": True,
             "agent_decision_created": False,
-            "can_search": False,
         },
     }
 
@@ -406,7 +404,6 @@ def get_evidence(database_path: Path, workspace_id: str, session_id: str) -> dic
             "contains_observations_only": True,
             "contains_recommendations": False,
             "agent_decision_created": False,
-            "internet_search_performed": False,
         },
     }
 
@@ -946,7 +943,7 @@ def _remedial_instructions(context: dict[str, Any], strategy: str) -> str:
     return (
         f"Create exactly one short remedial activity using the strategy {strategy}. The strategy field must equal that value. "
         "Target only the latest specific missing or unclear point for the active concept. Include exactly three progressive hints. "
-        "Do not repeat the full original task, change the learning route, request search, make an Agent decision, or mention hidden reasoning. "
+        "Do not repeat the full original task, change the learning route, use outside sources, make an Agent decision, or mention hidden reasoning. "
         f"Use only the supplied verified source IDs and chunk IDs. {origin_rule}"
     )
 
@@ -967,9 +964,7 @@ def _remedial_source_context(context: dict[str, Any]) -> str:
 
 
 def _origin_rule(chunks: list[dict[str, Any]]) -> str:
-    if any(chunk.get("source_origin") == "uploaded" for chunk in chunks):
-        return "Uploaded material is primary; keep every supplemental origin explicit."
-    return "The source is AI supplemental; never describe it as uploaded or externally cited."
+    return "Uploaded material is the only learning source; use only the supplied verified excerpts."
 
 
 def _validate_source_refs(
@@ -992,7 +987,7 @@ def _validate_source_refs(
             if not row:
                 raise SourceError("feedback_source_reference_invalid", "Feedback cited an unavailable source location, so it was not shown.", status_code=422)
             found_origins.append(str(row["source_origin"]))
-    if source_origin in {"uploaded", "external"} and any(origin != source_origin for origin in found_origins):
+    if source_origin != "uploaded" or any(origin != "uploaded" for origin in found_origins):
         raise SourceError("feedback_source_origin_invalid", "The feedback source label did not match its verified references.", status_code=422)
 
 

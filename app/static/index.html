@@ -355,7 +355,7 @@
             </details>
             <div class="boundary-note">
               <strong>Tutor boundary</strong>
-              <p>Tutor can explain, ask and record factual difficulty signals. It cannot change your route, choose an Agent action or search the internet.</p>
+              <p>Tutor can explain, ask and record factual difficulty signals. It cannot change your route, choose an Agent action or use material you did not upload.</p>
             </div>
           </aside>
         </div>
@@ -466,66 +466,6 @@
         </div>
       </section>
 
-      <section class="workflow-view controlled-search-view" id="search-view" aria-labelledby="search-title" hidden>
-        <div class="focus-topbar">
-          <div>
-            <p class="eyebrow">Controlled external search · four gates</p>
-            <h1 id="search-title" tabindex="-1">Review one named source gap</h1>
-          </div>
-          <div class="focus-top-actions">
-            <span class="save-state" id="search-save-status" role="status" aria-live="polite">No search has run</span>
-            <button class="button button-quiet" id="search-pause" type="button">Pause session</button>
-          </div>
-        </div>
-
-        <div class="search-shell">
-          <section class="search-confirmation-panel card-panel" id="search-confirmation-panel" aria-labelledby="search-confirmation-title">
-            <div class="panel-heading">
-              <div>
-                <p class="eyebrow">Exact scope · confirmation required</p>
-                <h2 id="search-confirmation-title">Search has not run yet</h2>
-              </div>
-              <span class="origin-badge origin-external">External supplement</span>
-            </div>
-            <div class="search-gate-grid" id="search-gates" aria-label="Search gates"></div>
-            <div class="named-gap-card">
-              <p class="eyebrow">Named material gap</p>
-              <h3 id="search-gap-title"></h3>
-              <p id="search-gap-why"></p>
-              <dl class="context-list">
-                <div><dt>Confirmed query scope</dt><dd id="search-query-scope"></dd></div>
-                <div><dt>Why the Agent requested it</dt><dd id="search-request-reason"></dd></div>
-              </dl>
-            </div>
-            <div class="boundary-note">
-              <strong>Your uploaded material stays primary</strong>
-              <p>Confirming runs one narrow search for this exact gap. Results remain labeled as external, and declining does not interrupt the session.</p>
-            </div>
-            <p class="form-message" id="search-message" role="status" aria-live="polite" hidden></p>
-            <div class="dialog-actions">
-              <button class="button button-secondary" id="decline-search" type="button">Continue without searching</button>
-              <button class="button button-primary" id="confirm-search" type="button">Confirm scope and search</button>
-            </div>
-          </section>
-
-          <section class="search-results-panel" id="search-results-panel" aria-labelledby="search-results-title" hidden>
-            <div class="card-panel search-results-heading">
-              <div>
-                <p class="eyebrow">Small cited result set</p>
-                <h2 id="search-results-title" tabindex="-1">Choose one external supplement</h2>
-                <p>Each candidate shows its canonical URL, access time, cited summary, and reason for inclusion.</p>
-              </div>
-              <span class="status-chip" id="search-result-count">0 sources</span>
-            </div>
-            <div class="search-result-list" id="search-result-list"></div>
-            <div class="card-panel search-result-footer">
-              <p><strong>You can ignore every result without penalty.</strong> The named gap remains visible and your uploaded material remains available.</p>
-              <button class="button button-secondary" id="ignore-search-results" type="button">Ignore results and continue</button>
-            </div>
-          </section>
-        </div>
-      </section>
-
       <section class="workflow-view summary-view" id="summary-view" aria-labelledby="summary-title" hidden>
         <div class="summary-shell card-panel">
           <p class="eyebrow">Session saved · no penalty for pausing</p>
@@ -563,7 +503,6 @@
             <div class="preference-grid">
               <label class="check-row"><input type="checkbox" id="preference-large-text" /> Use larger interface text</label>
               <label class="check-row"><input type="checkbox" id="preference-reduced-motion" /> Reduce interface motion</label>
-              <label class="check-row"><input type="checkbox" id="preference-search-suggestions" /> Allow search suggestions by default in new sessions</label>
             </div>
           </section>
           <section aria-labelledby="workspace-data-title">
@@ -596,7 +535,7 @@
           <li><strong>Practice after learning.</strong><span>Use Tutor, a Quiz, free recall, or a hint when you are ready.</span></li>
           <li><strong>Respond to feedback.</strong><span>A short repair exercise closes a specific gap, then the Agent chooses one next step from validated learning evidence.</span></li>
         </ol>
-        <p class="context-note"><strong>If your material has a real gap:</strong> StartOne asks before using any external source. Your uploaded material remains the primary source.</p>
+        <p class="context-note"><strong>If your material has a real gap:</strong> StartOne tells you exactly what is missing and asks you to upload a source that covers it.</p>
         <div class="dialog-actions dialog-actions-end">
           <button class="button button-primary" id="close-help-panel" type="button">Got it</button>
         </div>
@@ -641,7 +580,7 @@
       <div class="dialog-content">
         <p class="eyebrow">Delete one session</p>
         <h2 id="session-delete-title">Delete this learning session?</h2>
-        <p id="session-delete-description">This permanently deletes its drafts, learning evidence, decisions, and search records. A stored source file is removed only when no copied session still uses it.</p>
+        <p id="session-delete-description">This permanently deletes its drafts, learning evidence, and planning decisions. A stored source file is removed only when no copied session still uses it.</p>
         <p class="delete-filename" id="session-delete-name"></p>
         <p class="form-message" id="session-delete-message" role="alert" hidden></p>
         <div class="dialog-actions">
@@ -655,7 +594,7 @@
       <div class="dialog-content">
         <p class="eyebrow">Delete all data</p>
         <h2 id="workspace-delete-title">Delete this entire anonymous workspace?</h2>
-        <p id="workspace-delete-description">This permanently deletes every session, uploaded file, draft, Tutor message, practice attempt, progress record, next-step history, and search record in this browser workspace. It cannot be undone.</p>
+        <p id="workspace-delete-description">This permanently deletes every session, uploaded file, draft, Tutor message, practice attempt, progress record, and next-step history in this browser workspace. It cannot be undone.</p>
         <p class="form-message" id="workspace-delete-message" role="alert" hidden></p>
         <div class="dialog-actions">
           <button class="button button-secondary" id="cancel-workspace-delete" type="button">Keep all data</button>

@@ -33,7 +33,7 @@ class SourceGapProposal(StrictModel):
     why_needed: str
     evidence: str
     current_source_refs: list[SourceReference] = Field(max_length=6)
-    suggested_query_scope: str
+    requested_material: str
 
 
 class IgnoredSection(StrictModel):
@@ -88,7 +88,7 @@ class TutorResponseOutput(StrictModel):
     message: str = Field(min_length=1, max_length=1800)
     guidance_level: int = Field(ge=1, le=7)
     checking_question: str | None = Field(default=None, max_length=500)
-    source_origin: Literal["uploaded", "ai_supplement"]
+    source_origin: Literal["uploaded"]
     source_refs: list[SourceReference] = Field(min_length=1, max_length=4)
     confusion_signal: str | None = Field(default=None, max_length=240)
     prerequisite_gap_signal: str | None = Field(default=None, max_length=240)
@@ -117,7 +117,7 @@ class QuizQuestionOutput(StrictModel):
 class QuizActivityOutput(StrictModel):
     questions: list[QuizQuestionOutput] = Field(min_length=3, max_length=3)
     hint_levels: list[str] = Field(min_length=3, max_length=3)
-    source_origin: Literal["uploaded", "external", "ai_supplement"]
+    source_origin: Literal["uploaded"]
     source_refs: list[SourceReference] = Field(min_length=1, max_length=4)
 
 
@@ -127,7 +127,7 @@ class RecallActivityOutput(StrictModel):
     acceptable_paraphrases: list[str] = Field(max_length=8)
     misconception_patterns: list[str] = Field(max_length=8)
     hint_levels: list[str] = Field(min_length=3, max_length=3)
-    source_origin: Literal["uploaded", "external", "ai_supplement"]
+    source_origin: Literal["uploaded"]
     source_refs: list[SourceReference] = Field(min_length=1, max_length=4)
 
 
@@ -138,7 +138,7 @@ class FeedbackOutput(StrictModel):
     compact_correction: str = Field(min_length=1, max_length=1200)
     next_micro_action: str = Field(min_length=1, max_length=500)
     encouragement: str = Field(min_length=1, max_length=500)
-    source_origin: Literal["uploaded", "external", "ai_supplement"]
+    source_origin: Literal["uploaded"]
     source_refs: list[SourceReference] = Field(min_length=1, max_length=4)
 
 
@@ -156,7 +156,7 @@ class RemedialActivityOutput(StrictModel):
     expected_key_points: list[str] = Field(min_length=1, max_length=4)
     misconception_patterns: list[str] = Field(max_length=6)
     hint_levels: list[str] = Field(min_length=3, max_length=3)
-    source_origin: Literal["uploaded", "external", "ai_supplement"]
+    source_origin: Literal["uploaded"]
     source_refs: list[SourceReference] = Field(min_length=1, max_length=4)
 
 
@@ -167,7 +167,7 @@ AgentAction = Literal[
     "simplify_current",
     "insert_prerequisite",
     "review_previous",
-    "request_search",
+    "request_more_material",
     "finish_session",
 ]
 
@@ -182,7 +182,7 @@ class AgentDecisionOutput(StrictModel):
         "activate_concept",
         "create_activity",
         "open_tutor",
-        "request_search",
+        "open_material_upload",
         "create_summary",
     ]
     confidence: float = Field(ge=0, le=1)

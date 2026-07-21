@@ -4,11 +4,9 @@ from pathlib import Path
 from tests.test_learning_path import app_client, build_learning_path, create_session, make_app
 
 
-async def prepare_start_action(client, *, demo_scenario: str = "standard"):
+async def prepare_start_action(client):
     session = await create_session(client)
-    await client.post(
-        f"/api/sessions/{session['id']}/demo-materials?scenario={demo_scenario}"
-    )
+    await client.post(f"/api/sessions/{session['id']}/demo-materials")
     session = (await client.get(f"/api/sessions/{session['id']}")).json()["session"]
     await build_learning_path(client, session)
     await client.post(f"/api/sessions/{session['id']}/path/confirm")
@@ -108,7 +106,6 @@ def test_start_focus_pause_resume_and_refresh_recovery(tmp_path: Path) -> None:
             assert all(isinstance(item["prerequisite_keys"], list) for item in focus["route"])
             assert focus["source_policy"] == {
                 "primary_origin": "uploaded",
-                "internet_search_performed": False,
             }
             assert focus["active_concept"]["source_ref_details"][0]["source_origin"] == "uploaded"
 

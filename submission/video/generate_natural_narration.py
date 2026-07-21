@@ -1,4 +1,5 @@
 from pathlib import Path
+import sys
 
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -24,7 +25,16 @@ def main() -> None:
     client = OpenAI()
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
+    timeline_ids = {
+        line.split("\t", 1)[0]
+        for line in (VIDEO_DIR / "timeline.tsv").read_text(encoding="utf-8").splitlines()
+        if line and not line.startswith("#")
+    }
+    requested_ids = set(sys.argv[1:]) or timeline_ids
+
     for source in sorted(SEGMENTS_DIR.glob("*.txt")):
+        if source.stem not in requested_ids:
+            continue
         target = OUTPUT_DIR / f"{source.stem}.wav"
         text = source.read_text(encoding="utf-8").strip()
         with client.audio.speech.with_streaming_response.create(

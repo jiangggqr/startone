@@ -2,7 +2,7 @@
 
 Date: 2026-07-22
 Application verification: deterministic fixtures, isolated real GPT-5.6 smoke flow, and public deployment smoke flow
-Automated result: `52 passed`
+Automated result: `51 passed`
 Browser widths exercised: 390 px, 640 px zoom-equivalent, and desktop  
 Live GPT-5.6 status: passed locally on 2026-07-21 and at https://startone-learning.onrender.com on 2026-07-22
 
@@ -21,13 +21,13 @@ Live GPT-5.6 status: passed locally on 2026-07-21 and at https://startone-learni
 | C09 Evidence purity | Pass | Database/API evidence fields contain observations only; recommendation field scans pass. |
 | C10 Agent single action | Pass | Deterministic and strict function-call tests return exactly one bounded action. |
 | C11 Prerequisite return | Pass | Inserted prerequisite stores and executes `return_to_concept_id`. |
-| C12 Search gates | Pass | Execution revalidates permission, named gap, Agent request, and exact-scope confirmation. |
-| C13 Search failure recovery | Pass | Failure/cancel/ignore flows preserve the session and return to the current concept. |
+| C12 Uploaded-material-only boundary | Pass | Learning model calls expose no network tool and source references resolve to learner-supplied material. |
+| C13 Material-gap recovery | Pass | A validated `request_more_material` preserves the concept, opens upload, and permits continue-current-scope recovery. |
 | C14 Resume | Pass | Draft, hint depth, activity, concept, pause overlay, and exact-state recovery pass. |
-| C15 Automatic continuation | Pass | Safe Agent actions execute without a learner decision page; a search request still stops at the confirmation boundary. The compatibility override endpoint remains server-validated but is not exposed in the product UI. |
+| C15 Automatic continuation | Pass | Safe Agent actions execute without a learner decision page; `request_more_material` opens the existing upload area without a separate confirmation page. The compatibility override endpoint remains server-validated but is not exposed in the product UI. |
 | C16 Session end | Pass | `finish_session` reaches a durable summary with a concrete 1–2 minute restart action. |
 | C17 Agent evidence basis | Pass | Agent tests prove learning-performance claims originate only from validated evidence. |
-| C18 Local versus global action | Pass | Feedback micro-actions are rejected if they encode route, search, or finish behavior. |
+| C18 Local versus global action | Pass | Feedback micro-actions are rejected if they encode route, material-upload request, or finish behavior. |
 | C19 Workspace isolation | Pass | Independent cookies cannot read or report another workspace's session, source, or metadata. |
 | C20 Location schemes | Pass | PDF page/chunk, text heading/line, and pasted paragraph schemes are tested separately. |
 | C21 Tutor evidence aggregation | Pass | Tutor close creates one factual boundary record rather than evidence per message. |
@@ -44,19 +44,19 @@ Live GPT-5.6 status: passed locally on 2026-07-21 and at https://startone-learni
 | U05 Non-color meaning | Pass | Text, symbols, status labels, and `aria-current` accompany every state. |
 | U06 Target size | Pass | The 390 px computed audit found no visible control below 24×24 CSS px; primary/frequent controls meet the 44 px product target. |
 | U07 200% zoom | Pass | The 640 px zoom-equivalent audit retained all core controls with document width equal to viewport width. |
-| U08 Mobile core flow | Pass | Knowledge map, Tutor, Quiz, recall, feedback, automatic safe continuation, search confirmation, summary, settings, and data controls were exercised at 390 px without document overflow. |
-| U09 Loading clarity | Pass | Upload, generation, feedback, Tutor, next-step preparation, export, report, and search actions use specific busy text and saved-state messages. |
+| U08 Mobile core flow | Pass | Knowledge map, Tutor, Quiz, recall, feedback, automatic safe continuation, material-gap upload recovery, summary, settings, and data controls were exercised at 390 px without document overflow. |
+| U09 Loading clarity | Pass | Upload, generation, feedback, Tutor, next-step preparation, export, and report actions use specific busy text and saved-state messages. |
 | U10 Partial success | Pass | Partial upload/PDF states are visibly distinct from total error and expose retry/continue actions. |
 | U11 Offline save | Pass | Offline events preserve local drafts, announce pending sync, and resync on reconnect. |
 | U12 Destructive confirmation | Pass | Source, session, and workspace deletion dialogs name scope, irreversibility, and cancellation. |
-| U13 Search consent | Pass | Separate confirmation displays gap, scope, reason, four gates, and “No search has run.” |
-| U14 AI origin labels | Pass | Uploaded, external, and AI supplemental paths remain labeled through source, map, focus, Tutor, activity, and feedback views. |
+| U13 Material-gap recovery | Pass | A blocking named gap keeps the concept active and offers upload-more-material plus continue-current-scope actions. |
+| U14 Source disclosure | Pass | Uploaded material remains the only source; generated wording is disclosed as generated from that material. |
 | U15 Reduced motion | Pass | OS preference and saved app preference disable scrolling/transition motion; no information depends on animation. |
 | U16 Screen reader progress | Pass | Progress uses meaningful text such as current/total/completed counts in addition to visual bars. |
 | U17 Route-change focus | Pass | View changes focus the new heading; errors focus their alert; source return restores the invoking citation. |
 | U18 Save conflict | Pass | Browser and integration flows keep both copies visible until an explicit choice. |
-| U19 Automatic safe continuation | Pass | Keep going requests exactly one validated Agent action and applies safe actions without an Agent or alternative-path page; `request_search` still stops for exact-scope confirmation. |
-| U20 Source metadata | Pass | All learning origins are visible; external candidates include URL, publisher, access time, excerpt, and selection reason. |
+| U19 Automatic safe continuation | Pass | Keep going requests exactly one validated Agent action and applies safe actions without an Agent or alternative-path page; `request_more_material` preserves the concept and opens upload. |
+| U20 Source metadata | Pass | All learning content retains verified uploaded-material references; generated wording carries the appropriate disclosure. |
 
 ## Additional hardening
 
@@ -76,7 +76,7 @@ Live GPT-5.6 status: passed locally on 2026-07-21 and at https://startone-learni
 
 ## Live GPT-5.6 verification
 
-With `OPENAI_API_KEY` configured only in the ignored local `.env`, `scripts/live_smoke.py` passed an isolated temporary-database flow using the configured GPT-5.6 model for source coverage, knowledge-map generation, Tutor guidance, Quiz generation, structured feedback and one bounded Agent decision. The flow also rechecked recommendation-free `LearningEvidence` and the Agent's exactly-one-action boundary. No credential or generated learning content was printed or persisted to the normal application database. Real web-search request shape and citation filtering remain contract-tested with a fake Responses client; the public deployment uses the server-side real-model path.
+With `OPENAI_API_KEY` configured only in the ignored local `.env`, `scripts/live_smoke.py` passed an isolated temporary-database flow using the configured GPT-5.6 model for source coverage, knowledge-map generation, Tutor guidance, Quiz generation, structured feedback and one bounded Agent decision. The flow also rechecked recommendation-free `LearningEvidence`, the Agent's exactly-one-action boundary, and the absence of network tools from learning calls. No credential or generated learning content was printed or persisted to the normal application database; the public deployment uses the server-side real-model path.
 
 On 2026-07-21, a 49-page, 72-chunk uploaded PDF reproduced the visible learning-path failure. The corrected production path used `gpt-5.6-luna`, sampled representative excerpts across the full document, and completed real source coverage in 18.9 seconds plus the five-concept knowledge map in 13.9 seconds. The API key and generated learning content were not printed. The browser then restored a saved map, showed verified source locations, contained no Chinese UI text, used no background image or gradient, and matched the viewport width at desktop size.
 

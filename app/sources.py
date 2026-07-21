@@ -173,7 +173,7 @@ def store_source(
     max_sources: int | None = None,
 ) -> dict[str, Any]:
     get_session(database_path, workspace_id, session_id)
-    if source_origin not in {"uploaded", "ai_supplement"}:
+    if source_origin != "uploaded":
         raise SourceError("source_origin_invalid", "This source origin is not supported.")
     checksum = hashlib.sha256(data).hexdigest()
     workspace_dir = upload_dir / workspace_id

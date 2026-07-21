@@ -1,6 +1,5 @@
 audio/
 audio_natural/
 build/
-verification_frames/
-verification_frames_natural/
+verification_frames*/
 *.mp4

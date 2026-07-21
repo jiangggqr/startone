@@ -36,7 +36,7 @@ def test_health_initializes_versioned_database(tmp_path: Path) -> None:
         "status": "ok",
         "mode": "demo",
         "database": "ready",
-        "schema_version": 11,
+        "schema_version": 12,
         "version": "1.0.0",
     }
     assert response.headers["cache-control"] == "no-store"

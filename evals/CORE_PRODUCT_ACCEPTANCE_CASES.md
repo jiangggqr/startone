@@ -14,11 +14,11 @@ When a model returns an unknown source reference, the server rejects it and the 
 
 ## C04 Start action
 
-The first action lasts 60–120 seconds, contains one instruction and one completion condition, and does not require prior planning.
+The knowledge framework opens the first beginner-friendly explanation without prior planning or a pre-test.
 
 ## C05 Tutor boundary
 
-Tutor answers within the active concept, records a gap signal when necessary, and does not change route or start search.
+Tutor answers within the active concept, records a gap signal when necessary, and does not change route, request material or introduce facts outside uploaded material.
 
 ## C06 Quiz quality
 
@@ -44,13 +44,13 @@ Every Agent decision contains exactly one allowed action and a learner-facing re
 
 An inserted prerequisite preserves `return_to_concept_id` and returns to the original concept after completion.
 
-## C12 Search gates
+## C12 Uploaded-material-only boundary
 
-No network call occurs without all gates: session permission, named gap, Agent request and user confirmation.
+No Tutor, map, activity, feedback or Agent call receives a network tool. Every learning claim resolves to uploaded or pasted material.
 
-## C13 Search failure recovery
+## C13 Material-gap recovery
 
-A timeout or no-result response preserves the current session and allows learning to continue from uploaded material.
+A validated blocking gap may produce `request_more_material` with `required_tool=open_material_upload`. It preserves the current concept, opens the upload area and allows the learner to continue within the current scope.
 
 ## C14 Resume
 
@@ -58,7 +58,7 @@ Refresh during an unfinished recall restores the active concept, draft answer, h
 
 ## C15 Automatic continuation
 
-After Keep going, the Agent selects exactly one action and a safe action opens the corresponding next task without another decision page. A `request_search` action stops before execution and requires exact user confirmation.
+After Keep going, the Agent selects exactly one action and a safe action opens the corresponding next task without another decision page. A `request_more_material` action preserves the current concept and opens the existing upload area without a separate confirmation page.
 
 ## C16 Session end
 
@@ -70,7 +70,7 @@ An Agent decision may use time, route and source coverage as constraints, but it
 
 ## C18 Local versus global action
 
-Feedback `next_micro_action` stays inside the active concept and fails validation if it encodes route change, search or session end.
+Feedback `next_micro_action` stays inside the active concept and fails validation if it encodes route change, a material-upload request or session end.
 
 ## C19 Workspace isolation
 

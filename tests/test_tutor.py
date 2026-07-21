@@ -45,7 +45,7 @@ def test_demo_tutor_stays_grounded_and_persists_conversation(tmp_path: Path) -> 
             assert tutor["boundaries"] == {
                 "active_concept_only": True,
                 "can_change_route": False,
-                "can_search": False,
+                "uses_uploaded_material_only": True,
                 "creates_agent_decision": False,
             }
             assert len(tutor["quick_actions"]) == 6
@@ -63,7 +63,6 @@ def test_demo_tutor_stays_grounded_and_persists_conversation(tmp_path: Path) -> 
             assert tutor["generation"] == {
                 "mode": "demo",
                 "model": "deterministic-demo-tutor-v1",
-                "internet_search_performed": False,
             }
             assert [message["role"] for message in tutor["messages"]] == ["user", "tutor"]
             reply = tutor["messages"][-1]
@@ -118,8 +117,8 @@ def test_demo_tutor_labels_ai_example_and_covered_prerequisite(tmp_path: Path) -
             )
             assert example.status_code == 200
             tutor = example.json()
-            assert tutor["messages"][-1]["source_origin"] == "ai_supplement"
-            assert tutor["messages"][-1]["message"].startswith("AI supplemental example:")
+            assert tutor["messages"][-1]["source_origin"] == "uploaded"
+            assert "mechanism described in your material" in tutor["messages"][-1]["message"]
 
             prerequisite = await client.post(
                 f"/api/sessions/{session_id}/tutor/messages",

@@ -32,7 +32,7 @@ Do not create application code yet.
 Respond in concise Chinese:
 1. Explain the product and the complete user journey.
 2. Explain the boundary between Guided Mastery Loop and Adaptive Planning Agent.
-3. Explain how uploaded sources, external sources and AI supplemental explanations differ.
+3. Explain why uploaded or pasted material is the only learning source and how AI-generated wording remains grounded in it.
 4. Summarize the desktop, tablet and mobile UI structure.
 5. List all loading, empty, error and recovery states that production implementation must support.
 6. Identify any contradiction or missing decision.
@@ -45,11 +45,11 @@ Respond in concise Chinese:
 
 - 当前没有生产应用代码。
 - HTML 是低保真交互原型，不是最终架构。
-- 上传材料是默认主来源。
+- 上传或粘贴材料是唯一学习来源。
 - Tutor、Quiz、复述、提示、反馈、鼓励和补救练习属于同一掌握循环。
 - `LearningEvidence` 只记录事实，不包含推荐。
 - Agent 每次只选择一个下一动作。
-- 网络搜索需要会话允许、验证后的明确缺口、Agent 请求和用户本次确认。
+- 网络搜索不属于产品能力；验证后的明确缺口只能触发补充上传材料提示。
 - UI 必须实现加载、空、错误、部分成功和恢复状态。
 
 ## 6. 保存规格基线

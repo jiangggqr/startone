@@ -10,9 +10,9 @@ Use English narration or complete English captions. Do not include copyrighted m
 
 ## 0:18–0:42 — Sources and automatic planning
 
-**On screen:** Start a session, select **Try sample material**, show the two files inside the upload panel, and open an exact line location.
+**On screen:** Start a session, upload or paste material, show the files inside the upload panel, and open an exact line location.
 
-**Narration:** “Uploaded PDFs, Markdown, text files, or pasted notes are the primary source. StartOne preserves real source locations and shows parsing results inside the upload panel. One button lets AI select a learning focus, connect the concepts and prepare the first step—there is no setup form.”
+**Narration:** “Uploaded PDFs, Markdown, text files, or pasted notes are the only learning source. StartOne preserves real source locations and shows parsing results inside the upload panel. One button lets AI select a learning focus, connect the concepts and prepare the first step—there is no setup form.”
 
 ## 0:42–1:02 — Map and first action
 
@@ -32,13 +32,13 @@ Use English narration or complete English captions. Do not include copyrighted m
 
 **Narration:** “Feedback is immediate and intentionally small: the result, the answer, why, and one truthful win. Behind the interface, the loop records factual LearningEvidence with no recommendation. Keep going asks the planning Agent for exactly one bounded action and automatically enters the next safe task.”
 
-## 1:55–2:20 — Four-gate search
+## 1:55–2:13 — Uploaded-material boundary
 
-**On screen:** A prepared learning session reaches Agent `request_search`, then the separate confirmation and cited results.
+**On screen:** Return briefly to the uploaded-material list and an inline citation, then continue the lesson.
 
-**Narration:** “External search is impossible until four gates pass: the session permits suggestions, the server validates a named material gap, the Agent requests search, and the learner confirms this exact scope. Only that execution call receives the required web-search tool. External results remain supplements; uploaded material stays primary.”
+**Narration:** “StartOne never searches the web. Every lesson, question, and feedback item stays grounded in material you supplied. If a missing concept blocks learning, StartOne keeps your place and asks you to upload the relevant material or continue within the current scope.”
 
-## 2:20–2:38 — Recovery and trust
+## 2:13–2:38 — Recovery and trust
 
 **On screen:** Pause, refresh/resume, an inline source citation, summary restart action, settings/data controls.
 

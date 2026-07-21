@@ -63,38 +63,30 @@ Behind the interface, the loop records factual LearningEvidence with no recommen
 Keep going asks the planning Agent for exactly one bounded action and automatically enters the next safe learning task, avoiding another decision screen.
 
 17
-00:01:42,571 --> 00:01:56,923
-External search is impossible until four gates pass: the session permits search suggestions, the server validates a named material gap, the Agent requests search, and the learner confirms this exact scope.
+00:01:42,571 --> 00:01:45,176
+StartOne learns only from uploaded material.
 
 18
-00:01:56,923 --> 00:02:00,627
-Only that confirmed execution receives the web-search tool.
+00:01:45,176 --> 00:01:53,859
+If the source has a gap, it asks the learner to add the missing material instead of searching the web.
 
 19
-00:02:00,627 --> 00:02:06,646
-Cited results are clearly labeled as external supplements; uploaded material always remains primary.
-
-20
-00:02:07,366 --> 00:02:12,469
+00:01:53,859 --> 00:01:58,201
 Autosave, conflict-safe drafts, pause and exact resume make interruption recoverable.
 
-21
-00:02:12,469 --> 00:02:17,062
-Lightweight source citations preserve trust without distracting from learning.
-
-22
-00:02:17,062 --> 00:02:25,228
+20
+00:01:58,201 --> 00:02:05,147
 The interface is English, responsive, keyboard-oriented, and uses calm, flat backgrounds with one visually dominant action.
 
-23
-00:02:25,948 --> 00:02:39,219
+21
+00:02:05,867 --> 00:02:19,138
 Codex transformed the product specification, prototype, and acceptance cases into this tested FastAPI application, while I set the learning boundaries and corrected issues found through browser review.
 
-24
-00:02:39,219 --> 00:02:46,100
+22
+00:02:19,138 --> 00:02:26,019
 GPT-5.6 powers the public structured map, explanations, Tutor, practice, feedback, and bounded planning flow.
 
-25
-00:02:46,100 --> 00:02:49,541
+23
+00:02:26,019 --> 00:02:29,460
 Deterministic fixtures remain isolated to automated tests.
 

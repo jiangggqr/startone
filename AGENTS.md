@@ -11,8 +11,8 @@ Read `STARTFRAME_FULL_SPEC_CN.md`, `PLANS.md`, the relevant numbered files in `d
 - Guided Mastery Loop teaches and evaluates the active concept.
 - Adaptive Planning Agent only selects one next action from validated evidence.
 - `LearningEvidence` contains observations, never recommendations.
-- External search requires all four gates: session permission, a validated named source gap, an Agent `request_search` decision, and explicit confirmation for that search.
-- Always display source origin: uploaded, external supplement, or AI supplemental explanation.
+- StartOne never searches the web. If a validated named `SourceGap` blocks learning, the Agent may select `request_more_material`, which asks the learner to upload the missing material or continue within the current scope.
+- Uploaded or pasted material is the only learning source. AI may reorganize, paraphrase, question, and explain that material, but must not introduce outside facts or present generated wording as a separate source.
 - Do not make medical, diagnostic or treatment claims about ADHD.
 
 ## UX requirements

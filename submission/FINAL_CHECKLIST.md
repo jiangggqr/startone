@@ -15,9 +15,9 @@ Official deadline: July 21, 2026 at 5:00 PM Pacific Time.
 - [x] Push the final Git history to the public judge-accessible repository at https://github.com/jiangggqr/startone.
 - [x] Keep the MIT-licensed repository public through judging.
 - [x] English README includes installation, sample data, internal deterministic tests, Codex collaboration, human decisions, and GPT-5.6 responsibilities.
-- [x] The learner UI contains no mode/evaluator controls; deterministic and controlled-search fixtures remain documented as internal tests.
+- [x] The learner UI contains no mode/evaluator controls; deterministic fixtures remain internal tests.
 - [x] Automated tests, dependency check, secret scan, responsive browser flow, and security headers are verified.
-- [x] Complete and record one live GPT-5.6 core-flow smoke test with a server-side key; real web-search request shape remains contract-tested.
+- [x] Complete and record one live GPT-5.6 core-flow smoke test with a server-side key; verify that learning calls expose no network tool.
 
 ## Public app
 

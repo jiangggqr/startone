@@ -62,7 +62,6 @@ def test_feedback_records_factual_evidence_and_runs_local_remediation(tmp_path: 
             assert feedback["remediation"]["available"] is True
             assert feedback["remediation"]["recommended_strategy"] == "smaller_question"
             assert feedback["boundaries"]["agent_decision_created"] is False
-            assert feedback["generation"]["internet_search_performed"] is False
 
             evidence = feedback["evidence"]
             assert evidence["activity_type"] == "quiz"

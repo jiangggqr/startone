@@ -16,7 +16,6 @@
 
 - Structured Outputs: https://developers.openai.com/api/docs/guides/structured-outputs
 - Function calling: https://developers.openai.com/api/docs/guides/function-calling
-- Web search: https://developers.openai.com/api/docs/guides/tools-web-search
 - Responses API migration and agentic tools: https://developers.openai.com/api/docs/guides/migrate-to-responses
 
 These references are implementation constraints and background sources. Product behavior is defined by the numbered specification files.
