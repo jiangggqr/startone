@@ -92,5 +92,5 @@ Use the public app and follow `submission/JUDGE_TESTING_GUIDE.md`. No learner ac
 
 - Public app: https://startone-learning.onrender.com
 - Code repository: https://github.com/jiangggqr/startone
-- Public YouTube demo: `YOUTUBE_URL_PENDING`
+- Public YouTube demo: https://youtu.be/S0k6eWLZzAY
 - Codex `/feedback` Session ID: `019f7ff7-6b6a-74d1-98b2-2f895e28bbce`

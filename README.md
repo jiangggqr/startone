@@ -20,6 +20,7 @@ python -m uvicorn app.main:app --reload --port 8000
 Open the [public StartOne app](https://startone-learning.onrender.com), select **Upload material and start learning**, then upload a file from `sample_data/` or paste your own notes. Select **Build my map and start**. There is no goal, prior-knowledge, time, or energy form. A complete walkthrough is in [`submission/JUDGE_TESTING_GUIDE.md`](submission/JUDGE_TESTING_GUIDE.md).
 
 - Public app: https://startone-learning.onrender.com
+- Public demo video: https://youtu.be/S0k6eWLZzAY
 - API health: https://startone-learning.onrender.com/api/health
 - Interactive API schema: `/api/docs`
 - Codex `/feedback` Session ID: `019f7ff7-6b6a-74d1-98b2-2f895e28bbce`

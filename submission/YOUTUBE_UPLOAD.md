@@ -1,5 +1,7 @@
 # YouTube upload copy
 
+Published URL: https://youtu.be/S0k6eWLZzAY
+
 ## Title
 
 StartOne: From Learning Friction to Mastery | OpenAI Build Week (Codex + GPT-5.6)

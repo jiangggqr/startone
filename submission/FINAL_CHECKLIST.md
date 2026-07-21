@@ -33,8 +33,9 @@ Official deadline: July 21, 2026 at 5:00 PM Pacific Time.
 - [ ] Confirm final duration is under 3:00.
 - [ ] Confirm audio explains both Codex and GPT-5.6 usage.
 - [ ] Remove keys, personal data, private tabs, unauthorized trademarks, music, and copyrighted material.
-- [ ] Upload as a public YouTube video and verify in a signed-out window.
-- [ ] Replace `YOUTUBE_URL_PENDING` in submission copy.
+- [x] Upload to YouTube and verify that the public link resolves without account data.
+- [x] Replace the video-link placeholder in submission copy.
+- [ ] Replace the temporary YouTube title `demo` with the prepared competition title and description.
 
 ## Devpost
 
