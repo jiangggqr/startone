@@ -33,7 +33,7 @@ The Chinese files are internal product and implementation specifications. All pr
 
 The prototype is a behavior and layout reference, not production application code.
 
-## Implemented through Milestone 4C
+## Implemented through Milestone 5
 
 - Python 3.11+ FastAPI/Uvicorn service and versioned SQLite schema
 - Anonymous workspace Cookie isolation and private UUID-based upload storage
@@ -56,8 +56,14 @@ The prototype is a behavior and layout reference, not production application cod
 - A shared server-side GPT-5.6 Responses API gateway with strict Pydantic Structured Outputs
 - Clearly separated deterministic Demo mode and real-model mode
 - Responsive desktop/tablet/mobile layouts, accessible semantic controls, and flat solid backgrounds
+- Exactly one Adaptive Planning Agent recommendation from validated `LearningEvidence` only
+- Eight bounded Agent actions with server-controlled targets and state transitions
+- Penalty-free override using only currently valid alternatives
+- Prerequisite and review detours with an explicit return to the interrupted concept
+- Strict GPT-5.6 function calling for real Agent mode: one forced function, strict schema, no parallel calls
+- A gated `request_search` state that performs no external search before a separate confirmation
 
-Quiz, recall, Tutor checks, immediate feedback, encouragement, remediation, and normalized `LearningEvidence` now form a complete Guided Mastery boundary. No Agent decision or external search is created by that loop. The Adaptive Planning Agent and controlled external search follow in Milestones 5 and 6.
+Quiz, recall, Tutor checks, immediate feedback, encouragement, remediation, and normalized `LearningEvidence` form a complete Guided Mastery boundary. The separate Adaptive Planning Agent now selects one global next action without teaching or scoring. Controlled external search follows in Milestone 6 and remains unavailable until the named-gap confirmation flow is implemented.
 
 ## Run locally
 

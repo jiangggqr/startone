@@ -15,6 +15,7 @@
 - Milestone 4A contextual Tutor: complete
 - Milestone 4B Quiz and free recall: complete
 - Milestone 4C feedback, remediation and LearningEvidence: complete
+- Milestone 5 Adaptive Planning Agent: complete
 - Production UI language: English
 
 ## What the prototype is
@@ -62,7 +63,15 @@
 - Durable `feedback_shown`, `remedial_practice` and `evidence_ready` states with pause/refresh recovery
 - Strict GPT-5.6 feedback/remedial Structured Output contracts with no model tools and a deterministic Demo evaluator
 - Responsive English feedback, evidence and remedial screens using flat solid backgrounds
+- Exactly-one Adaptive Planning Agent decisions from validated `LearningEvidence` only
+- Eight-action bounded enum with server-validated targets, tools, prerequisites and state transitions
+- Penalty-free user override with only valid alternatives and no hidden reasoning display
+- Prerequisite/review detours that return to the interrupted concept after mastery
+- Named-gap validation and `request_search` gating that stops before any external request
+- Strict real GPT-5.6 function calling with one forced tool call, disabled parallel calls and a deterministic Demo policy
+- Durable `agent_decision`, `search_confirmation` and `session_summary` transitions with pause/refresh recovery
+- Responsive English Agent screen with one visually dominant recommendation and flat solid backgrounds
 
 ## Next action
 
-Implement Milestone 5 Adaptive Planning Agent. It must read validated `LearningEvidence`, select exactly one bounded next action, expose a learner-facing reason and create no teaching or scoring content.
+Implement Milestone 6 controlled external search. It must require a validated named gap, session permission, an Agent `request_search` action and a separate user confirmation before any web-search tool can run.

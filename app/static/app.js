@@ -20,6 +20,7 @@ const state = {
   activity: null,
   feedback: null,
   evidence: null,
+  agent: null,
   activityReturnTrigger: null,
   tutorReturnTrigger: null,
   conflict: null,
@@ -38,6 +39,7 @@ const views = {
   activity: document.querySelector("#activity-view"),
   feedback: document.querySelector("#feedback-view"),
   evidence: document.querySelector("#evidence-ready-view"),
+  agent: document.querySelector("#agent-view"),
   summary: document.querySelector("#summary-view"),
 };
 
@@ -245,6 +247,22 @@ const mobileFeedbackPause = document.querySelector("#mobile-feedback-pause");
 const evidenceReadyTitle = document.querySelector("#evidence-ready-title");
 const evidenceReadyList = document.querySelector("#evidence-ready-list");
 const evidenceReadyPause = document.querySelector("#evidence-ready-pause");
+const evidenceReadyMessage = document.querySelector("#evidence-ready-message");
+const runAgentButton = document.querySelector("#run-agent");
+
+const agentTitle = document.querySelector("#agent-title");
+const agentSaveStatus = document.querySelector("#agent-save-status");
+const agentPauseButton = document.querySelector("#agent-pause");
+const agentEvidenceList = document.querySelector("#agent-evidence-list");
+const agentEstimate = document.querySelector("#agent-estimate");
+const agentActionTitle = document.querySelector("#agent-action-title");
+const agentReason = document.querySelector("#agent-reason");
+const acceptAgentButton = document.querySelector("#accept-agent");
+const agentMessage = document.querySelector("#agent-message");
+const agentAlternativesPanel = document.querySelector("#agent-alternatives-panel");
+const agentAlternatives = document.querySelector("#agent-alternatives");
+const agentOverrideReason = document.querySelector("#agent-override-reason");
+const applyAgentOverrideButton = document.querySelector("#apply-agent-override");
 
 function element(tag, className, text) {
   const node = document.createElement(tag);
@@ -368,6 +386,9 @@ function renderSessions(sessions) {
 
 function resumeLabel(session) {
   if (session.is_paused) return "Resume paused session";
+  if (session.state === "session_summary") return "View session summary";
+  if (session.state === "search_confirmation") return "Review search confirmation";
+  if (session.state === "agent_decision") return "Review next action";
   if (["practicing", "remedial_practice"].includes(session.state)) return "Resume current practice";
   if (session.state === "feedback_shown") return "Resume saved feedback";
   if (session.state === "evidence_ready") return "Review learning evidence";
@@ -392,6 +413,14 @@ async function resumeSession(sessionId) {
     } else if (session.state === "evidence_ready") {
       await showEvidenceReady();
       if (session.is_paused) pauseDialog.showModal();
+    } else if (["agent_decision", "search_confirmation"].includes(session.state)) {
+      await showAgentDecision();
+      if (session.is_paused) pauseDialog.showModal();
+    } else if (session.state === "session_summary") {
+      showFinishedSummary({
+        title: "Session complete",
+        restart_action: "Start a new session from the saved LearningEvidence when you are ready.",
+      });
     } else if (session.state === "learning_concept") {
       if (session.tutor_open) await showTutor();
       else await showFocus();
@@ -1813,6 +1842,8 @@ async function showEvidenceReady(existing = null) {
 }
 
 function renderEvidenceReady(body) {
+  setButtonBusy(runAgentButton, false, "", "Ask Planning Agent for one next action");
+  setMessage(evidenceReadyMessage, "");
   evidenceReadyList.replaceChildren();
   body.learning_evidence.forEach((item) => {
     const card = element("article", "evidence-ready-item");
@@ -1834,6 +1865,170 @@ function renderEvidenceReady(body) {
   if (body.learning_evidence.length === 0) {
     evidenceReadyList.append(element("p", "muted", "No evidence record is available yet."));
   }
+}
+
+async function runPlanningAgent() {
+  setMessage(evidenceReadyMessage, "Preparing one server-validated next action from LearningEvidence only.");
+  setButtonBusy(runAgentButton, true, "Planning one next action…", "Ask Planning Agent for one next action");
+  try {
+    const body = await api(`/api/sessions/${state.sessionId}/agent-decisions`, { method: "POST" });
+    await showAgentDecision(body);
+  } catch (error) {
+    setMessage(evidenceReadyMessage, `${error.message} ${error.body?.saved_state || "Your evidence remains saved."}`, "error");
+    setButtonBusy(runAgentButton, false, "", "Retry Planning Agent");
+  }
+}
+
+async function showAgentDecision(existing = null) {
+  const body = existing || await api(`/api/sessions/${state.sessionId}/agent-decisions/latest`);
+  state.agent = body;
+  state.session = body.session;
+  renderAgentDecision(body);
+  showView("agent", `agent/${body.decision.id}`, agentTitle);
+  if (body.session.is_paused && !pauseDialog.open) pauseDialog.showModal();
+}
+
+function appendAgentEvidence(label, value) {
+  const row = element("div");
+  row.append(element("dt", "", label), element("dd", "", value));
+  agentEvidenceList.append(row);
+}
+
+function renderAgentDecision(body) {
+  const decision = body.decision;
+  const evidence = body.evidence_summary;
+  agentTitle.textContent = `Next action for ${decision.concept_title}`;
+  agentActionTitle.textContent = decision.action_label;
+  agentReason.textContent = decision.reason_for_user;
+  agentEstimate.textContent = decision.estimated_minutes
+    ? `Estimated time · about ${decision.estimated_minutes} minutes`
+    : "Estimated time · finish now";
+  agentSaveStatus.textContent = decision.status === "proposed"
+    ? "Decision saved · not applied"
+    : `${decision.selected_action_label} · applied`;
+
+  agentEvidenceList.replaceChildren();
+  appendAgentEvidence("Concept", evidence.concept_title);
+  appendAgentEvidence("Latest activity", evidence.latest_activity_type.replaceAll("_", " "));
+  appendAgentEvidence("Latest outcome", evidence.latest_outcome.replaceAll("_", " "));
+  appendAgentEvidence(
+    "Key-point coverage",
+    `${evidence.covered_key_points}/${evidence.total_key_points}`,
+  );
+  appendAgentEvidence("Hints observed", String(evidence.hint_depth));
+  appendAgentEvidence("Evidence records", String(evidence.evidence_count));
+  if (evidence.remedial_result) {
+    appendAgentEvidence("Remedial result", evidence.remedial_result.replaceAll("_", " "));
+  }
+
+  agentAlternatives.replaceChildren();
+  agentAlternatives.append(element("legend", "", "Valid alternatives"));
+  body.allowed_alternatives.forEach((alternative, index) => {
+    const label = element("label", "agent-alternative");
+    const input = element("input");
+    input.type = "radio";
+    input.name = "agent-alternative";
+    input.value = alternative.action;
+    if (index === 0) input.checked = true;
+    const title = element("span", "", alternative.label);
+    const estimate = alternative.estimated_minutes
+      ? `About ${alternative.estimated_minutes} minutes`
+      : "Finish now";
+    const detail = element("small", "", `${estimate}. ${alternative.reason_for_user}`);
+    label.append(input, title, detail);
+    agentAlternatives.append(label);
+  });
+  const isProposed = decision.status === "proposed";
+  agentOverrideReason.value = "";
+  agentAlternativesPanel.open = false;
+  setButtonBusy(acceptAgentButton, false, "", "Accept this action");
+  setButtonBusy(applyAgentOverrideButton, false, "", "Use selected path");
+  applyAgentOverrideButton.disabled = body.allowed_alternatives.length === 0;
+  acceptAgentButton.hidden = !isProposed;
+  agentAlternativesPanel.hidden = !isProposed || body.allowed_alternatives.length === 0;
+  agentPauseButton.hidden = body.session.state === "session_summary";
+  setMessage(agentMessage, "");
+  if (!isProposed && body.session.state === "search_confirmation") {
+    setMessage(agentMessage, "The Agent requested a search, but no search has run. A separate source-gap confirmation is required next.", "success");
+  }
+}
+
+async function acceptAgentDecision() {
+  const body = state.agent;
+  if (!body) return;
+  setButtonBusy(acceptAgentButton, true, "Applying action…", "Accept this action");
+  try {
+    const result = await api(`/api/agent-decisions/${body.decision.id}/accept`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ version: body.session.version }),
+    });
+    await handleAgentExecution(result);
+  } catch (error) {
+    setMessage(agentMessage, `${error.message} ${error.body?.saved_state || "The decision was not changed."}`, "error");
+    setButtonBusy(acceptAgentButton, false, "", "Accept this action");
+  }
+}
+
+async function applyAgentOverride() {
+  const body = state.agent;
+  const selected = agentAlternatives.querySelector("input[name='agent-alternative']:checked");
+  if (!body || !selected) return;
+  setButtonBusy(applyAgentOverrideButton, true, "Applying selected path…", "Use selected path");
+  try {
+    const result = await api(`/api/agent-decisions/${body.decision.id}/override`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: selected.value,
+        reason: agentOverrideReason.value.trim() || null,
+        version: body.session.version,
+      }),
+    });
+    await handleAgentExecution(result);
+  } catch (error) {
+    setMessage(agentMessage, `${error.message} ${error.body?.saved_state || "The original decision remains available."}`, "error");
+    setButtonBusy(applyAgentOverrideButton, false, "", "Use selected path");
+  }
+}
+
+async function handleAgentExecution(body) {
+  state.agent = body;
+  state.session = body.execution.session;
+  const execution = body.execution;
+  if (execution.destination === "focus") {
+    await showFocus();
+    return;
+  }
+  if (execution.destination === "activity") {
+    await showFocus();
+    const trigger = execution.activity_type === "quiz" ? startQuizButton : startRecallButton;
+    await startActivity(execution.activity_type, trigger);
+    return;
+  }
+  if (execution.destination === "tutor") {
+    await showFocus();
+    await openTutor(openTutorButton);
+    return;
+  }
+  if (execution.destination === "search_confirmation") {
+    renderAgentDecision(body);
+    showView("agent", `agent/${body.decision.id}`, agentTitle);
+    setMessage(agentMessage, "Search is waiting for a separate confirmation. No external request has run.", "success");
+    return;
+  }
+  if (execution.destination === "session_summary") {
+    showFinishedSummary(execution.summary);
+  }
+}
+
+function showFinishedSummary(summary) {
+  document.querySelector("#summary-title").textContent = summary.title || "Session complete";
+  summaryRestartAction.textContent = summary.restart_action;
+  summaryConcept.textContent = state.agent?.evidence_summary?.concept_title || "Saved learning session";
+  summaryNote.textContent = "Your LearningEvidence and planning choice are saved. Stopping has no penalty.";
+  summaryResumeButton.hidden = true;
+  showView("summary", `summary/${state.sessionId}`, document.querySelector("#summary-title"));
 }
 
 async function closeCurrentActivity() {
@@ -1949,6 +2144,11 @@ async function resumeActiveSession() {
     if (["practicing", "remedial_practice"].includes(state.session.state)) await showActivity();
     else if (state.session.state === "feedback_shown") await showFeedback();
     else if (state.session.state === "evidence_ready") await showEvidenceReady();
+    else if (["agent_decision", "search_confirmation"].includes(state.session.state)) await showAgentDecision();
+    else if (state.session.state === "session_summary") showFinishedSummary({
+      title: "Session complete",
+      restart_action: "Start a new session from the saved LearningEvidence when you are ready.",
+    });
     else if (state.session.state === "learning_concept" && state.session.tutor_open) await showTutor();
     else if (state.session.state === "learning_concept") await showFocus();
     else await showStartAction();
@@ -1976,6 +2176,8 @@ async function saveAndExit() {
 
 function showSummary() {
   const focus = state.focus;
+  document.querySelector("#summary-title").textContent = "Your exact restart point is ready";
+  summaryResumeButton.hidden = false;
   summaryRestartAction.textContent = focus.restart_action;
   summaryConcept.textContent = focus.active_concept.title;
   summaryNote.textContent = focusNote.value.trim() || "No focus note yet. Resume at the concise explanation.";
@@ -2130,6 +2332,10 @@ mobileFeedbackConcept.addEventListener("click", () => {
   setMessage(feedbackMessage, "Finish this feedback step first; your current concept remains unchanged.", "info");
 });
 evidenceReadyPause.addEventListener("click", () => pauseActiveSession());
+runAgentButton.addEventListener("click", runPlanningAgent);
+agentPauseButton.addEventListener("click", () => pauseActiveSession());
+acceptAgentButton.addEventListener("click", acceptAgentDecision);
+applyAgentOverrideButton.addEventListener("click", applyAgentOverride);
 
 ["dragenter", "dragover"].forEach((eventName) => {
   dropZone.addEventListener(eventName, (event) => {

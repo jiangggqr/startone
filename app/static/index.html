@@ -681,10 +681,61 @@
             <strong>No decision has been made yet</strong>
             <p>Feedback and remediation belong to Guided Mastery. LearningEvidence does not recommend what should happen next, and no external search has run.</p>
           </div>
+          <p class="upload-message" id="evidence-ready-message" role="status" aria-live="polite" hidden></p>
           <div class="dialog-actions">
             <button class="button button-secondary" id="evidence-ready-pause" type="button">Pause with this exact restart point</button>
-            <button class="button button-primary" id="run-agent-placeholder" type="button" disabled>Planning Agent comes next</button>
+            <button class="button button-primary" id="run-agent" type="button">Ask Planning Agent for one next action</button>
           </div>
+        </div>
+      </section>
+
+      <section class="workflow-view agent-view" id="agent-view" aria-labelledby="agent-title" hidden>
+        <div class="focus-topbar">
+          <div>
+            <p class="eyebrow">Adaptive Planning Agent · one decision only</p>
+            <h1 id="agent-title" tabindex="-1">Your next action</h1>
+          </div>
+          <div class="focus-top-actions">
+            <span class="save-state" id="agent-save-status" role="status" aria-live="polite">Decision saved</span>
+            <button class="button button-quiet" id="agent-pause" type="button">Pause session</button>
+          </div>
+        </div>
+
+        <div class="agent-layout">
+          <aside class="card-panel agent-evidence" aria-labelledby="agent-evidence-title">
+            <p class="eyebrow">LearningEvidence snapshot</p>
+            <h2 id="agent-evidence-title">What the decision can use</h2>
+            <dl class="context-list" id="agent-evidence-list"></dl>
+            <div class="boundary-note">
+              <strong>Strict boundary</strong>
+              <p>Learning performance comes only from LearningEvidence. Time, route, prerequisites, and source coverage only constrain what is feasible.</p>
+            </div>
+          </aside>
+
+          <section class="agent-decision-column" aria-label="Planning decision">
+            <section class="primary-action-card agent-primary" aria-labelledby="agent-action-title">
+              <span class="recommended-label">One recommended action</span>
+              <p class="eyebrow" id="agent-estimate">Estimated time</p>
+              <h2 id="agent-action-title">Next action</h2>
+              <p id="agent-reason"></p>
+              <button class="button button-primary full-width" id="accept-agent" type="button">Accept this action</button>
+            </section>
+            <p class="upload-message" id="agent-message" role="status" aria-live="polite" hidden></p>
+            <details class="card-panel agent-alternatives" id="agent-alternatives-panel">
+              <summary>Choose another valid path</summary>
+              <p class="micro-copy">Changing the choice has no penalty. Only server-validated alternatives are shown.</p>
+              <fieldset id="agent-alternatives">
+                <legend>Valid alternatives</legend>
+              </fieldset>
+              <label for="agent-override-reason">Optional reason</label>
+              <textarea id="agent-override-reason" rows="3" maxlength="500" placeholder="For example: I want to stop for today."></textarea>
+              <button class="button button-secondary full-width" id="apply-agent-override" type="button">Use selected path</button>
+            </details>
+            <div class="boundary-note">
+              <strong>Agent does not teach or search here</strong>
+              <p>The Agent selects one action. External search still needs a named source gap and a separate confirmation before it can run.</p>
+            </div>
+          </section>
         </div>
       </section>
 

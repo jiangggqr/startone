@@ -46,6 +46,8 @@ Implement structured immediate feedback, specific encouragement, misconception d
 
 Implement bounded action enum, exactly one next decision, learner-facing reason, estimate, override path, prerequisite insertion/return and server-validated transitions.
 
+**Status:** Complete and verified on 2026-07-21. The Agent reads validated `LearningEvidence` as its sole learning-performance basis, proposes exactly one of eight bounded actions, exposes only server-valid alternatives, supports penalty-free override and executes only controlled state transitions. A strict GPT-5.6 function-call contract and a deterministic Demo policy remain visibly separated; `request_search` stops at confirmation and performs no search.
+
 ## Milestone 6 — Controlled external search
 
 Implement session permission, runtime confirmation, named gap, Agent request, Responses API web search, selected cited sources, origin labels, mock mode and failure recovery.

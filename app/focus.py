@@ -234,7 +234,7 @@ def pause_session(
         return session
     if session["state"] not in {
         "start_action", "learning_concept", "practicing", "feedback_shown",
-        "remedial_practice", "evidence_ready",
+        "remedial_practice", "evidence_ready", "agent_decision", "search_confirmation",
     }:
         raise SourceError("invalid_session_transition", "This session cannot be paused from its current step.", status_code=409)
     elapsed, remaining = _timer_values(session)
@@ -266,6 +266,7 @@ def resume_session(
     resume_state = str(session.get("resume_state") or session["state"])
     timer_sql = "CURRENT_TIMESTAMP" if resume_state in {
         "learning_concept", "practicing", "feedback_shown", "remedial_practice", "evidence_ready",
+        "agent_decision", "search_confirmation",
     } else "NULL"
     with connect(database_path) as connection:
         connection.execute(
@@ -465,7 +466,7 @@ def _require_mutable_learning_state(session: dict[str, Any]) -> None:
         )
     if session["state"] not in {
         "start_action", "learning_concept", "practicing", "feedback_shown",
-        "remedial_practice", "evidence_ready",
+        "remedial_practice", "evidence_ready", "agent_decision", "search_confirmation",
     }:
         raise SourceError(
             "draft_not_available",

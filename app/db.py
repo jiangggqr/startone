@@ -6,7 +6,7 @@ import sqlite3
 from pathlib import Path
 
 
-SCHEMA_VERSION = 7
+SCHEMA_VERSION = 8
 
 SOURCE_SCHEMA = """
 CREATE TABLE IF NOT EXISTS workspaces (
@@ -352,6 +352,58 @@ CREATE INDEX idx_learning_evidence_session_time
     ON learning_evidence(session_id, timestamp DESC);
 """
 
+AGENT_SCHEMA = """
+CREATE TABLE agent_decisions (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    session_id TEXT NOT NULL REFERENCES learning_sessions(id) ON DELETE CASCADE,
+    concept_id TEXT NOT NULL REFERENCES concepts(id) ON DELETE CASCADE,
+    evidence_fingerprint TEXT NOT NULL,
+    evidence_snapshot_json TEXT NOT NULL,
+    action TEXT NOT NULL CHECK(action IN (
+        'continue_next', 'retry_current', 'switch_activity', 'simplify_current',
+        'insert_prerequisite', 'review_previous', 'request_search', 'finish_session'
+    )),
+    reason_for_user TEXT NOT NULL,
+    estimated_minutes INTEGER NOT NULL CHECK(estimated_minutes BETWEEN 0 AND 45),
+    target_concept_id TEXT REFERENCES concepts(id),
+    return_to_concept_id TEXT REFERENCES concepts(id),
+    required_tool TEXT NOT NULL CHECK(required_tool IN (
+        'activate_concept', 'create_activity', 'open_tutor', 'request_search', 'create_summary'
+    )),
+    confidence REAL NOT NULL CHECK(confidence BETWEEN 0 AND 1),
+    generation_mode TEXT NOT NULL CHECK(generation_mode IN ('demo', 'real')),
+    model TEXT,
+    status TEXT NOT NULL DEFAULT 'proposed' CHECK(status IN ('proposed', 'accepted', 'overridden')),
+    selected_action TEXT CHECK(selected_action IN (
+        'continue_next', 'retry_current', 'switch_activity', 'simplify_current',
+        'insert_prerequisite', 'review_previous', 'request_search', 'finish_session'
+    )),
+    override_reason TEXT,
+    version INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    resolved_at TEXT,
+    UNIQUE(session_id, evidence_fingerprint)
+);
+CREATE INDEX idx_agent_decisions_session_created
+    ON agent_decisions(session_id, created_at DESC);
+
+CREATE TABLE learning_detours (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    session_id TEXT NOT NULL REFERENCES learning_sessions(id) ON DELETE CASCADE,
+    decision_id TEXT NOT NULL REFERENCES agent_decisions(id) ON DELETE CASCADE,
+    kind TEXT NOT NULL CHECK(kind IN ('prerequisite', 'review')),
+    detour_concept_id TEXT NOT NULL REFERENCES concepts(id),
+    return_concept_id TEXT NOT NULL REFERENCES concepts(id),
+    status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'returned')),
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    returned_at TEXT
+);
+CREATE INDEX idx_learning_detours_session_status
+    ON learning_detours(session_id, status, created_at DESC);
+"""
+
 
 def connect(database_path: Path) -> sqlite3.Connection:
     """Open a configured SQLite connection with safety pragmas enabled."""
@@ -400,6 +452,9 @@ def initialize_database(database_path: Path) -> None:
         if 7 not in applied:
             connection.executescript(MASTERY_SCHEMA)
             connection.execute("INSERT INTO schema_migrations(version) VALUES (7)")
+        if 8 not in applied:
+            connection.executescript(AGENT_SCHEMA)
+            connection.execute("INSERT INTO schema_migrations(version) VALUES (8)")
 
 
 def ensure_workspace(database_path: Path, workspace_id: str) -> None:

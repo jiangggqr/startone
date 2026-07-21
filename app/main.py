@@ -21,6 +21,13 @@ from app.activities import (
     reveal_next_hint,
     submit_attempt,
 )
+from app.agent import (
+    accept_agent_decision,
+    create_agent_decision,
+    get_agent_decision,
+    get_latest_agent_decision,
+    override_agent_decision,
+)
 from app.config import Settings
 from app.db import current_schema_version, ensure_workspace, initialize_database
 from app.focus import (
@@ -153,6 +160,21 @@ class ActivityVersionRequest(BaseModel):
 class AttemptSubmitRequest(BaseModel):
     version: int = Field(ge=1)
     elapsed_seconds: int = Field(default=0, ge=0, le=86_400)
+
+
+class AgentOverrideRequest(BaseModel):
+    action: Literal[
+        "continue_next",
+        "retry_current",
+        "switch_activity",
+        "simplify_current",
+        "insert_prerequisite",
+        "review_previous",
+        "request_search",
+        "finish_session",
+    ]
+    reason: str | None = Field(default=None, max_length=500)
+    version: int = Field(ge=1)
 
 
 def create_app(
@@ -805,6 +827,59 @@ def create_app(
             resolved_settings.database_path,
             _workspace_id(request),
             session_id,
+        )
+
+    @application.post("/api/sessions/{session_id}/agent-decisions", status_code=201)
+    async def plan_next_action(session_id: str, request: Request) -> dict:
+        return create_agent_decision(
+            resolved_settings,
+            _workspace_id(request),
+            session_id,
+            client_factory=ai_client_factory,
+        )
+
+    @application.get("/api/sessions/{session_id}/agent-decisions/latest")
+    async def latest_planning_decision(session_id: str, request: Request) -> dict:
+        return get_latest_agent_decision(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            session_id,
+        )
+
+    @application.get("/api/agent-decisions/{decision_id}")
+    async def planning_decision(decision_id: str, request: Request) -> dict:
+        return get_agent_decision(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            decision_id,
+        )
+
+    @application.post("/api/agent-decisions/{decision_id}/accept")
+    async def accept_planning_decision(
+        decision_id: str,
+        payload: SessionVersionRequest,
+        request: Request,
+    ) -> dict:
+        return accept_agent_decision(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            decision_id,
+            payload.version,
+        )
+
+    @application.post("/api/agent-decisions/{decision_id}/override")
+    async def override_planning_decision(
+        decision_id: str,
+        payload: AgentOverrideRequest,
+        request: Request,
+    ) -> dict:
+        return override_agent_decision(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            decision_id,
+            payload.action,
+            payload.reason,
+            payload.version,
         )
 
     @application.post("/api/activities/{activity_id}/close")

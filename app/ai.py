@@ -152,6 +152,34 @@ class RemedialActivityOutput(StrictModel):
     source_refs: list[SourceReference] = Field(min_length=1, max_length=4)
 
 
+AgentAction = Literal[
+    "continue_next",
+    "retry_current",
+    "switch_activity",
+    "simplify_current",
+    "insert_prerequisite",
+    "review_previous",
+    "request_search",
+    "finish_session",
+]
+
+
+class AgentDecisionOutput(StrictModel):
+    action: AgentAction
+    reason_for_user: str = Field(min_length=1, max_length=500)
+    estimated_minutes: int = Field(ge=0, le=45)
+    target_concept_id: str | None
+    return_to_concept_id: str | None
+    required_tool: Literal[
+        "activate_concept",
+        "create_activity",
+        "open_tutor",
+        "request_search",
+        "create_summary",
+    ]
+    confidence: float = Field(ge=0, le=1)
+
+
 class ModelGatewayError(Exception):
     def __init__(self, error_code: str, user_message: str) -> None:
         super().__init__(user_message)
