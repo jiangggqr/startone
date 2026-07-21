@@ -4,30 +4,30 @@ from PIL import Image, ImageDraw, ImageFont
 
 
 ROOT = Path(__file__).resolve().parents[2]
-CAPTURES = ROOT / "submission" / "video" / "captures"
+CAPTURES = ROOT / "submission" / "gallery_captures"
 OUTPUT = ROOT / "submission" / "StartOne_product_gallery.png"
 
 CANVAS_SIZE = (2400, 1600)
-BACKGROUND = "#F4F6FB"
+BACKGROUND = "#FFFFFF"
 SURFACE = "#FFFFFF"
 INK = "#13213F"
 MUTED = "#5C6880"
 BORDER = "#D6DDEB"
-SHADOW = "#E4E8F1"
+SHADOW = "#EEF1F6"
 ACCENT = "#3457D5"
 
 FONT_REGULAR = "/System/Library/Fonts/SFNS.ttf"
 FONT_ROUNDED = "/System/Library/Fonts/SFNSRounded.ttf"
 
 SCREENS = [
-    ("02_upload.png", "Upload material"),
-    ("03_map.png", "See the knowledge map"),
-    ("04_explanation.png", "Understand one concept"),
-    ("05_tutor.png", "Ask the Tutor"),
-    ("06_quiz.png", "Retrieve with 3 questions"),
-    ("07_feedback.png", "Get immediate feedback"),
-    ("08_next.png", "Continue automatically"),
-    ("10_resume.png", "Pause and resume anytime"),
+    ("01_upload_clean.png", "Upload material"),
+    ("02_map_clean.png", "See the knowledge map"),
+    ("03_explanation_clean.png", "Understand one concept"),
+    ("04_tutor_clean.png", "Ask the Tutor"),
+    ("05_quiz_clean.png", "Retrieve with 3 questions"),
+    ("06_feedback_clean.png", "Get immediate feedback"),
+    ("07_next_clean.png", "Continue automatically"),
+    ("08_pause_clean.png", "Pause and resume anytime"),
 ]
 
 
@@ -68,13 +68,21 @@ def main() -> None:
     draw.rounded_rectangle(
         (x, y, x + card_w, y + card_h),
         radius=22,
+        fill=SURFACE,
+        outline=BORDER,
+        width=2,
+    )
+    draw.rounded_rectangle(
+        (x + 42, y + 34, x + 84, y + 76),
+        radius=12,
         fill=INK,
     )
-    draw.text((x + 42, y + 36), "StartOne", fill=SURFACE, font=title_font)
+    draw.text((x + 55, y + 35), "1", fill=SURFACE, font=flow_font)
+    draw.text((x + 104, y + 27), "StartOne", fill=INK, font=title_font)
     draw.multiline_text(
         (x + 42, y + 112),
         "Turn uploaded material into one\nfocused step at a time.",
-        fill="#D8E1F5",
+        fill=MUTED,
         font=subtitle_font,
         spacing=8,
     )
@@ -87,7 +95,7 @@ def main() -> None:
         draw.text(
             (x + 42, y + 222 + line_index * 47),
             line,
-            fill=SURFACE,
+            fill=INK,
             font=flow_font,
         )
     draw.rounded_rectangle(
@@ -123,8 +131,6 @@ def main() -> None:
         )
 
         screenshot = Image.open(CAPTURES / filename).convert("RGB")
-        if filename == "02_upload.png":
-            screenshot = screenshot.crop((80, 90, 1200, 720))
         screenshot = screenshot.resize((image_w, image_h), Image.Resampling.LANCZOS)
         screenshot_mask = Image.new("L", (image_w, image_h), 0)
         mask_draw = ImageDraw.Draw(screenshot_mask)
