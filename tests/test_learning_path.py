@@ -122,6 +122,33 @@ def test_demo_setup_coverage_map_adjust_and_confirm(tmp_path: Path) -> None:
     asyncio.run(scenario())
 
 
+def test_controlled_search_demo_loads_only_the_gap_source(tmp_path: Path) -> None:
+    async def scenario() -> None:
+        app = make_app(tmp_path)
+        async with app_client(app) as client:
+            session = await create_session(client)
+            response = await client.post(
+                f"/api/sessions/{session['id']}/demo-materials?scenario=controlled_search"
+            )
+            assert response.status_code == 201
+            body = response.json()
+            assert body["created_count"] == 1
+            assert body["scenario"] == "controlled_search"
+            assert [source["filename"] for source in body["sources"]] == [
+                "transformer_notes.md"
+            ]
+
+            session = (await client.get(f"/api/sessions/{session['id']}")).json()["session"]
+            await save_setup(client, session)
+            coverage = (
+                await client.post(f"/api/sessions/{session['id']}/coverage")
+            ).json()
+            gap_descriptions = [gap["description"] for gap in coverage["source_gaps"]]
+            assert any("dot product" in description for description in gap_descriptions)
+
+    asyncio.run(scenario())
+
+
 def test_setup_uses_optimistic_version(tmp_path: Path) -> None:
     async def scenario() -> None:
         app = make_app(tmp_path)

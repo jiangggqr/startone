@@ -34,8 +34,8 @@ def test_health_initializes_versioned_database(tmp_path: Path) -> None:
         "status": "ok",
         "mode": "demo",
         "database": "ready",
-        "schema_version": 8,
-        "version": "0.8.0",
+        "schema_version": 9,
+        "version": "0.9.0",
     }
     assert (tmp_path / "test.sqlite3").exists()
 

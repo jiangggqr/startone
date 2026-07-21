@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import re
-from typing import Any
+from typing import Any, Literal
 import uuid
 
 from app.ai import (
@@ -94,6 +94,7 @@ def load_demo_materials(
     workspace_id: str,
     session_id: str,
     sample_dir: Path,
+    scenario: Literal["standard", "controlled_search"] = "standard",
 ) -> list[dict[str, Any]]:
     if settings.mode != "demo":
         raise SourceError(
@@ -112,7 +113,12 @@ def load_demo_materials(
                 (session_id, workspace_id),
             )
         }
-    for filename in ("transformer_notes.md", "matrix_prerequisite.md"):
+    filenames = (
+        ("transformer_notes.md",)
+        if scenario == "controlled_search"
+        else ("transformer_notes.md", "matrix_prerequisite.md")
+    )
+    for filename in filenames:
         if filename in existing:
             continue
         data = (sample_dir / filename).read_bytes()

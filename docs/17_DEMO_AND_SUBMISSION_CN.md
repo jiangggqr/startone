@@ -48,7 +48,7 @@
 
 ### 2:55–3:00 Codex 与 GPT-5.6
 
-一句话说明 Codex 从规格和原型创建、测试并迭代项目；GPT-5.6 用于结构化知识地图、Tutor、练习、反馈和受控 Agent 决策。
+一句话说明 Codex 从规格和原型创建、测试并迭代项目；GPT-5.6 用于结构化知识地图、Tutor、练习、反馈、受控 Agent 决策，以及四重门通过后的 web search。
 
 ## 评委测试路径
 
@@ -60,6 +60,16 @@ README 首页提供：
 4. 真实模式配置
 5. 预期 Agent 行为
 6. 已知限制
+
+受控搜索的稳定评委路径：
+
+1. 新建会话并点击英文按钮 `Load controlled-search Demo`
+2. 确认只有 `transformer_notes.md` 一份上传材料；完成设置时勾选允许系统建议外部搜索
+3. 生成覆盖和路线；学习到 scaled dot-product attention 时向 Tutor 询问材料没有定义的 dot product
+4. 完成一次未掌握的 Quiz 或自由复述并结束反馈，让事实性 `LearningEvidence.source_gap_signal` 与表现证据同时可用
+5. 运行 Agent；它只能推荐一个 `request_search`，此时尚未发送任何搜索请求
+6. 接受后检查独立确认页的命名缺口、范围、理由和四项门；点击确认才执行 Demo 搜索
+7. 检查三个明确标记为 Demo 的 cited external sources；选择一个或无惩罚忽略，回到以上传材料为主的当前概念
 
 ## 必须提交
 

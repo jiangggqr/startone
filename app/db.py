@@ -6,7 +6,7 @@ import sqlite3
 from pathlib import Path
 
 
-SCHEMA_VERSION = 8
+SCHEMA_VERSION = 9
 
 SOURCE_SCHEMA = """
 CREATE TABLE IF NOT EXISTS workspaces (
@@ -404,6 +404,66 @@ CREATE INDEX idx_learning_detours_session_status
     ON learning_detours(session_id, status, created_at DESC);
 """
 
+CONTROLLED_SEARCH_SCHEMA = """
+CREATE TABLE search_requests (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    session_id TEXT NOT NULL REFERENCES learning_sessions(id) ON DELETE CASCADE,
+    concept_id TEXT NOT NULL REFERENCES concepts(id) ON DELETE CASCADE,
+    source_gap_id TEXT NOT NULL REFERENCES source_gaps(id) ON DELETE CASCADE,
+    agent_decision_id TEXT NOT NULL UNIQUE REFERENCES agent_decisions(id) ON DELETE CASCADE,
+    query_scope TEXT NOT NULL,
+    reason_for_user TEXT NOT NULL,
+    permission_snapshot INTEGER NOT NULL CHECK(permission_snapshot IN (0, 1)),
+    confirmation_status TEXT NOT NULL DEFAULT 'pending'
+        CHECK(confirmation_status IN ('pending', 'confirmed', 'declined')),
+    search_status TEXT NOT NULL DEFAULT 'pending'
+        CHECK(search_status IN ('pending', 'running', 'completed', 'failed', 'cancelled', 'ignored')),
+    generation_mode TEXT NOT NULL CHECK(generation_mode IN ('demo', 'real')),
+    model TEXT,
+    response_id TEXT,
+    error_code TEXT,
+    version INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    confirmed_at TEXT,
+    executed_at TEXT,
+    completed_at TEXT
+);
+CREATE INDEX idx_search_requests_session_created
+    ON search_requests(session_id, created_at DESC);
+
+CREATE TABLE external_sources (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    session_id TEXT NOT NULL REFERENCES learning_sessions(id) ON DELETE CASCADE,
+    concept_id TEXT NOT NULL REFERENCES concepts(id) ON DELETE CASCADE,
+    source_gap_id TEXT NOT NULL REFERENCES source_gaps(id) ON DELETE CASCADE,
+    search_request_id TEXT NOT NULL REFERENCES search_requests(id) ON DELETE CASCADE,
+    canonical_url TEXT NOT NULL,
+    title TEXT NOT NULL,
+    publisher TEXT NOT NULL,
+    accessed_at TEXT NOT NULL,
+    selection_reason TEXT NOT NULL,
+    citation_excerpt TEXT NOT NULL,
+    locator TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'candidate'
+        CHECK(status IN ('candidate', 'selected', 'inaccessible', 'ignored')),
+    rank INTEGER NOT NULL CHECK(rank BETWEEN 1 AND 10),
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    selected_at TEXT,
+    UNIQUE(search_request_id, canonical_url)
+);
+CREATE INDEX idx_external_sources_request_rank
+    ON external_sources(search_request_id, rank);
+
+CREATE TABLE concept_external_sources (
+    concept_id TEXT NOT NULL REFERENCES concepts(id) ON DELETE CASCADE,
+    external_source_id TEXT NOT NULL UNIQUE REFERENCES external_sources(id) ON DELETE CASCADE,
+    attached_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(concept_id, external_source_id)
+);
+"""
+
 
 def connect(database_path: Path) -> sqlite3.Connection:
     """Open a configured SQLite connection with safety pragmas enabled."""
@@ -455,6 +515,9 @@ def initialize_database(database_path: Path) -> None:
         if 8 not in applied:
             connection.executescript(AGENT_SCHEMA)
             connection.execute("INSERT INTO schema_migrations(version) VALUES (8)")
+        if 9 not in applied:
+            connection.executescript(CONTROLLED_SEARCH_SCHEMA)
+            connection.execute("INSERT INTO schema_migrations(version) VALUES (9)")
 
 
 def ensure_workspace(database_path: Path, workspace_id: str) -> None:

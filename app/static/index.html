@@ -152,11 +152,16 @@
                 />
               </div>
               <button class="button button-secondary" id="open-paste" type="button">Paste text instead</button>
-              <button class="button button-quiet" id="load-demo-materials" type="button">
-                Load the two Demo materials
-              </button>
+              <div class="demo-fixture-actions">
+                <button class="button button-quiet" id="load-demo-materials" type="button">
+                  Load standard Demo
+                </button>
+                <button class="button button-quiet" id="load-search-demo-material" type="button">
+                  Load controlled-search Demo
+                </button>
+              </div>
               <p class="micro-copy" id="demo-material-note">
-                Demo fixture: Transformer notes plus a matrix prerequisite. No model or internet call is used to load them.
+                Standard loads two complete sources. Controlled-search loads only the Transformer notes in a fresh session so the missing dot-product prerequisite can be detected. Neither option calls a model or the internet.
               </p>
             </section>
 
@@ -453,7 +458,7 @@
             <h3>Starting point</h3>
             <p class="starting-point" id="starting-point"></p>
             <hr />
-            <p class="source-boundary"><span class="origin-badge">Uploaded material</span> remains the primary learning source. No internet search has run.</p>
+            <p class="source-boundary" id="focus-source-boundary"><span class="origin-badge">Uploaded material</span> remains the primary learning source. No internet search has run.</p>
             <button class="button button-secondary full-width" id="save-exit" type="button">Save and exit</button>
           </aside>
         </div>
@@ -734,6 +739,66 @@
             <div class="boundary-note">
               <strong>Agent does not teach or search here</strong>
               <p>The Agent selects one action. External search still needs a named source gap and a separate confirmation before it can run.</p>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="workflow-view controlled-search-view" id="search-view" aria-labelledby="search-title" hidden>
+        <div class="focus-topbar">
+          <div>
+            <p class="eyebrow">Controlled external search · four gates</p>
+            <h1 id="search-title" tabindex="-1">Review one named source gap</h1>
+          </div>
+          <div class="focus-top-actions">
+            <span class="save-state" id="search-save-status" role="status" aria-live="polite">No search has run</span>
+            <button class="button button-quiet" id="search-pause" type="button">Pause session</button>
+          </div>
+        </div>
+
+        <div class="search-shell">
+          <section class="search-confirmation-panel card-panel" id="search-confirmation-panel" aria-labelledby="search-confirmation-title">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Exact scope · confirmation required</p>
+                <h2 id="search-confirmation-title">Search has not run yet</h2>
+              </div>
+              <span class="origin-badge origin-external">External supplement</span>
+            </div>
+            <div class="search-gate-grid" id="search-gates" aria-label="Search gates"></div>
+            <div class="named-gap-card">
+              <p class="eyebrow">Named material gap</p>
+              <h3 id="search-gap-title"></h3>
+              <p id="search-gap-why"></p>
+              <dl class="context-list">
+                <div><dt>Confirmed query scope</dt><dd id="search-query-scope"></dd></div>
+                <div><dt>Why the Agent requested it</dt><dd id="search-request-reason"></dd></div>
+              </dl>
+            </div>
+            <div class="boundary-note">
+              <strong>Your uploaded material stays primary</strong>
+              <p>Confirming runs one narrow search for this exact gap. Results remain labeled as external, and declining does not interrupt the session.</p>
+            </div>
+            <p class="form-message" id="search-message" role="status" aria-live="polite" hidden></p>
+            <div class="dialog-actions">
+              <button class="button button-secondary" id="decline-search" type="button">Continue without searching</button>
+              <button class="button button-primary" id="confirm-search" type="button">Confirm scope and search</button>
+            </div>
+          </section>
+
+          <section class="search-results-panel" id="search-results-panel" aria-labelledby="search-results-title" hidden>
+            <div class="card-panel search-results-heading">
+              <div>
+                <p class="eyebrow">Small cited result set</p>
+                <h2 id="search-results-title" tabindex="-1">Choose one external supplement</h2>
+                <p>Each candidate shows its canonical URL, access time, cited summary, and reason for inclusion.</p>
+              </div>
+              <span class="status-chip" id="search-result-count">0 sources</span>
+            </div>
+            <div class="search-result-list" id="search-result-list"></div>
+            <div class="card-panel search-result-footer">
+              <p><strong>You can ignore every result without penalty.</strong> The named gap remains visible and your uploaded material remains available.</p>
+              <button class="button button-secondary" id="ignore-search-results" type="button">Ignore results and continue</button>
             </div>
           </section>
         </div>

@@ -75,6 +75,17 @@ from app.sources import (
     store_source,
     validate_file_bytes,
 )
+from app.search import (
+    cancel_running_search,
+    confirm_search_request,
+    execute_search_request,
+    get_external_source,
+    get_latest_search_request,
+    get_or_create_search_request,
+    get_search_request,
+    ignore_search_results,
+    select_external_source,
+)
 from app.tutor import close_tutor, get_tutor, open_tutor, send_tutor_message
 
 
@@ -175,6 +186,17 @@ class AgentOverrideRequest(BaseModel):
     ]
     reason: str | None = Field(default=None, max_length=500)
     version: int = Field(ge=1)
+
+
+class SearchConfirmationRequest(BaseModel):
+    confirmed: bool
+    session_version: int = Field(ge=1)
+    request_version: int = Field(ge=1)
+
+
+class SearchExecutionRequest(BaseModel):
+    session_version: int = Field(ge=1)
+    request_version: int = Field(ge=1)
 
 
 def create_app(
@@ -517,12 +539,17 @@ def create_app(
         return {"query": q[:200], "results": [_public_chunk(item) for item in results]}
 
     @application.post("/api/sessions/{session_id}/demo-materials", status_code=201)
-    async def add_demo_materials(session_id: str, request: Request) -> dict:
+    async def add_demo_materials(
+        session_id: str,
+        request: Request,
+        scenario: Literal["standard", "controlled_search"] = "standard",
+    ) -> dict:
         created = load_demo_materials(
             resolved_settings,
             _workspace_id(request),
             session_id,
             SAMPLE_DIR,
+            scenario,
         )
         items = list_sources(
             resolved_settings.database_path,
@@ -532,7 +559,12 @@ def create_app(
         return {
             "created_count": len(created),
             "sources": [_public_source(item) for item in items],
-            "fixture": "Transformer foundations",
+            "fixture": (
+                "Controlled search gap"
+                if scenario == "controlled_search"
+                else "Transformer foundations"
+            ),
+            "scenario": scenario,
         }
 
     @application.post("/api/sessions/{session_id}/coverage")
@@ -879,6 +911,108 @@ def create_app(
             decision_id,
             payload.action,
             payload.reason,
+            payload.version,
+        )
+
+    @application.post("/api/sessions/{session_id}/search-requests", status_code=201)
+    async def create_search_confirmation(session_id: str, request: Request) -> dict:
+        return get_or_create_search_request(
+            resolved_settings,
+            _workspace_id(request),
+            session_id,
+        )
+
+    @application.get("/api/sessions/{session_id}/search-requests/latest")
+    async def latest_search_confirmation(session_id: str, request: Request) -> dict:
+        return get_latest_search_request(
+            resolved_settings,
+            _workspace_id(request),
+            session_id,
+        )
+
+    @application.get("/api/search-requests/{search_request_id}")
+    async def search_confirmation_detail(search_request_id: str, request: Request) -> dict:
+        return get_search_request(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            search_request_id,
+        )
+
+    @application.post("/api/search-requests/{search_request_id}/confirm")
+    async def confirm_external_search(
+        search_request_id: str,
+        payload: SearchConfirmationRequest,
+        request: Request,
+    ) -> dict:
+        return confirm_search_request(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            search_request_id,
+            payload.confirmed,
+            payload.session_version,
+            payload.request_version,
+        )
+
+    @application.post("/api/search-requests/{search_request_id}/execute")
+    async def execute_external_search(
+        search_request_id: str,
+        payload: SearchExecutionRequest,
+        request: Request,
+    ) -> dict:
+        return execute_search_request(
+            resolved_settings,
+            _workspace_id(request),
+            search_request_id,
+            payload.session_version,
+            payload.request_version,
+            client_factory=ai_client_factory,
+        )
+
+    @application.post("/api/search-requests/{search_request_id}/cancel")
+    async def cancel_external_search(
+        search_request_id: str,
+        payload: SearchExecutionRequest,
+        request: Request,
+    ) -> dict:
+        return cancel_running_search(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            search_request_id,
+            payload.session_version,
+            payload.request_version,
+        )
+
+    @application.post("/api/search-requests/{search_request_id}/ignore")
+    async def ignore_external_search_results(
+        search_request_id: str,
+        payload: SessionVersionRequest,
+        request: Request,
+    ) -> dict:
+        return ignore_search_results(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            search_request_id,
+            payload.version,
+        )
+
+    @application.get("/api/external-sources/{source_id}")
+    async def external_source_detail(source_id: str, request: Request) -> dict:
+        return {"source": get_external_source(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            source_id,
+        )}
+
+    @application.post("/api/external-sources/{source_id}/select")
+    async def use_external_source(
+        source_id: str,
+        payload: SessionVersionRequest,
+        request: Request,
+    ) -> dict:
+        return select_external_source(
+            resolved_settings.database_path,
+            _workspace_id(request),
+            source_id,
             payload.version,
         )
 

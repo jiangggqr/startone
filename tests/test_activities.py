@@ -16,8 +16,8 @@ from tests.test_focus_workspace import prepare_start_action
 from tests.test_learning_path import app_client, make_app
 
 
-async def prepare_focus(client):
-    session = await prepare_start_action(client)
+async def prepare_focus(client, *, demo_scenario: str = "standard"):
+    session = await prepare_start_action(client, demo_scenario=demo_scenario)
     saved = await client.put(
         f"/api/sessions/{session['id']}/drafts/start_action",
         json={

@@ -52,6 +52,8 @@ Implement bounded action enum, exactly one next decision, learner-facing reason,
 
 Implement session permission, runtime confirmation, named gap, Agent request, Responses API web search, selected cited sources, origin labels, mock mode and failure recovery.
 
+**Status:** Complete and verified on 2026-07-21. Search execution revalidates all four gates, real mode requires the Responses API web-search tool and persists only cited public HTTPS results, Demo mode uses a deterministic result set, and selection/ignore/cancel/failure states return safely to the uploaded-material-first learning flow. A dedicated one-source Demo fixture makes the named-gap path reachable without database manipulation.
+
 ## Milestone 7 — End-to-end production hardening
 
 Audit and close gaps in loading, empty, error, partial-success, offline and recovery states already implemented with their owning milestones; complete accessibility checks, responsive checks, security/privacy review, browser flow tests, model evals, no-key Demo and real GPT-5.6 smoke test.

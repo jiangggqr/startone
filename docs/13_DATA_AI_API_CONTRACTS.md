@@ -160,7 +160,7 @@ resolved_at
 id
 workspace_id
 session_id
-gap_id
+source_gap_id
 canonical_url
 title
 publisher
@@ -287,17 +287,25 @@ user_override
 
 ```text
 id
+workspace_id
 session_id
+concept_id
 gap_id
+agent_decision_id
 query_scope
 reason_for_user
 permission_snapshot
 confirmation_status
 search_status
+generation_mode
+model
+response_id
+error_code
+version
 created_at
 ```
 
-Execution additionally records `confirmed_at`, `executed_at`, `completed_at`, `error_code` and the associated Agent decision ID. The server revalidates all four gates at execution time.
+Execution additionally records `confirmed_at`, `executed_at` and `completed_at`. The server revalidates all four gates at execution time. `ExternalSource` stores the canonical public HTTPS URL, title, publisher, access time, citation excerpt, locator (empty when unavailable), selection reason, rank and status. A selected source is linked to one concept; it supplements rather than replaces uploaded material.
 
 ## 3. Structured model outputs
 
@@ -458,12 +466,14 @@ Suggested endpoints; Codex may refine names while preserving behavior.
 ### Search
 
 - `POST /api/sessions/{id}/search-requests`
+- `GET /api/sessions/{id}/search-requests/latest`
+- `GET /api/search-requests/{id}`
 - `POST /api/search-requests/{id}/confirm`
 - `POST /api/search-requests/{id}/execute`
-- `GET /api/search-requests/{id}`
-- `GET /api/search-requests/{id}/results`
-- `POST /api/search-results/{id}/select`
-- `POST /api/search-results/{id}/ignore`
+- `POST /api/search-requests/{id}/cancel`
+- `POST /api/search-requests/{id}/ignore`
+- `GET /api/external-sources/{id}`
+- `POST /api/external-sources/{id}/select`
 
 ### Summary and records
 

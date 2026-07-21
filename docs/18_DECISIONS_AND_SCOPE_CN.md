@@ -151,6 +151,16 @@ Milestone 3 进一步固定以下实现决定：
 - 反馈生成后会话进入 `feedback_shown`；可选补救进入 `remedial_practice`；用户完成反馈边界后进入 `evidence_ready`。三个状态都支持暂停和精确恢复
 - Milestone 4C 不创建 Agent 决策，不提供搜索工具，也不执行外部搜索；`evidence_ready` 只表示下一阶段可以由 Agent 读取证据
 
+### 受控外部搜索
+
+- 搜索请求必须绑定当前 session、concept、已验证 `SourceGap` 与已接受或覆盖选择的 `request_search` Agent decision；不能由 Tutor、反馈或客户端自由创建范围
+- 确认页先显示命名缺口、建议范围、用户可读理由和四项门状态，并明确显示 `No search has run`；用户拒绝后直接回到当前概念且不生成外部来源
+- 执行端点再次检查四项门、session/request 乐观版本与 workspace 所有权；失败只保存可恢复错误，不自动重试，不终止学习会话
+- 真实模式向 Responses API 提供唯一 `web_search` 工具并设置 `tool_choice=required`；保存前只接受最终回答 `url_citation` 标注中的公共 HTTPS URL，工具咨询但未引用的来源不进入结果，URL 移除 fragment 并拒绝 localhost/私网直接地址
+- 外部结果只保留小集合，展示规范 URL、标题、发布者、访问时间、cited summary、选择理由和 `external` 标签；用户最多选择一个连接到当前概念，也可以无惩罚忽略
+- 选择外部补充后，focus payload 继续把上传材料声明为 `primary_origin=uploaded`，外部材料单列为 supplement，不改变原材料的来源身份
+- Demo 模式不调用互联网，使用固定且明确标注的 cited results；`Load controlled-search Demo` 在全新会话只复制 `transformer_notes.md`，让 dot-product 命名缺口从正常 UI 流程可达
+
 ### 备用“仅输入主题”模式
 
 它不是评委主流程。真实模式可用 GPT-5.6 生成 AI supplemental source；Demo 模式提供明确标记的固定 AI fixture。此模式从首页视觉上弱于上传材料，并始终显示“AI 补充解释”，不能产生伪造的上传来源定位。

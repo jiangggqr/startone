@@ -235,6 +235,7 @@ def pause_session(
     if session["state"] not in {
         "start_action", "learning_concept", "practicing", "feedback_shown",
         "remedial_practice", "evidence_ready", "agent_decision", "search_confirmation",
+        "search_results",
     }:
         raise SourceError("invalid_session_transition", "This session cannot be paused from its current step.", status_code=409)
     elapsed, remaining = _timer_values(session)
@@ -266,7 +267,7 @@ def resume_session(
     resume_state = str(session.get("resume_state") or session["state"])
     timer_sql = "CURRENT_TIMESTAMP" if resume_state in {
         "learning_concept", "practicing", "feedback_shown", "remedial_practice", "evidence_ready",
-        "agent_decision", "search_confirmation",
+        "agent_decision", "search_confirmation", "search_results",
     } else "NULL"
     with connect(database_path) as connection:
         connection.execute(
@@ -321,6 +322,11 @@ def get_focus_workspace(database_path: Path, workspace_id: str, session_id: str)
     )
     start_draft = _draft_by_type(database_path, workspace_id, session_id, "start_action")
     focus_draft = _draft_by_type(database_path, workspace_id, session_id, "focus_note")
+    from app.search import selected_sources_for_concept
+
+    external_supplements = selected_sources_for_concept(
+        database_path, workspace_id, session_id, str(active["id"])
+    )
     return {
         "session": _focus_session(session),
         "active_concept": {
@@ -350,9 +356,10 @@ def get_focus_workspace(database_path: Path, workspace_id: str, session_id: str)
         },
         "timer": {"elapsed_seconds": elapsed, "remaining_seconds": remaining},
         "drafts": {"start_action": start_draft, "focus_note": focus_draft},
+        "external_supplements": external_supplements,
         "source_policy": {
             "primary_origin": "uploaded",
-            "internet_search_performed": False,
+            "internet_search_performed": bool(external_supplements),
         },
         "restart_action": f"Resume {active['title']} and read the saved focus note before continuing.",
     }

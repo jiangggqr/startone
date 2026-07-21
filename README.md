@@ -33,7 +33,7 @@ The Chinese files are internal product and implementation specifications. All pr
 
 The prototype is a behavior and layout reference, not production application code.
 
-## Implemented through Milestone 5
+## Implemented through Milestone 6
 
 - Python 3.11+ FastAPI/Uvicorn service and versioned SQLite schema
 - Anonymous workspace Cookie isolation and private UUID-based upload storage
@@ -62,8 +62,16 @@ The prototype is a behavior and layout reference, not production application cod
 - Prerequisite and review detours with an explicit return to the interrupted concept
 - Strict GPT-5.6 function calling for real Agent mode: one forced function, strict schema, no parallel calls
 - A gated `request_search` state that performs no external search before a separate confirmation
+- Four server-revalidated search gates: session permission, validated named gap, accepted Agent request, and exact-scope learner confirmation
+- A separate, recoverable search-confirmation view that names the gap, scope, reason, and whether any request has run
+- Required Responses API `web_search` in real GPT-5.6 mode, with only cited public HTTPS results persisted
+- A small cited result set with canonical URL, publisher, access time, excerpt, selection reason, and explicit `external` origin
+- Source selection or penalty-free ignore, while uploaded material remains the primary learning source
+- A deterministic controlled-search Demo fixture that loads only the Transformer notes and needs no key or internet
 
-Quiz, recall, Tutor checks, immediate feedback, encouragement, remediation, and normalized `LearningEvidence` form a complete Guided Mastery boundary. The separate Adaptive Planning Agent now selects one global next action without teaching or scoring. Controlled external search follows in Milestone 6 and remains unavailable until the named-gap confirmation flow is implemented.
+Quiz, recall, Tutor checks, immediate feedback, encouragement, remediation, and normalized `LearningEvidence` form a complete Guided Mastery boundary. The separate Adaptive Planning Agent selects one global next action without teaching or scoring. Controlled external search is now complete and cannot execute until all four gates are revalidated at the execution boundary.
+
+For the stable search judge path, start a fresh session and choose **Load controlled-search Demo**. This copies only `transformer_notes.md`, leaving its named dot-product prerequisite gap visible. Demo search results are deterministic and clearly labeled; they are not presented as a live web response.
 
 ## Run locally
 

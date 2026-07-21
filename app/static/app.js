@@ -21,6 +21,7 @@ const state = {
   feedback: null,
   evidence: null,
   agent: null,
+  search: null,
   activityReturnTrigger: null,
   tutorReturnTrigger: null,
   conflict: null,
@@ -40,6 +41,7 @@ const views = {
   feedback: document.querySelector("#feedback-view"),
   evidence: document.querySelector("#evidence-ready-view"),
   agent: document.querySelector("#agent-view"),
+  search: document.querySelector("#search-view"),
   summary: document.querySelector("#summary-view"),
 };
 
@@ -69,6 +71,7 @@ const chunkNavigation = document.querySelector("#chunk-navigation");
 const reviewCoverageButton = document.querySelector("#review-coverage");
 const coverageNote = document.querySelector("#coverage-note");
 const loadDemoButton = document.querySelector("#load-demo-materials");
+const loadSearchDemoButton = document.querySelector("#load-search-demo-material");
 const demoMaterialNote = document.querySelector("#demo-material-note");
 
 const pasteDialog = document.querySelector("#paste-dialog");
@@ -147,6 +150,7 @@ const hideTimer = document.querySelector("#hide-timer");
 const focusNote = document.querySelector("#focus-note");
 const focusNoteStatus = document.querySelector("#focus-note-status");
 const focusSaveStatus = document.querySelector("#focus-save-status");
+const focusSourceBoundary = document.querySelector("#focus-source-boundary");
 const saveFocusNoteButton = document.querySelector("#save-focus-note");
 const openTutorButton = document.querySelector("#open-tutor");
 const pauseSessionButton = document.querySelector("#pause-session");
@@ -264,6 +268,25 @@ const agentAlternatives = document.querySelector("#agent-alternatives");
 const agentOverrideReason = document.querySelector("#agent-override-reason");
 const applyAgentOverrideButton = document.querySelector("#apply-agent-override");
 
+const searchTitle = document.querySelector("#search-title");
+const searchSaveStatus = document.querySelector("#search-save-status");
+const searchPauseButton = document.querySelector("#search-pause");
+const searchConfirmationPanel = document.querySelector("#search-confirmation-panel");
+const searchConfirmationTitle = document.querySelector("#search-confirmation-title");
+const searchGates = document.querySelector("#search-gates");
+const searchGapTitle = document.querySelector("#search-gap-title");
+const searchGapWhy = document.querySelector("#search-gap-why");
+const searchQueryScope = document.querySelector("#search-query-scope");
+const searchRequestReason = document.querySelector("#search-request-reason");
+const searchMessage = document.querySelector("#search-message");
+const declineSearchButton = document.querySelector("#decline-search");
+const confirmSearchButton = document.querySelector("#confirm-search");
+const searchResultsPanel = document.querySelector("#search-results-panel");
+const searchResultsTitle = document.querySelector("#search-results-title");
+const searchResultCount = document.querySelector("#search-result-count");
+const searchResultList = document.querySelector("#search-result-list");
+const ignoreSearchResultsButton = document.querySelector("#ignore-search-results");
+
 function element(tag, className, text) {
   const node = document.createElement(tag);
   if (className) node.className = className;
@@ -320,6 +343,7 @@ async function checkRuntime() {
     modeBadge.dataset.mode = health.mode;
     runtimeStatus.textContent = `Service healthy · ${isDemo ? "Demo" : "Live GPT-5.6"} mode · Database schema ${health.schema_version}`;
     loadDemoButton.hidden = !isDemo;
+    loadSearchDemoButton.hidden = !isDemo;
     demoMaterialNote.hidden = !isDemo;
   } catch (error) {
     modeBadge.textContent = "Service offline";
@@ -388,6 +412,8 @@ function resumeLabel(session) {
   if (session.is_paused) return "Resume paused session";
   if (session.state === "session_summary") return "View session summary";
   if (session.state === "search_confirmation") return "Review search confirmation";
+  if (session.state === "search_running") return "View search progress";
+  if (session.state === "search_results") return "Review external sources";
   if (session.state === "agent_decision") return "Review next action";
   if (["practicing", "remedial_practice"].includes(session.state)) return "Resume current practice";
   if (session.state === "feedback_shown") return "Resume saved feedback";
@@ -413,8 +439,11 @@ async function resumeSession(sessionId) {
     } else if (session.state === "evidence_ready") {
       await showEvidenceReady();
       if (session.is_paused) pauseDialog.showModal();
-    } else if (["agent_decision", "search_confirmation"].includes(session.state)) {
+    } else if (session.state === "agent_decision") {
       await showAgentDecision();
+      if (session.is_paused) pauseDialog.showModal();
+    } else if (["search_confirmation", "search_running", "search_results"].includes(session.state)) {
+      await showControlledSearch();
       if (session.is_paused) pauseDialog.showModal();
     } else if (session.state === "session_summary") {
       showFinishedSummary({
@@ -593,14 +622,21 @@ async function uploadFiles(fileList) {
   }
 }
 
-async function loadDemoMaterials() {
-  setButtonBusy(loadDemoButton, true, "Loading Demo materials…", "Load the two Demo materials");
+async function loadDemoMaterials(scenario = "standard") {
+  const controlledSearch = scenario === "controlled_search";
+  const button = controlledSearch ? loadSearchDemoButton : loadDemoButton;
+  const idleLabel = controlledSearch ? "Load controlled-search Demo" : "Load standard Demo";
+  setButtonBusy(button, true, "Loading Demo materials…", idleLabel);
   try {
-    const body = await api(`/api/sessions/${state.sessionId}/demo-materials`, { method: "POST" });
+    const body = await api(`/api/sessions/${state.sessionId}/demo-materials?scenario=${scenario}`, { method: "POST" });
     setUploadMessage(
       body.created_count
-        ? "Two clearly labeled Demo materials were copied into this private session."
-        : "The two Demo materials are already in this session.",
+        ? controlledSearch
+          ? "The Transformer notes were loaded. Their missing dot-product prerequisite creates the controlled-search Demo gap."
+          : "Two clearly labeled Demo materials were copied into this private session."
+        : controlledSearch
+          ? "The controlled-search source is already present. Use a fresh session if the matrix prerequisite is also listed."
+          : "The standard Demo materials are already in this session.",
       "success",
     );
     await loadSources();
@@ -609,7 +645,7 @@ async function loadDemoMaterials() {
   } catch (error) {
     setUploadMessage(`${error.message} Existing sources are unchanged.`, "error");
   } finally {
-    setButtonBusy(loadDemoButton, false, "", "Load the two Demo materials");
+    setButtonBusy(button, false, "", idleLabel);
   }
 }
 
@@ -1236,6 +1272,25 @@ function renderFocus(body) {
     row.append(origin, button);
     focusSources.append(row);
   });
+  (body.external_supplements || []).forEach((source) => {
+    const row = element("div", "focus-source-row");
+    const origin = element("span", "origin-badge origin-external", "External supplement");
+    const link = element("a", "source-reference", `${source.title} · ${source.publisher}`);
+    link.href = source.canonical_url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.setAttribute("aria-label", `Open external source: ${source.title}`);
+    row.append(origin, link);
+    focusSources.append(row);
+  });
+  focusSourceBoundary.replaceChildren();
+  focusSourceBoundary.append(element("span", "origin-badge", "Uploaded material"));
+  focusSourceBoundary.append(document.createTextNode(" remains the primary learning source. "));
+  focusSourceBoundary.append(document.createTextNode(
+    body.external_supplements?.length
+      ? `${body.external_supplements.length} selected external supplement ${body.external_supplements.length === 1 ? "is" : "are"} clearly labeled above.`
+      : "No internet search has run.",
+  ));
 
   const serverNote = body.drafts.focus_note?.content || "";
   const localNote = window.localStorage.getItem(focusDraftKey());
@@ -2012,13 +2067,228 @@ async function handleAgentExecution(body) {
     return;
   }
   if (execution.destination === "search_confirmation") {
-    renderAgentDecision(body);
-    showView("agent", `agent/${body.decision.id}`, agentTitle);
-    setMessage(agentMessage, "Search is waiting for a separate confirmation. No external request has run.", "success");
+    await showControlledSearch();
     return;
   }
   if (execution.destination === "session_summary") {
     showFinishedSummary(execution.summary);
+  }
+}
+
+async function showControlledSearch(existing = null) {
+  const body = existing || await api(`/api/sessions/${state.sessionId}/search-requests/latest`);
+  state.search = body;
+  state.session = body.session;
+  renderControlledSearch(body);
+  showView("search", `search/${body.search_request.id}`, searchTitle);
+  if (body.session.is_paused && !pauseDialog.open) pauseDialog.showModal();
+}
+
+function renderControlledSearch(body) {
+  const request = body.search_request;
+  const isResults = request.search_status === "completed";
+  const isRunning = request.search_status === "running";
+  searchTitle.textContent = isResults
+    ? `External sources for ${body.concept.title}`
+    : `Review the source gap for ${body.concept.title}`;
+  searchConfirmationPanel.hidden = isResults;
+  searchResultsPanel.hidden = !isResults;
+  searchPauseButton.hidden = isRunning;
+  searchSaveStatus.textContent = isResults
+    ? "Cited results saved"
+    : isRunning
+      ? "Search running · progress saved"
+      : request.confirmation_status === "confirmed"
+        ? "Scope confirmed"
+        : "No search has run";
+
+  searchGates.replaceChildren();
+  const gateLabels = [
+    ["session_permission", "Session permission", "Suggestions allowed"],
+    ["named_gap_validated", "Named source gap", "Validated from evidence"],
+    ["agent_requested_search", "Agent request", "One bounded action"],
+    ["user_confirmed_this_scope", "This search", "Separate confirmation"],
+  ];
+  gateLabels.forEach(([key, label, detail]) => {
+    const card = element("div", "search-gate");
+    card.append(
+      element("strong", "", `${body.gates[key] ? "✓" : "○"} ${label}`),
+      element("span", "", body.gates[key] ? detail : key === "user_confirmed_this_scope" ? "Waiting for you" : "Not satisfied"),
+    );
+    searchGates.append(card);
+  });
+  searchGapTitle.textContent = body.source_gap.description;
+  searchGapWhy.textContent = body.source_gap.why_needed;
+  searchQueryScope.textContent = request.query_scope;
+  searchRequestReason.textContent = request.reason_for_user;
+  searchConfirmationTitle.textContent = isRunning ? "Searching this confirmed scope" : "Search has not run yet";
+  setMessage(searchMessage, isRunning ? "The confirmed search is running. Do not close this page until results or a recovery message appears." : "");
+  setButtonBusy(confirmSearchButton, false, "", "Confirm scope and search");
+  setButtonBusy(declineSearchButton, false, "", "Continue without searching");
+  confirmSearchButton.hidden = false;
+  declineSearchButton.textContent = isRunning ? "Stop waiting and continue" : "Continue without searching";
+  confirmSearchButton.disabled = isRunning;
+  declineSearchButton.disabled = false;
+
+  searchResultList.replaceChildren();
+  searchResultCount.textContent = `${body.external_sources.length} ${body.external_sources.length === 1 ? "source" : "sources"}`;
+  body.external_sources.forEach((source, index) => {
+    const card = element("article", "external-result-card");
+    card.dataset.recommended = String(index === 0);
+    const heading = element("div", "external-result-heading");
+    const copy = element("div");
+    copy.append(
+      element("span", "origin-badge origin-external", "External supplement"),
+      element("h3", "", source.title),
+      element("p", "micro-copy", `${source.publisher} · accessed ${formatAccessedAt(source.accessed_at)}`),
+    );
+    const link = element("a", "external-url", source.canonical_url);
+    link.href = source.canonical_url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    copy.append(link);
+    if (index === 0) heading.append(copy, element("span", "status-chip", "Recommended"));
+    else heading.append(copy);
+    const excerpt = element("div", "citation-excerpt");
+    excerpt.append(element("strong", "", "Cited summary"), element("p", "", source.citation_excerpt));
+    const reason = element("p", "");
+    reason.append(element("strong", "", "Why this result: "), document.createTextNode(source.selection_reason));
+    const actions = element("div", "external-result-actions");
+    const use = element("button", index === 0 ? "button button-primary" : "button button-secondary", "Use this source");
+    use.type = "button";
+    use.addEventListener("click", () => useExternalSource(source, use));
+    actions.append(use);
+    card.append(heading, excerpt, reason, actions);
+    searchResultList.append(card);
+  });
+  setButtonBusy(ignoreSearchResultsButton, false, "", "Ignore results and continue");
+}
+
+function formatAccessedAt(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString("en", { dateStyle: "medium", timeStyle: "short" });
+}
+
+async function confirmAndRunSearch() {
+  const body = state.search;
+  if (!body) return;
+  setMessage(searchMessage, "Confirming this exact scope. No broader search is authorized.");
+  setButtonBusy(confirmSearchButton, true, "Confirming scope…", "Confirm scope and search");
+  declineSearchButton.disabled = true;
+  try {
+    const confirmed = await api(`/api/search-requests/${body.search_request.id}/confirm`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        confirmed: true,
+        session_version: body.session.version,
+        request_version: body.search_request.version,
+      }),
+    });
+    state.search = confirmed;
+    state.session = confirmed.session;
+    renderControlledSearch(confirmed);
+    setMessage(searchMessage, "Scope confirmed. Running one controlled web search now.");
+    setButtonBusy(confirmSearchButton, true, "Searching cited sources…", "Confirm scope and search");
+    declineSearchButton.disabled = true;
+    const results = await api(`/api/search-requests/${confirmed.search_request.id}/execute`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        session_version: confirmed.session.version,
+        request_version: confirmed.search_request.version,
+      }),
+    });
+    await showControlledSearch(results);
+  } catch (error) {
+    setMessage(searchMessage, `${error.message} ${error.body?.saved_state || "Your learning progress remains saved."}`, "error");
+    confirmSearchButton.hidden = true;
+    declineSearchButton.disabled = false;
+    declineSearchButton.textContent = "Continue with uploaded material";
+    try {
+      state.session = await getCurrentSession();
+    } catch (_ignored) {
+      // Keep the visible recovery action even if the status refresh also failed.
+    }
+  }
+}
+
+async function declineControlledSearch() {
+  const body = state.search;
+  if (!body) return;
+  if (state.session?.state === "search_running") {
+    setButtonBusy(declineSearchButton, true, "Stopping wait…", "Stop waiting and continue");
+    try {
+      const result = await api(`/api/search-requests/${body.search_request.id}/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_version: body.session.version,
+          request_version: body.search_request.version,
+        }),
+      });
+      state.session = result.session;
+      await showFocus();
+    } catch (error) {
+      setMessage(searchMessage, `${error.message} Reload to check the saved search state.`, "error");
+      setButtonBusy(declineSearchButton, false, "", "Stop waiting and continue");
+    }
+    return;
+  }
+  if (state.session?.state !== "search_confirmation") {
+    await showFocus();
+    return;
+  }
+  setButtonBusy(declineSearchButton, true, "Saving your choice…", "Continue without searching");
+  try {
+    const result = await api(`/api/search-requests/${body.search_request.id}/confirm`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        confirmed: false,
+        session_version: body.session.version,
+        request_version: body.search_request.version,
+      }),
+    });
+    state.session = result.session;
+    await showFocus();
+  } catch (error) {
+    setMessage(searchMessage, `${error.message} No external search was started.`, "error");
+    setButtonBusy(declineSearchButton, false, "", "Continue without searching");
+  }
+}
+
+async function useExternalSource(source, button) {
+  setButtonBusy(button, true, "Adding supplement…", "Use this source");
+  try {
+    const result = await api(`/api/external-sources/${source.id}/select`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ version: state.session.version }),
+    });
+    state.session = result.session;
+    await showFocus();
+  } catch (error) {
+    searchResultsTitle.textContent = `${error.message} The result set remains saved.`;
+    setButtonBusy(button, false, "", "Use this source");
+  }
+}
+
+async function ignoreControlledSearchResults() {
+  const body = state.search;
+  if (!body) return;
+  setButtonBusy(ignoreSearchResultsButton, true, "Saving your choice…", "Ignore results and continue");
+  try {
+    const result = await api(`/api/search-requests/${body.search_request.id}/ignore`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ version: body.session.version }),
+    });
+    state.session = result.session;
+    await showFocus();
+  } catch (error) {
+    setButtonBusy(ignoreSearchResultsButton, false, "", "Ignore results and continue");
+    searchResultsTitle.textContent = `${error.message} The cited results remain saved.`;
   }
 }
 
@@ -2144,7 +2414,8 @@ async function resumeActiveSession() {
     if (["practicing", "remedial_practice"].includes(state.session.state)) await showActivity();
     else if (state.session.state === "feedback_shown") await showFeedback();
     else if (state.session.state === "evidence_ready") await showEvidenceReady();
-    else if (["agent_decision", "search_confirmation"].includes(state.session.state)) await showAgentDecision();
+    else if (state.session.state === "agent_decision") await showAgentDecision();
+    else if (["search_confirmation", "search_running", "search_results"].includes(state.session.state)) await showControlledSearch();
     else if (state.session.state === "session_summary") showFinishedSummary({
       title: "Session complete",
       restart_action: "Start a new session from the saved LearningEvidence when you are ready.",
@@ -2237,7 +2508,8 @@ backHomeButton.addEventListener("click", leaveSourceView);
 saveForLaterButton.addEventListener("click", showHome);
 chooseFilesButton.addEventListener("click", () => fileInput.click());
 fileInput.addEventListener("change", () => uploadFiles(fileInput.files));
-loadDemoButton.addEventListener("click", loadDemoMaterials);
+loadDemoButton.addEventListener("click", () => loadDemoMaterials("standard"));
+loadSearchDemoButton.addEventListener("click", () => loadDemoMaterials("controlled_search"));
 reviewCoverageButton.addEventListener("click", showSetup);
 openPasteButton.addEventListener("click", () => pasteDialog.showModal());
 cancelPasteButton.addEventListener("click", () => pasteDialog.close());
@@ -2336,6 +2608,10 @@ runAgentButton.addEventListener("click", runPlanningAgent);
 agentPauseButton.addEventListener("click", () => pauseActiveSession());
 acceptAgentButton.addEventListener("click", acceptAgentDecision);
 applyAgentOverrideButton.addEventListener("click", applyAgentOverride);
+searchPauseButton.addEventListener("click", () => pauseActiveSession());
+declineSearchButton.addEventListener("click", declineControlledSearch);
+confirmSearchButton.addEventListener("click", confirmAndRunSearch);
+ignoreSearchResultsButton.addEventListener("click", ignoreControlledSearchResults);
 
 ["dragenter", "dragover"].forEach((eventName) => {
   dropZone.addEventListener(eventName, (event) => {
@@ -2397,6 +2673,8 @@ async function initialize() {
     else if (hash.startsWith("#activity/")) await showActivity();
     else if (hash.startsWith("#feedback/")) await showFeedback();
     else if (hash.startsWith("#evidence/")) await showEvidenceReady();
+    else if (hash.startsWith("#agent/")) await showAgentDecision();
+    else if (hash.startsWith("#search/")) await showControlledSearch();
     else if (hash.startsWith("#focus/")) await showFocus();
     else if (hash.startsWith("#summary/")) {
       await showFocus();

@@ -16,6 +16,7 @@
 - Milestone 4B Quiz and free recall: complete
 - Milestone 4C feedback, remediation and LearningEvidence: complete
 - Milestone 5 Adaptive Planning Agent: complete
+- Milestone 6 controlled external search: complete
 - Production UI language: English
 
 ## What the prototype is
@@ -71,7 +72,14 @@
 - Strict real GPT-5.6 function calling with one forced tool call, disabled parallel calls and a deterministic Demo policy
 - Durable `agent_decision`, `search_confirmation` and `session_summary` transitions with pause/refresh recovery
 - Responsive English Agent screen with one visually dominant recommendation and flat solid backgrounds
+- A separate search confirmation that visibly proves all four gates and states that no search has run before confirmation
+- Execution-time revalidation of session permission, named gap, accepted Agent request and exact-scope user confirmation
+- Required real-mode Responses API web search with cited public HTTPS result filtering and server-only credentials
+- Deterministic Demo search results, controlled-search one-source fixture and explicit Demo/live generation labels
+- Canonical URL, publisher, access time, cited summary, selection reason and `external` origin on every result
+- One-source selection or penalty-free ignore, with uploaded material retained as the primary source
+- Durable search confirmation, running, result, failure, cancel and focus-return recovery states
 
 ## Next action
 
-Implement Milestone 6 controlled external search. It must require a validated named gap, session permission, an Agent `request_search` action and a separate user confirmation before any web-search tool can run.
+Implement Milestone 7 end-to-end production hardening: cross-state accessibility and responsive audit, security/privacy review, full judge-path browser runs, model evals, deployment readiness, and a live GPT-5.6 smoke test once a server-side key is configured.

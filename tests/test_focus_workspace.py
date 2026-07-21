@@ -4,9 +4,11 @@ from pathlib import Path
 from tests.test_learning_path import app_client, create_session, make_app, save_setup
 
 
-async def prepare_start_action(client):
+async def prepare_start_action(client, *, demo_scenario: str = "standard"):
     session = await create_session(client)
-    await client.post(f"/api/sessions/{session['id']}/demo-materials")
+    await client.post(
+        f"/api/sessions/{session['id']}/demo-materials?scenario={demo_scenario}"
+    )
     session = (await client.get(f"/api/sessions/{session['id']}")).json()["session"]
     await save_setup(client, session)
     await client.post(f"/api/sessions/{session['id']}/coverage")
