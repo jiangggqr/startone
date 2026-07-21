@@ -32,7 +32,7 @@
 - Python 3.11+ FastAPI/Uvicorn service and versioned SQLite initialization
 - Static responsive application shell with accessible landmarks, controls and dialog
 - Internal runtime health reporting through `GET /api/health`; no mode or evaluator controls in the learner UI
-- Empty state, offline health state and honest not-yet-implemented state
+- Empty-state, offline-health and recoverable failure handling
 - Automated foundation tests and real desktop/mobile browser inspection
 - Anonymous workspace Cookie isolation and private UUID-based source storage
 - PDF, Markdown, TXT and pasted-text parsing with real source locations
@@ -84,7 +84,7 @@
 - One-source selection or penalty-free ignore, with uploaded material retained as the primary source
 - Durable search confirmation, running, result, failure, cancel and focus-return recovery states
 - Searchable/filterable learning history, session copy/delete, JSON/Markdown export, AI activity log and full workspace deletion
-- Saved larger-text, reduced-motion, timer-default and search-suggestion preferences
+- Saved larger-text, reduced-motion and search-suggestion preferences
 - Exact source-location validation and lightweight learner-facing citations without learning-progress side effects
 - API no-store policy and hardened CSP, frame, MIME, referrer, permissions and opener headers
 - Schema-preserving migration from uploaded-only source origins and a complete automated regression suite
@@ -102,11 +102,11 @@
 - Test selection is reduced to two compact choices: 3-question multiple choice or 1-response free recall
 - Keep going completes the evidence boundary, requests exactly one Agent action and applies safe actions automatically; only `request_search` stops for explicit confirmation
 - Source coverage and candidate-gap validation remain server-side and no longer occupy a learner page; only a real Agent `request_search` exposes the named gap in the required confirmation view
-- The background timer may shorten a proposed activity but cannot end an unfinished route; a mastered final concept is marked complete before the summary is generated
+- Session completion logic cannot end an unfinished route; a mastered final concept is marked complete before the summary is generated
 
 ## Latest verification
 
-- 51 automated tests pass after the StartOne Momentum Loop, hidden coverage-state and automatic-continuation refinements
+- 52 automated tests pass after the StartOne Momentum Loop, hidden coverage-state and automatic-continuation refinements
 - JavaScript syntax, Python compilation, diff hygiene, English-only UI and no-gradient checks pass
 - Browser verification created a fresh real-model session from pasted material, generated a four-node connected framework, opened the explanation, completed a real three-question Quiz, displayed a 3/3 score with one explanation per question, and automatically opened concept 2 of 4 after Keep going
 - Every knowledge-framework node was exercised as a selectable explanation target without bypassing the current route

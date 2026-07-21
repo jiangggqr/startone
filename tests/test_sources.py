@@ -229,7 +229,7 @@ def test_workspace_cookie_isolates_sources(tmp_path: Path) -> None:
                 httpx.AsyncClient(transport=transport, base_url="http://testserver") as owner,
                 httpx.AsyncClient(transport=transport, base_url="http://testserver") as outsider,
             ):
-                workspace_response = await owner.get("/api/health")
+                workspace_response = await owner.get("/")
                 set_cookie = workspace_response.headers["set-cookie"]
                 assert "HttpOnly" in set_cookie
                 assert "SameSite=lax" in set_cookie

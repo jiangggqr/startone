@@ -30,7 +30,7 @@ At 200% zoom, content remains readable and no core operation is lost.
 
 ## U08 Mobile core flow
 
-At 390px width, the app has no horizontal scrolling for core content and supports Tutor, Quiz, Recall, feedback, Agent decision and summary.
+At 390px width, the app has no horizontal scrolling for core content and supports Tutor, Quiz, Recall, feedback, automatic safe continuation, search confirmation and summary.
 
 ## U09 Loading clarity
 
@@ -72,9 +72,9 @@ After an in-app route or screen change, focus moves to the new main heading or e
 
 A conflict keeps both local and server drafts visible until the user explicitly selects or merges a version; no input is silently overwritten.
 
-## U19 Allowed alternatives
+## U19 Automatic safe continuation
 
-The Agent decision view shows only server-valid alternative paths. Search is absent without a named gap and prerequisite insertion is absent without supporting evidence.
+After Keep going, the learner sees no Agent decision or alternative-path page. The server applies one validated safe action automatically; `request_search` alone stops at an exact-scope confirmation, and prerequisite insertion remains unavailable without supporting evidence.
 
 ## U20 Source metadata
 

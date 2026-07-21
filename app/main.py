@@ -275,6 +275,9 @@ def create_app(
 
     @application.middleware("http")
     async def anonymous_workspace(request: Request, call_next):  # type: ignore[no-untyped-def]
+        if request.url.path == "/api/health":
+            return await call_next(request)
+
         workspace_id = _valid_workspace_id(request.cookies.get(WORKSPACE_COOKIE))
         is_new_workspace = workspace_id is None
         if workspace_id is None:

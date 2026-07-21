@@ -23,7 +23,7 @@ The repository includes `render.yaml` and a production Dockerfile.
 
 1. Push this repository to GitHub or GitLab.
 2. In Render, create a Blueprint from the repository.
-3. Confirm the `startframe-agent` web service and deploy it.
+3. Confirm the `startone-learning` web service and deploy it.
 4. Add the private `OPENAI_API_KEY`, then open `/api/health` and confirm `status=ok`, `mode=real`, and `version=1.0.0`.
 5. Complete the judge path in `submission/JUDGE_TESTING_GUIDE.md` on the public URL.
 

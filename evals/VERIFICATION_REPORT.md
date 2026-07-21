@@ -2,7 +2,7 @@
 
 Date: 2026-07-22
 Application verification: deterministic fixtures plus isolated real GPT-5.6 smoke flow
-Automated result: `50 passed`
+Automated result: `52 passed`
 Browser widths exercised: 390 px, 640 px zoom-equivalent, and desktop  
 Live GPT-5.6 status: passed an isolated real-mode core flow on 2026-07-21
 
@@ -23,7 +23,7 @@ Live GPT-5.6 status: passed an isolated real-mode core flow on 2026-07-21
 | C11 Prerequisite return | Pass | Inserted prerequisite stores and executes `return_to_concept_id`. |
 | C12 Search gates | Pass | Execution revalidates permission, named gap, Agent request, and exact-scope confirmation. |
 | C13 Search failure recovery | Pass | Failure/cancel/ignore flows preserve the session and return to the current concept. |
-| C14 Resume | Pass | Draft, hint depth, activity, concept, pause overlay, and timer recovery pass. |
+| C14 Resume | Pass | Draft, hint depth, activity, concept, pause overlay, and exact-state recovery pass. |
 | C15 Automatic continuation | Pass | Safe Agent actions execute without a learner decision page; a search request still stops at the confirmation boundary. The compatibility override endpoint remains server-validated but is not exposed in the product UI. |
 | C16 Session end | Pass | `finish_session` reaches a durable summary with a concrete 1–2 minute restart action. |
 | C17 Agent evidence basis | Pass | Agent tests prove learning-performance claims originate only from validated evidence. |
@@ -44,8 +44,8 @@ Live GPT-5.6 status: passed an isolated real-mode core flow on 2026-07-21
 | U05 Non-color meaning | Pass | Text, symbols, status labels, and `aria-current` accompany every state. |
 | U06 Target size | Pass | The 390 px computed audit found no visible control below 24×24 CSS px; primary/frequent controls meet the 44 px product target. |
 | U07 200% zoom | Pass | The 640 px zoom-equivalent audit retained all core controls with document width equal to viewport width. |
-| U08 Mobile core flow | Pass | Knowledge map, Tutor, Quiz, recall, feedback, Agent, search, summary, settings, and data controls were exercised at 390 px without document overflow. |
-| U09 Loading clarity | Pass | Upload, generation, feedback, Tutor, Agent, export, report, and search actions use specific busy text and saved-state messages. |
+| U08 Mobile core flow | Pass | Knowledge map, Tutor, Quiz, recall, feedback, automatic safe continuation, search confirmation, summary, settings, and data controls were exercised at 390 px without document overflow. |
+| U09 Loading clarity | Pass | Upload, generation, feedback, Tutor, next-step preparation, export, report, and search actions use specific busy text and saved-state messages. |
 | U10 Partial success | Pass | Partial upload/PDF states are visibly distinct from total error and expose retry/continue actions. |
 | U11 Offline save | Pass | Offline events preserve local drafts, announce pending sync, and resync on reconnect. |
 | U12 Destructive confirmation | Pass | Source, session, and workspace deletion dialogs name scope, irreversibility, and cancellation. |
@@ -55,7 +55,7 @@ Live GPT-5.6 status: passed an isolated real-mode core flow on 2026-07-21
 | U16 Screen reader progress | Pass | Progress uses meaningful text such as current/total/completed counts in addition to visual bars. |
 | U17 Route-change focus | Pass | View changes focus the new heading; errors focus their alert; source return restores the invoking citation. |
 | U18 Save conflict | Pass | Browser and integration flows keep both copies visible until an explicit choice. |
-| U19 Allowed alternatives | Pass | Agent UI renders only server-provided alternatives after server validation. |
+| U19 Automatic safe continuation | Pass | Keep going requests exactly one validated Agent action and applies safe actions without an Agent or alternative-path page; `request_search` still stops for exact-scope confirmation. |
 | U20 Source metadata | Pass | All learning origins are visible; external candidates include URL, publisher, access time, excerpt, and selection reason. |
 
 ## Additional hardening
@@ -70,7 +70,7 @@ Live GPT-5.6 status: passed an isolated real-mode core flow on 2026-07-21
 - Public-release defaults enforce 20 sessions and 50 sources per anonymous workspace; quota failures preserve existing data and return a recoverable English error envelope.
 - Export excludes API keys, server paths, hidden answer keys, internal prompts, and model response IDs.
 - The browser check loaded the standard two-source fixture; at 390 px the document width equaled the viewport, no visible control was below 24×24 CSS px, no Chinese UI was present, and the computed body background image was `none`.
-- The 2026-07-22 desktop browser pass completed a real Quiz, revealed one hint without a success banner, submitted an incorrect answer, verified the correct answer and rationale, and reached one concise next action. Width matched the 1280 px viewport; no Chinese text or gradient was present.
+- The 2026-07-22 desktop browser pass completed a real three-question Quiz, reviewed the score and per-question explanations, selected Keep going, and automatically opened concept 2 of 4 without an Agent decision page. Width matched the 1280 px viewport; no Chinese text or gradient was present.
 - Secret scan, Python compilation, dependency integrity, diff hygiene, English UI scan, no-gradient scan, and deployment YAML parsing pass.
 
 ## Live GPT-5.6 verification

@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: startframe-agent
+    name: startone-learning
     runtime: docker
     plan: free
     region: singapore

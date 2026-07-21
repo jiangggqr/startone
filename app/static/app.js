@@ -71,7 +71,6 @@ const openDeleteWorkspaceButton = document.querySelector("#open-delete-workspace
 const dataControlMessage = document.querySelector("#data-control-message");
 const preferenceLargeText = document.querySelector("#preference-large-text");
 const preferenceReducedMotion = document.querySelector("#preference-reduced-motion");
-const preferenceShowTimer = document.querySelector("#preference-show-timer");
 const preferenceSearchSuggestions = document.querySelector("#preference-search-suggestions");
 const uploadPanel = document.querySelector("#upload-panel");
 const sourceInventory = document.querySelector("#source-inventory");
@@ -588,7 +587,6 @@ function savedPreference(name) {
 function loadPreferences() {
   preferenceLargeText.checked = savedPreference("large_text");
   preferenceReducedMotion.checked = savedPreference("reduced_motion");
-  preferenceShowTimer.checked = savedPreference("show_timer");
   preferenceSearchSuggestions.checked = savedPreference("search_suggestions");
   document.documentElement.classList.toggle("large-interface-text", preferenceLargeText.checked);
   document.documentElement.classList.toggle("reduce-interface-motion", preferenceReducedMotion.checked);
@@ -598,7 +596,6 @@ function savePreferences() {
   const values = {
     large_text: preferenceLargeText.checked,
     reduced_motion: preferenceReducedMotion.checked,
-    show_timer: preferenceShowTimer.checked,
     search_suggestions: preferenceSearchSuggestions.checked,
   };
   Object.entries(values).forEach(([name, value]) => {
@@ -978,7 +975,7 @@ async function prepareLearningPath() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             version: session.version,
-            show_timer: savedPreference("show_timer"),
+            show_timer: false,
             search_permission: savedPreference("search_suggestions"),
             stage: "coverage",
           }),
@@ -2402,7 +2399,7 @@ cancelDeleteButton.addEventListener("click", () => deleteDialog.close());
 confirmDeleteButton.addEventListener("click", deleteSelectedSource);
 sessionSearch.addEventListener("input", renderSessions);
 sessionFilter.addEventListener("change", renderSessions);
-[preferenceLargeText, preferenceReducedMotion, preferenceShowTimer, preferenceSearchSuggestions]
+[preferenceLargeText, preferenceReducedMotion, preferenceSearchSuggestions]
   .forEach((control) => control.addEventListener("change", savePreferences));
 
 confirmPathButton.addEventListener("click", confirmPath);

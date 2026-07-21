@@ -17,7 +17,7 @@ cp .env.example .env
 python -m uvicorn app.main:app --reload --port 8000
 ```
 
-Open `http://127.0.0.1:8000`, select **Upload material and start learning**, upload either file in `sample_data/`, and select **Build my map and start**. There is no goal, prior-knowledge, time, or energy form. A complete walkthrough is in [`submission/JUDGE_TESTING_GUIDE.md`](submission/JUDGE_TESTING_GUIDE.md).
+Open `http://127.0.0.1:8000`, select **Upload material and start learning**, then choose **Try sample material** or upload a file from `sample_data/`. Select **Build my map and start**. There is no goal, prior-knowledge, time, or energy form. A complete walkthrough is in [`submission/JUDGE_TESTING_GUIDE.md`](submission/JUDGE_TESTING_GUIDE.md).
 
 - Public app: pending final deployment
 - API health: `/api/health`
@@ -42,7 +42,7 @@ The product is ADHD-informed, but it makes no medical, diagnostic, or treatment 
 - PDF, Markdown, TXT, and pasted-text ingestion with page, heading, line, paragraph, and character locations
 - Stable chunks, checksums, parsing progress, partial success, retry, cancellation, deletion, and lightweight inline source citations
 - Source coverage, named gaps, a connected visual dependency map, and explanation-first concept lessons with prerequisite/current/next relationship diagrams and memory anchors
-- One-active-concept focus workspace with optional timer, autosave, optimistic conflict resolution, pause, exact resume, and concrete restart action
+- One-active-concept focus workspace with autosave, optimistic conflict resolution, pause, exact resume, and a concrete restart action
 - Source-grounded Tutor with six quick supports, free questions, a guidance ladder, persistent conversation, and factual confusion signals
 - Three-question Quiz, misconception-based distractors, one-response free recall, and three progressive hint levels
 - Minimal answer feedback backed by structured evaluation, targeted remediation, and recommendation-free evidence
@@ -71,7 +71,7 @@ The 1.0.0 release passed an isolated live GPT-5.6 smoke flow covering source cov
 
 ## How Codex was used
 
-The repository began with a Chinese product specification, a 22-screen clickable low-fidelity prototype, sample materials, and 42 acceptance cases—no application code. In one primary Codex task, the project was implemented milestone by milestone with a focused commit after each verified stage.
+The repository began with a Chinese product specification, a 17-view historical low-fidelity prototype, sample materials, and 42 acceptance cases—no application code. In one primary Codex task, the project was implemented milestone by milestone with a focused commit after each verified stage.
 
 Codex accelerated the FastAPI/SQLite foundation, grounded parsers, schema and state-machine implementation, strict AI contracts, static responsive interface, automated tests, security audit, and repeated browser verification. Human decisions defined and protected the important boundaries: source priority, Tutor versus Agent responsibility, observation-only evidence, the four-gate search policy, anonymous privacy model, English-only UI, and flat visual style.
 

@@ -6,7 +6,7 @@ The public deployment needs no learner account. GPT-5.6 credentials stay on the 
 
 1. Open the public app URL.
 2. Select **Upload material and start learning**.
-3. Upload `sample_data/transformer_notes.md` and `sample_data/matrix_prerequisite.md`, or upload your own readable PDF, Markdown, or TXT file.
+3. Select **Try sample material** to load the included Transformer notes and matrix prerequisite instantly. Alternatively, upload your own readable PDF, Markdown, or TXT file.
 4. Confirm that both file status and the next action appear inside the upload panel, then select **Build my map and start**.
 5. Review the AI-selected focus and connected visual knowledge framework. No goal, level, time, energy, route-adjustment form, or pre-test is required.
 6. Select **Start one focused step**. Confirm that the first concept explanation appears immediately with its prerequisite → current → next relationship, concrete example, memory anchor, and lightweight source disclosure.

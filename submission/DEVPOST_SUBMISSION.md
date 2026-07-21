@@ -43,9 +43,21 @@ Real mode uses GPT-5.6 through the Responses API for source coverage, the knowle
 
 An isolated release smoke test completed a real GPT-5.6 flow across source coverage, knowledge-map generation, Tutor, Quiz, structured feedback, and the bounded Agent. The public app uses the same server-side real-model path with workspace quotas and deployment-side budget controls. Deterministic fixtures remain isolated to automated tests and are never presented as learner-selected modes.
 
+## Built with
+
+- Codex
+- GPT-5.6
+- OpenAI Responses API
+- Structured Outputs and bounded function calling
+- `web_search`
+- Python, FastAPI, and Uvicorn
+- SQLite
+- HTML, CSS, and JavaScript
+- Docker and Render
+
 ## How we used Codex
 
-Codex turned a detailed Chinese product specification, a 22-screen low-fidelity prototype, and 42 acceptance cases into a dependency-ordered implementation. It accelerated schema design, source parsers, strict AI contracts, state-machine transitions, responsive UI implementation, security review, automated tests, and repeated browser verification.
+Codex turned a detailed Chinese product specification, a 17-view historical low-fidelity prototype, and 42 acceptance cases into a dependency-ordered implementation. It accelerated schema design, source parsers, strict AI contracts, state-machine transitions, responsive UI implementation, security review, automated tests, and repeated browser verification.
 
 The human product decisions remained explicit: uploaded-source primacy; AI-selected learning focus without an upfront setup form; the Tutor/Guided Mastery/Agent responsibility boundary; observation-only `LearningEvidence`; the four-gate search policy; flat, English-only UI; and anonymous workspace privacy. When browser testing exposed reversed Tutor message order, clipped mobile headers, hidden learning features, unnecessary evaluator UI, and provenance relabeling risk, Codex corrected the implementation and added regression coverage.
 

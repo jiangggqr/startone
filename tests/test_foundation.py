@@ -43,6 +43,29 @@ def test_health_initializes_versioned_database(tmp_path: Path) -> None:
     assert (tmp_path / "test.sqlite3").exists()
 
 
+def test_health_does_not_create_or_touch_anonymous_workspace(tmp_path: Path) -> None:
+    database_path = tmp_path / "health.sqlite3"
+    app = create_app(Settings(
+        mode="demo",
+        database_path=database_path,
+        upload_dir=tmp_path / "uploads",
+    ))
+
+    async def scenario() -> list[httpx.Response]:
+        async with app.router.lifespan_context(app):
+            transport = httpx.ASGITransport(app=app)
+            async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+                return [await client.get("/api/health") for _ in range(3)]
+
+    responses = asyncio.run(scenario())
+
+    assert all(response.status_code == 200 for response in responses)
+    assert all("set-cookie" not in response.headers for response in responses)
+    with connect(database_path) as connection:
+        workspace_count = connection.execute("SELECT COUNT(*) FROM workspaces").fetchone()[0]
+    assert workspace_count == 0
+
+
 def test_homepage_serves_accessible_app_shell(tmp_path: Path) -> None:
     response = asyncio.run(request(build_app(tmp_path), "/"))
 
