@@ -35,7 +35,7 @@ Official deadline: July 21, 2026 at 5:00 PM Pacific Time.
 - [ ] Remove keys, personal data, private tabs, unauthorized trademarks, music, and copyrighted material.
 - [x] Upload to YouTube and verify that the public link resolves without account data.
 - [x] Replace the video-link placeholder in submission copy.
-- [ ] Replace the temporary YouTube title `demo` with the prepared competition title and description.
+- [x] Keep the creator-approved YouTube title and use the verified public URL.
 
 ## Devpost
 

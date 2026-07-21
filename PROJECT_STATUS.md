@@ -112,4 +112,4 @@
 
 ## Next action
 
-The verified under-three-minute English video is live at https://youtu.be/S0k6eWLZzAY. Replace its temporary YouTube title, complete the Devpost form, and confirm the submitted (not draft) state before the deadline.
+The verified under-three-minute English video is live at https://youtu.be/S0k6eWLZzAY with its creator-approved title. Complete the Devpost form and confirm the submitted (not draft) state before the deadline.
