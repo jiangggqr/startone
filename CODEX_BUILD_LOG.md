@@ -254,7 +254,18 @@ Record one section after each verified milestone.
 - Status: complete
 - Date: 2026-07-22
 - Trigger: learner review found repeated uploaded-material rows, practice-boundary copy, locked hint cards, the five-part feedback layout, next-micro-action card and separate Evidence handoff distracting and difficult to interpret
-- Decision: keep Quiz as a one-question learning check, but show only the question, answers, one optional inline hint and Submit; after submission show correct/not-quite, the answer check, one rationale and Continue
+- Decision at that point: compress Quiz to one question and one immediate explanation. This was superseded by the interactive-framework refinement below after learner testing showed that one item was too weak to check a concept reliably.
 - System boundary: source references, structured feedback, `LearningEvidence` and the exactly-one-action Agent remain fully enforced on the server; only their learner-facing presentation is compressed. A quiet source-origin line remains without file/page repetition
 - Flow correction: Continue completes the evidence boundary and requests the Agent automatically; the separate Evidence review/"Ask Agent" task is replaced by a minimal loading state, and the next-step screen shows one action with optional alternatives in a disclosure
 - Verification: 50 automated tests passed; JavaScript syntax, Python compilation, diff hygiene, English-only and no-gradient scans passed; the browser completed Quiz → inline hint → incorrect answer → answer-level explanation → automatic next-step preparation, with exact 1280 px viewport width and no technical boundary panels
+
+## Product-flow refinement — interactive framework and compact three-question check
+
+- Status: complete
+- Date: 2026-07-22
+- Trigger: learner review found the map visually static, the one-question Quiz too shallow, the practice selector unclear, and the Session status and Agent alternative-path panels distracting
+- Decision: every concept map node is selectable and reveals its definition, role and prerequisites without changing the active learning route; each multiple-choice check contains exactly three questions covering definition, mechanism and application; free recall remains one response
+- UI correction: changed the focus workspace to a two-column map-and-lesson layout; removed the entire Session status rail and the Agent alternative-path form; reduced test selection to “Multiple choice · 3 questions” and “Free recall · 1 response”; changed Quiz feedback to a score plus one concise explanation per question
+- Boundary preservation: map exploration never bypasses Agent-controlled progression; answer keys remain server-side; `LearningEvidence` remains observations only; the Agent still returns exactly one next action; external search gates are unchanged
+- Verification: 50 automated tests passed; JavaScript syntax, Python compilation, diff hygiene, English-only and no-gradient scans passed; a real `gpt-5.6-luna` browser flow generated three distinct questions, saved three independent answers, returned 3/3 with three item explanations, continued automatically to one next action, and opened the next concept lesson
+- Browser layout audit: no horizontal overflow at 1280 px, no gradient backgrounds, no Chinese learner-facing copy, no Session status rail and no “Choose another path” interface

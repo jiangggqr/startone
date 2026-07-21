@@ -466,6 +466,9 @@ def get_focus_workspace(database_path: Path, workspace_id: str, session_id: str)
                 "id": item["id"],
                 "concept_key": item["concept_key"],
                 "title": item["title"],
+                "plain_definition": item["plain_definition"],
+                "role_in_map": item["role_in_map"],
+                "prerequisite_keys": json.loads(str(item["prerequisite_keys_json"])),
                 "status": item["status"],
                 "is_active": item["id"] == active["id"],
             }

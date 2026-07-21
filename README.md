@@ -30,7 +30,7 @@ Open `http://127.0.0.1:8000`, select **Upload material and start learning**, upl
 2. StartFrame preserves real source locations, lets AI select a learning focus from the material, and creates a verifiable 2–5 concept knowledge framework.
 3. The learner completes no setup form or pre-test. One click opens the first beginner-friendly explanation; Tutor interaction, Quiz, recall, and later validated evidence gradually calibrate support.
 4. Tutor explains, asks questions, and guides only the active concept.
-5. Tutor, Quiz, free recall, progressive hints, immediate feedback, specific encouragement, and remedial practice form the Guided Mastery Loop. Quiz uses one question, optional inline help, and immediate correct/not-quite explanation.
+5. Tutor, Quiz, free recall, progressive hints, immediate feedback, specific encouragement, and remedial practice form the Guided Mastery Loop. Each concept Quiz uses three single-select questions; free recall uses one response. Feedback shows a compact score and per-question explanations.
 6. The loop produces factual `LearningEvidence` with no recommendation fields; this internal record is not another learner task.
 7. Continue from feedback automatically asks the Adaptive Planning Agent for exactly one bounded global action. The learner sees one concise next step, while the Agent itself does not teach or score.
 8. External search can execute only when the session permits suggestions, the server validates a named `SourceGap`, the Agent selects `request_search`, and the learner confirms that exact scope.
@@ -44,7 +44,7 @@ The product is ADHD-informed, but it makes no medical, diagnostic, or treatment 
 - Source coverage, named gaps, a concise dependency map, and explanation-first concept lessons
 - One-active-concept focus workspace with optional timer, autosave, optimistic conflict resolution, pause, exact resume, and concrete restart action
 - Source-grounded Tutor with six quick supports, free questions, a guidance ladder, persistent conversation, and factual confusion signals
-- One-question Quiz, misconception-based distractors, free recall, and three progressive hint levels
+- Three-question Quiz, misconception-based distractors, one-response free recall, and three progressive hint levels
 - Minimal answer feedback backed by structured evaluation, targeted remediation, and recommendation-free evidence
 - Eight bounded Agent actions, one visible recommendation, server-valid alternatives, penalty-free override, and prerequisite/review return paths
 - Four server-revalidated search gates, required real-mode web search, citation-only persistence, and uploaded-source primacy after selection

@@ -7,7 +7,7 @@ from app.ai import FeedbackOutput, RemedialActivityOutput, SourceReference
 from app.config import Settings
 from app.db import connect
 from app.mastery import create_remedial_activity, generate_feedback
-from tests.test_activities import prepare_focus
+from tests.test_activities import prepare_focus, quiz_answer_payload
 from tests.test_learning_path import app_client, make_app
 
 
@@ -19,7 +19,7 @@ async def _submit_quiz(client, *, choose_correct: bool = False):
         json={"type": "quiz", "version": focus["session"]["version"]},
     )
     body = created.json()
-    option = body["quiz"]["options"][1 if choose_correct else 0]["id"]
+    option = quiz_answer_payload(body, correct=choose_correct)
     saved = await client.put(
         f"/api/sessions/{session_id}/drafts/quiz",
         json={"content": option, "hint_depth": 0, "version": 0},
@@ -53,11 +53,12 @@ def test_feedback_records_factual_evidence_and_runs_local_remediation(tmp_path: 
             assert feedback["feedback"]["next_micro_action"]
             quiz_result = feedback["feedback"]["quiz_result"]
             assert quiz_result["is_correct"] is False
-            assert quiz_result["selected_option_id"] == "a"
-            assert quiz_result["correct_option_id"] == "b"
-            assert quiz_result["selected_option_text"]
-            assert quiz_result["correct_option_text"]
-            assert quiz_result["explanation"]
+            assert quiz_result["correct_count"] == 0
+            assert quiz_result["total_questions"] == 3
+            assert len(quiz_result["questions"]) == 3
+            assert all(question["selected_option_text"] for question in quiz_result["questions"])
+            assert all(question["correct_option_text"] for question in quiz_result["questions"])
+            assert all(question["explanation"] for question in quiz_result["questions"])
             assert feedback["remediation"]["available"] is True
             assert feedback["remediation"]["recommended_strategy"] == "smaller_question"
             assert feedback["boundaries"]["agent_decision_created"] is False

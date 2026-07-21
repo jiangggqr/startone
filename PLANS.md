@@ -32,9 +32,9 @@ Implement source-aware chat, quick actions, free questions, graduated guidance, 
 
 ## Milestone 4B — Quiz and free recall
 
-Implement one-question Quiz, misconception-based distractors, free recall, progressive hints, attempt persistence and source references. No Agent decision in this milestone.
+Implement a three-question single-select Quiz, misconception-based distractors, one free-recall response, progressive hints, attempt persistence and source references. No Agent decision in this milestone.
 
-**Status:** Complete and verified on 2026-07-22. Quiz answer keys, misconception targets and recall evaluation points remain server-only; answers and 0–3 hint depth recover across refresh and pause. The learner sees one question, an optional inline hint, immediate correct/not-quite review and no repeated file-location or system-boundary panels.
+**Status:** Complete and verified on 2026-07-22. Each concept Quiz contains exactly three single-select questions covering definition, mechanism and application; free recall remains one response. Answer keys, misconception targets and recall evaluation points remain server-only; all answers and 0–3 hint depth recover across refresh and pause. The learner sees a compact test, optional inline hints, per-question review and no repeated file-location or system-boundary panels.
 
 ## Milestone 4C — Feedback, encouragement, remedial practice and LearningEvidence
 
@@ -46,7 +46,7 @@ Implement structured immediate feedback, specific encouragement, misconception d
 
 Implement bounded action enum, exactly one next decision, learner-facing reason, estimate, override path, prerequisite insertion/return and server-validated transitions.
 
-**Status:** Complete and verified on 2026-07-22. The Agent reads validated `LearningEvidence` as its sole learning-performance basis and proposes exactly one bounded action. Continue from feedback now requests that decision automatically; the learner sees one concise next step while valid alternatives remain in a secondary disclosure. `request_search` still stops at explicit confirmation and performs no search on its own.
+**Status:** Complete and verified on 2026-07-22. The Agent reads validated `LearningEvidence` as its sole learning-performance basis and proposes exactly one bounded action. Continue from feedback requests that decision automatically, and the learner sees only that concise next step. `request_search` still stops at explicit confirmation and performs no search on its own.
 
 ## Milestone 6 — Controlled external search
 

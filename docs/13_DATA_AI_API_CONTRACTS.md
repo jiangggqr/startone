@@ -357,16 +357,20 @@ prerequisite_gap_signal
 ### QuizActivityOutput
 
 ```text
-question
-options[] {id, text, misconception_tag}
-correct_option_id
-explanation_by_option
+questions[3] {
+  id,
+  question,
+  key_point,
+  options[] {id, text, misconception_tag},
+  correct_option_id,
+  explanation_by_option
+}
 hint_levels[]
 source_origin
 source_refs[]
 ```
 
-The correct option is stored server-side and not sent to the client before submission.
+Each concept Quiz contains exactly three single-select questions covering definition, mechanism and application. Correct options, key points, misconception tags and explanations are stored server-side and are not sent to the client before submission. The existing `Attempt.selected_option_id` column stores a JSON object keyed by question ID for compatibility with the established database; it is not a single answer semantically for current Quiz records.
 
 ### RecallActivityOutput
 
@@ -399,11 +403,19 @@ For a submitted Quiz, the public feedback response additionally includes a post-
 
 ```text
 is_correct
-selected_option_id
-selected_option_text
-correct_option_id
-correct_option_text
-explanation
+correct_count
+total_questions
+questions[] {
+  question_id,
+  question_number,
+  question,
+  is_correct,
+  selected_option_id,
+  selected_option_text,
+  correct_option_id,
+  correct_option_text,
+  explanation
+}
 ```
 
 This projection is never present on the pre-submission activity response. It exists only to render a familiar correct / not-quite answer review; answer keys remain server-side before submission.

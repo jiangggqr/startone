@@ -103,6 +103,9 @@ def test_start_focus_pause_resume_and_refresh_recovery(tmp_path: Path) -> None:
             assert focus["session"]["state"] == "learning_concept"
             assert focus["active_concept"]["concept_key"] == "self_attention"
             assert focus["progress"] == {"current": 2, "total": 5, "completed": 1}
+            assert all(item["plain_definition"] for item in focus["route"])
+            assert all(item["role_in_map"] for item in focus["route"])
+            assert all(isinstance(item["prerequisite_keys"], list) for item in focus["route"])
             assert focus["source_policy"] == {
                 "primary_origin": "uploaded",
                 "internet_search_performed": False,

@@ -195,18 +195,18 @@ docs/08_GUIDED_MASTERY_LOOP_CN.md,
 docs/13_DATA_AI_API_CONTRACTS.md.
 
 Implement:
-1. One-question single-select Quiz.
+1. Exactly three single-select Quiz questions per concept, covering definition, mechanism and application.
 2. Misconception-based distractors and option-specific hidden explanations.
 3. Free-recall prompt with expected key points and acceptable paraphrases.
 4. Progressive 0–3 level hints.
-5. Attempt persistence: answer, selected option, hint depth, elapsed time and edits.
+5. Attempt persistence: all three selected options as one Quiz answer set, hint depth, elapsed time and edits.
 6. Source refs and origin labels.
 7. Loading, submission, retry and refresh-resume states.
 8. Deterministic Demo activities.
 
 Do not implement final feedback wording, evidence aggregation or Agent decisions in this milestone.
 
-Verify one Quiz and one recall flow up to successful attempt submission on desktop and mobile.
+Verify one complete three-question Quiz and one recall flow up to successful attempt submission on desktop and mobile.
 ```
 
 ---

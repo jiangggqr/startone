@@ -63,6 +63,12 @@ def test_homepage_serves_accessible_app_shell(tmp_path: Path) -> None:
     assert "Evidence is ready for one planning decision" not in response.text
     assert 'id="activity-sources"' not in response.text
     assert 'id="evidence-ready-list"' not in response.text
+    assert 'id="focus-more-panel"' not in response.text
+    assert "Choose another path" not in response.text
+    assert "Start one-question Quiz" not in response.text
+    assert "Multiple choice" in response.text
+    assert "3 questions" in response.text
+    assert "Free recall" in response.text
     assert "Demo mode" not in response.text
     assert "Enter a topic only" not in response.text
     assert 'id="setup-view"' not in response.text

@@ -239,6 +239,7 @@
               <span class="status-chip" id="map-count">0 concepts</span>
             </div>
             <ol class="concept-map" id="concept-map"></ol>
+            <div class="map-concept-preview" id="path-concept-preview" hidden></div>
           </section>
         </div>
         <div class="workflow-actions">
@@ -266,7 +267,8 @@
               <span class="status-chip" id="focus-progress-count">1 of 1</span>
             </div>
             <ol class="focus-route" id="focus-route"></ol>
-            <button class="button button-secondary full-width" id="review-full-map" type="button">Review full map</button>
+            <div class="map-concept-preview compact" id="focus-map-preview" hidden></div>
+            <button class="button button-quiet full-width" id="review-full-map" type="button">Open full framework</button>
           </aside>
 
           <article class="focus-learning" id="focus-learn-panel">
@@ -307,40 +309,22 @@
               </details>
             </section>
             <section class="card-panel practice-launcher" aria-labelledby="practice-launcher-title">
-              <div>
-                <p class="eyebrow">Practice this concept</p>
-                <h2 id="practice-launcher-title">Choose one short retrieval activity</h2>
-                <p>Each activity stays grounded in the current source. Hints are optional and reveal one level at a time.</p>
+              <div class="practice-launcher-heading">
+                <p class="eyebrow">Test</p>
+                <h2 id="practice-launcher-title">Check your understanding</h2>
               </div>
               <div class="practice-launcher-actions">
-                <button class="button button-secondary" id="start-quiz" type="button">Start one-question Quiz</button>
-                <button class="button button-secondary" id="start-recall" type="button">Start free recall</button>
+                <button class="practice-type-button" id="start-quiz" type="button"><strong>Multiple choice</strong><span>3 questions</span></button>
+                <button class="practice-type-button" id="start-recall" type="button"><strong>Free recall</strong><span>1 response</span></button>
               </div>
             </section>
           </article>
-
-          <aside class="focus-session card-panel" id="focus-more-panel" aria-labelledby="session-status-title">
-            <h2 id="session-status-title">Session status</h2>
-            <div id="timer-content">
-              <dl class="timer-stats">
-                <div><dt>Time used</dt><dd id="elapsed-time">00:00</dd></div>
-                <div><dt>Time left</dt><dd id="remaining-time">00:00</dd></div>
-              </dl>
-            </div>
-            <label class="checkbox-row" for="hide-timer"><input id="hide-timer" type="checkbox" /> Hide time display</label>
-            <div class="focus-progress" aria-label="Session route progress"><span id="focus-progress-bar"></span></div>
-            <p class="micro-copy" id="focus-progress-copy"></p>
-            <hr />
-            <p class="source-boundary" id="focus-source-boundary"><span class="origin-badge">Uploaded material</span> remains the primary learning source. No internet search has run.</p>
-            <button class="button button-secondary full-width" id="save-exit" type="button">Save and exit</button>
-          </aside>
         </div>
 
         <nav class="mobile-session-nav" aria-label="Session navigation">
           <button type="button" data-focus-panel="map">Map</button>
           <button type="button" data-focus-panel="learn" aria-current="page">Learn</button>
           <button type="button" data-focus-panel="tutor">Tutor</button>
-          <button type="button" data-focus-panel="more">More</button>
         </nav>
       </section>
 
@@ -429,9 +413,7 @@
             <p class="completion-line" id="remedial-completion" hidden></p>
 
             <form id="activity-form">
-              <fieldset class="quiz-options" id="quiz-options">
-                <legend>Choose one answer</legend>
-              </fieldset>
+              <div class="quiz-options" id="quiz-options"></div>
               <div id="recall-answer-wrap" hidden>
                 <label for="recall-answer" id="activity-answer-label">Your 2–3 sentence explanation</label>
                 <textarea id="recall-answer" rows="8" maxlength="20000" placeholder="Explain it in your own words. An incomplete attempt is still useful."></textarea>
@@ -479,11 +461,8 @@
               <h2 id="feedback-sections-title">Correct</h2>
             </div>
           </div>
-          <div class="quiz-answer-review" id="quiz-answer-review" hidden>
-            <div><span>Your answer</span><strong id="feedback-selected-answer"></strong></div>
-            <div id="feedback-correct-answer-row"><span>Correct answer</span><strong id="feedback-correct-answer"></strong></div>
-          </div>
-          <div class="feedback-explanation">
+          <div class="quiz-answer-review" id="quiz-answer-review" hidden></div>
+          <div class="feedback-explanation" id="feedback-explanation">
             <h3>Why</h3>
             <p id="feedback-correction"></p>
           </div>
@@ -532,15 +511,6 @@
               <button class="button button-primary full-width" id="accept-agent" type="button">Continue</button>
             </section>
             <p class="upload-message" id="agent-message" role="status" aria-live="polite" hidden></p>
-            <details class="card-panel agent-alternatives" id="agent-alternatives-panel">
-              <summary>Choose another path</summary>
-              <fieldset id="agent-alternatives">
-                <legend>Other options</legend>
-              </fieldset>
-              <label for="agent-override-reason">Optional reason</label>
-              <textarea id="agent-override-reason" rows="3" maxlength="500" placeholder="For example: I want to stop for today."></textarea>
-              <button class="button button-secondary full-width" id="apply-agent-override" type="button">Use this path</button>
-            </details>
           </section>
         </div>
       </section>

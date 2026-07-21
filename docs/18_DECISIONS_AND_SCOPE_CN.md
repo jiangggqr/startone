@@ -155,14 +155,14 @@ Milestone 3 进一步固定以下实现决定：
 ### Quiz 与自由复述活动
 
 - 新练习只能从未暂停的 `learning_concept` 创建；创建后会话进入 `practicing`，并把实际活动 ID 保存为 `active_activity_id`
-- Quiz 正确答案、各选项误解标签和选项解释在提交前只保存在服务端；自由复述的预期要点、可接受改写和误解模式同样不发送给客户端
+- 每个概念的 Quiz 固定包含 3 道单选题，覆盖定义、机制和应用；正确答案、各题关键点、各选项误解标签和选项解释在提交前只保存在服务端；自由复述固定为 1 道，预期要点、可接受改写和误解模式同样不发送给客户端
 - 每个活动恰好有 3 级渐进提示，一次只揭示一级；答案草稿、提示深度、活动版本和会话计时可在刷新、暂停和恢复后继续
 - 活动题目只引用当前概念经过验证的来源；真实模型调用使用严格 `QuizActivityOutput` 或 `RecallActivityOutput`，不提供任何工具
 - Milestone 4B 的提交只持久化原始尝试、提示深度和用时，不生成 `LearningEvidence`、Agent 决策或搜索请求；这些尝试由 Milestone 4C 的统一反馈边界评估
 
 ### Feedback、补救与 LearningEvidence
 
-- 每个已提交的 Quiz、自由复述或补救尝试由独立反馈边界评估；反馈固定显示已掌握、缺失/不清楚、简短纠正、具体鼓励和一个当前概念内微动作
+- 每个已提交的 Quiz、自由复述或补救尝试由独立反馈边界评估；Quiz 的后台反馈汇总三题覆盖，学习界面只显示总分、逐题答案核对和解释；自由复述与补救显示紧凑纠正和具体鼓励
 - Feedback 的 `next_micro_action` 只用于当前 Guided Mastery Loop，不进入 `LearningEvidence`，也不代表 Agent 的全局下一步动作
 - `LearningEvidence.outcome` 固定为 `mastered | partial | needs_support | unresolved`；其中 `unresolved` 用于未经评分的 Tutor 检查边界
 - `LearningEvidence` 数据表和公开结构只保存活动类型、概念、结果、要点覆盖、误解标签、提示深度、用时、Tutor 困惑信号、补救结果、来源缺口信号和时间；明确不设 `next_action`、`recommendation`、`should_continue` 或 `search_needed` 字段

@@ -25,7 +25,7 @@
 ## 语义
 
 - 使用真实 button、input、label、fieldset、legend、nav、main、aside、dialog
-- Quiz 单选使用 radio group
+- Quiz 的每一道单选题使用独立 radio group，并以题目作为 fieldset legend
 - Tabs 遵循 tab / tabpanel 语义
 - 展开提示使用 disclosure 语义
 - 保存状态和异步结果使用适当 live region，但避免重复朗读流式每个 token
@@ -49,13 +49,13 @@ WCAG 2.2 AA 的最小目标尺寸要求为 24×24 CSS px（有例外）。本产
 
 ### ≥1200px
 
-三栏专注工作区：地图 / 当前概念 / 会话状态。
+两栏专注工作区：可点击知识框架 / 当前概念。保存与暂停位于顶部，不设置 Session status 侧栏。
 
 ### 768–1199px
 
 - 地图可折叠
 - 当前概念为主栏
-- 会话状态放入顶部或下方
+- 保存与暂停放入顶部
 - Tutor 使用抽屉
 
 ### <768px

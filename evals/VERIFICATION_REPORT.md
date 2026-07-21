@@ -15,7 +15,7 @@ Live GPT-5.6 status: passed an isolated real-mode core flow on 2026-07-21
 | C03 No fabricated location | Pass | Invalid model references fail before persistence; the UI renders only validated references. |
 | C04 Direct start | Pass | The knowledge framework opens the first beginner-friendly explanation without a setup form or pre-test. |
 | C05 Tutor boundary | Pass | Tutor persistence, gap-signal, source validation, and no-tool real contract tests pass. |
-| C06 Quiz quality | Pass | Four-option misconception contract passes; answer keys and explanations remain server-only before submission. |
+| C06 Quiz quality | Pass | Every concept Quiz contains three four-option questions covering definition, mechanism and application; answer keys and explanations remain server-only before submission. |
 | C07 Recall paraphrase | Pass | Deterministic evaluator accepts meaning-level paraphrases and records key-point coverage. |
 | C08 Feedback quality | Pass | The server preserves structured feedback while the browser renders correct/not-quite, answer review, one rationale and Continue. |
 | C09 Evidence purity | Pass | Database/API evidence fields contain observations only; recommendation field scans pass. |
@@ -62,7 +62,7 @@ Live GPT-5.6 status: passed an isolated real-mode core flow on 2026-07-21
 
 - Upload or pasted material is the only learning entry; the app has no topic-only substitute or setup form.
 - Automated coverage verifies upload → AI-selected knowledge framework → direct first explanation → Tutor/Quiz/recall visibility.
-- Quiz browser coverage verifies one centered question, one quiet source-origin line, optional inline hints, no repeated file/page rows or system-boundary copy, and immediate answer-level explanation.
+- Quiz browser coverage verifies three centered question groups, one quiet source-origin line, optional inline hints, no repeated file/page rows or system-boundary copy, and immediate per-question explanations.
 - Continue from feedback completes recommendation-free evidence, requests one Agent action automatically, and skips the former learner-facing Evidence review task.
 - Source-location reports are workspace-owned, tied to an exact chunk, exportable, and do not alter learning progress.
 - History search/filter, session copy/delete, JSON/Markdown export, AI activity, full workspace deletion, larger text, reduced motion, and new-session defaults are user-accessible.

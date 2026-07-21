@@ -125,6 +125,7 @@ const pathTitle = document.querySelector("#path-title");
 const pathMessage = document.querySelector("#path-message");
 const mapCount = document.querySelector("#map-count");
 const conceptMap = document.querySelector("#concept-map");
+const pathConceptPreview = document.querySelector("#path-concept-preview");
 const pathGenerationLabel = document.querySelector("#path-generation-label");
 const confirmPathButton = document.querySelector("#confirm-path");
 const backToCoverageButton = document.querySelector("#back-to-coverage");
@@ -137,22 +138,15 @@ const focusKeyPoints = document.querySelector("#focus-key-points");
 const focusExample = document.querySelector("#focus-example");
 const focusSources = document.querySelector("#focus-sources");
 const focusRoute = document.querySelector("#focus-route");
+const focusMapPreview = document.querySelector("#focus-map-preview");
 const focusProgressCount = document.querySelector("#focus-progress-count");
 const activeConceptCount = document.querySelector("#active-concept-count");
-const focusProgressBar = document.querySelector("#focus-progress-bar");
-const focusProgressCopy = document.querySelector("#focus-progress-copy");
-const elapsedTime = document.querySelector("#elapsed-time");
-const remainingTime = document.querySelector("#remaining-time");
-const timerContent = document.querySelector("#timer-content");
-const hideTimer = document.querySelector("#hide-timer");
 const focusNote = document.querySelector("#focus-note");
 const focusNoteStatus = document.querySelector("#focus-note-status");
 const focusSaveStatus = document.querySelector("#focus-save-status");
-const focusSourceBoundary = document.querySelector("#focus-source-boundary");
 const saveFocusNoteButton = document.querySelector("#save-focus-note");
 const openTutorButton = document.querySelector("#open-tutor");
 const pauseSessionButton = document.querySelector("#pause-session");
-const saveExitButton = document.querySelector("#save-exit");
 const reviewFullMapButton = document.querySelector("#review-full-map");
 const mobileSessionNav = document.querySelector(".mobile-session-nav");
 const pauseDialog = document.querySelector("#pause-dialog");
@@ -244,9 +238,7 @@ const feedbackResultMark = document.querySelector("#feedback-result-mark");
 const feedbackResultLabel = document.querySelector("#feedback-result-label");
 const feedbackSectionsTitle = document.querySelector("#feedback-sections-title");
 const quizAnswerReview = document.querySelector("#quiz-answer-review");
-const feedbackSelectedAnswer = document.querySelector("#feedback-selected-answer");
-const feedbackCorrectAnswerRow = document.querySelector("#feedback-correct-answer-row");
-const feedbackCorrectAnswer = document.querySelector("#feedback-correct-answer");
+const feedbackExplanation = document.querySelector("#feedback-explanation");
 const feedbackCorrection = document.querySelector("#feedback-correction");
 const feedbackEncouragement = document.querySelector("#feedback-encouragement");
 const completeFeedbackButton = document.querySelector("#complete-feedback");
@@ -265,10 +257,6 @@ const agentActionTitle = document.querySelector("#agent-action-title");
 const agentReason = document.querySelector("#agent-reason");
 const acceptAgentButton = document.querySelector("#accept-agent");
 const agentMessage = document.querySelector("#agent-message");
-const agentAlternativesPanel = document.querySelector("#agent-alternatives-panel");
-const agentAlternatives = document.querySelector("#agent-alternatives");
-const agentOverrideReason = document.querySelector("#agent-override-reason");
-const applyAgentOverrideButton = document.querySelector("#apply-agent-override");
 
 const searchTitle = document.querySelector("#search-title");
 const searchSaveStatus = document.querySelector("#search-save-status");
@@ -1187,29 +1175,58 @@ function renderPath(body) {
   const map = body.knowledge_map;
   const conceptsByKey = new Map(map.concepts.map((concept) => [concept.concept_key, concept]));
   conceptMap.replaceChildren();
+  pathConceptPreview.hidden = true;
+  pathConceptPreview.replaceChildren();
   mapCount.textContent = `${map.concepts.length} concepts`;
   map.concepts.forEach((concept, index) => {
     const item = element("li", "concept-node");
     item.dataset.inRoute = String(map.recommended_route.includes(concept.concept_key));
     const number = element("span", "concept-number", String(index + 1));
-    const copy = element("div");
-    copy.append(element("h3", "", concept.title), element("p", "", concept.plain_definition));
-    if (concept.prerequisite_keys.length) {
-      const names = concept.prerequisite_keys.map((key) => conceptsByKey.get(key)?.title || key).join(", ");
-      copy.append(element("p", "prerequisite-line", `Builds on: ${names}`));
-    } else {
-      copy.append(element("p", "prerequisite-line", "Starting foundation"));
-    }
-    const refs = element("div", "reference-list");
-    concept.source_refs.slice(0, 2).forEach((reference) => refs.append(referenceButton(reference, body.source_ref_details)));
-    copy.append(refs);
-    item.append(number, copy);
+    const button = element("button", "concept-node-button");
+    button.type = "button";
+    button.setAttribute("aria-expanded", "false");
+    button.append(element("strong", "", concept.title), element("span", "", concept.plain_definition));
+    button.addEventListener("click", () => {
+      conceptMap.querySelectorAll(".concept-node-button").forEach((node) => {
+        node.classList.toggle("selected", node === button);
+        node.setAttribute("aria-expanded", String(node === button));
+      });
+      const prerequisiteNames = concept.prerequisite_keys.map((key) => conceptsByKey.get(key)?.title || key);
+      renderMapConceptPreview(pathConceptPreview, concept, prerequisiteNames, index + 1, map.concepts.length);
+    });
+    item.append(number, button);
     conceptMap.append(item);
   });
+  conceptMap.querySelector(".concept-node-button")?.click();
+  confirmPathButton.dataset.confirmed = String(Boolean(body.confirmed));
+  confirmPathButton.textContent = body.confirmed ? "Return to the current concept" : "Start learning the first concept";
   pathGenerationLabel.textContent = "Built from your material · Ready to learn";
 }
 
+function renderMapConceptPreview(container, concept, prerequisiteNames, position, total) {
+  container.replaceChildren();
+  container.hidden = false;
+  const heading = element("div", "map-preview-heading");
+  heading.append(
+    element("span", "status-chip", `${position} of ${total}`),
+    element("h3", "", concept.title),
+  );
+  const relationship = prerequisiteNames.length
+    ? `Builds on ${prerequisiteNames.join(", ")}.`
+    : "This is the foundation of the framework.";
+  container.append(
+    heading,
+    element("p", "", concept.plain_definition),
+    element("p", "map-preview-relationship", concept.role_in_map || relationship),
+    element("p", "map-preview-dependency", relationship),
+  );
+}
+
 async function confirmPath() {
+  if (confirmPathButton.dataset.confirmed === "true") {
+    await showFocus();
+    return;
+  }
   setButtonBusy(confirmPathButton, true, "Opening the first explanation…", "Start learning the first concept");
   try {
     await startFirstConcept();
@@ -1330,17 +1347,31 @@ function renderFocus(body) {
   focusExample.textContent = concept.concrete_example;
   activeConceptCount.textContent = `Current concept ${body.progress.current} of ${body.progress.total}`;
   focusProgressCount.textContent = `${body.progress.current} of ${body.progress.total}`;
-  focusProgressCopy.textContent = `${body.progress.completed} completed · current concept is ${concept.title}`;
-  focusProgressBar.style.width = `${Math.max(4, (body.progress.completed / body.progress.total) * 100)}%`;
   focusRoute.replaceChildren();
+  focusMapPreview.hidden = true;
+  focusMapPreview.replaceChildren();
+  const routeByKey = new Map(body.route.map((item) => [item.concept_key, item]));
   body.route.forEach((item, index) => {
     const row = element("li", "focus-route-item");
     row.dataset.status = item.is_active ? "active" : item.status;
     const marker = item.status === "completed" ? "✓" : String(index + 1);
-    row.append(element("span", "route-marker", marker), element("span", "", item.title));
-    if (item.is_active) row.append(element("strong", "", "Current"));
+    const button = element("button", "focus-route-button");
+    button.type = "button";
+    button.setAttribute("aria-expanded", "false");
+    button.append(element("span", "route-marker", marker), element("span", "route-title", item.title));
+    if (item.is_active) button.append(element("span", "route-current", "Current"));
+    button.addEventListener("click", () => {
+      focusRoute.querySelectorAll(".focus-route-button").forEach((node) => {
+        node.classList.toggle("selected", node === button);
+        node.setAttribute("aria-expanded", String(node === button));
+      });
+      const prerequisites = (item.prerequisite_keys || []).map((key) => routeByKey.get(key)?.title || key);
+      renderMapConceptPreview(focusMapPreview, item, prerequisites, index + 1, body.route.length);
+    });
+    row.append(button);
     focusRoute.append(row);
   });
+  focusRoute.querySelector(".focus-route-item[data-status='active'] .focus-route-button")?.click();
 
   focusSources.replaceChildren();
   concept.source_refs.forEach((reference) => {
@@ -1369,20 +1400,6 @@ function renderFocus(body) {
     row.append(origin, link);
     focusSources.append(row);
   });
-  focusSourceBoundary.replaceChildren();
-  const primaryOrigin = body.source_policy.primary_origin;
-  focusSourceBoundary.append(element("span", sourceOriginClass(primaryOrigin), sourceOriginLabel(primaryOrigin)));
-  focusSourceBoundary.append(document.createTextNode(
-    primaryOrigin === "uploaded"
-      ? " remains the primary learning source. "
-      : " is the current fallback source because no uploaded material is present. ",
-  ));
-  focusSourceBoundary.append(document.createTextNode(
-    body.external_supplements?.length
-      ? `${body.external_supplements.length} selected external supplement ${body.external_supplements.length === 1 ? "is" : "are"} clearly labeled above.`
-      : "No internet search has run.",
-  ));
-
   const serverNote = body.drafts.focus_note?.content || "";
   const localNote = window.localStorage.getItem(focusDraftKey());
   focusNote.value = localNote === null ? serverNote : localNote;
@@ -1393,10 +1410,6 @@ function renderFocus(body) {
       : "Not saved yet";
   focusSaveStatus.textContent = body.session.last_saved_at ? "Saved" : "Ready to save";
 
-  const storedTimerPreference = window.localStorage.getItem("startframe_hide_timer");
-  hideTimer.checked = storedTimerPreference === null ? !Boolean(body.session.show_timer) : storedTimerPreference === "true";
-  timerContent.hidden = hideTimer.checked;
-  startFocusClock(body.timer);
   selectMobilePanel("learn");
 }
 
@@ -1602,7 +1615,7 @@ async function closeTutor() {
 
 async function startActivity(type, trigger) {
   state.activityReturnTrigger = trigger;
-  const readyLabel = type === "quiz" ? "Start one-question Quiz" : "Start free recall";
+  const readyLabel = type === "quiz" ? "Multiple choice" : "Free recall";
   const busyLabel = type === "quiz" ? "Preparing Quiz…" : "Preparing free recall…";
   setButtonBusy(trigger, true, busyLabel, readyLabel);
   focusSaveStatus.textContent = "Preparing a grounded practice activity…";
@@ -1621,6 +1634,9 @@ async function startActivity(type, trigger) {
     focusSaveStatus.textContent = `${error.message} Your concept and notes remain saved; retry when ready.`;
   } finally {
     setButtonBusy(trigger, false, "", readyLabel);
+    trigger.innerHTML = type === "quiz"
+      ? "<strong>Multiple choice</strong><span>3 questions</span>"
+      : "<strong>Free recall</strong><span>1 response</span>";
   }
 }
 
@@ -1647,15 +1663,29 @@ async function showActivity(existing = null) {
 function currentActivityContent() {
   if (!state.activity) return "";
   if (state.activity.activity.type === "quiz") {
-    return quizOptions.querySelector('input[name="quiz-answer"]:checked')?.value || "";
+    const answers = {};
+    quizOptions.querySelectorAll(".quiz-question").forEach((question) => {
+      const selected = question.querySelector("input[type='radio']:checked");
+      if (selected) answers[question.dataset.questionId] = selected.value;
+    });
+    return Object.keys(answers).length ? JSON.stringify(answers) : "";
   }
   return recallAnswer.value;
 }
 
 function applyActivityDraftContent(type, content) {
   if (type === "quiz") {
-    quizOptions.querySelectorAll('input[name="quiz-answer"]').forEach((input) => {
-      input.checked = input.value === content;
+    let answers = {};
+    try {
+      answers = JSON.parse(content);
+    } catch (_error) {
+      const firstQuestion = quizOptions.querySelector(".quiz-question");
+      if (firstQuestion) answers[firstQuestion.dataset.questionId] = content;
+    }
+    quizOptions.querySelectorAll(".quiz-question").forEach((question) => {
+      question.querySelectorAll("input[type='radio']").forEach((input) => {
+        input.checked = input.value === answers[question.dataset.questionId];
+      });
     });
   } else if (type === "recall" || type === "remedial") {
     recallAnswer.value = content;
@@ -1674,7 +1704,7 @@ function renderActivity(body) {
   activityTitle.textContent = typeName;
   activityBreadcrumb.textContent = activity.concept_title;
   activityKindChip.textContent = isQuiz
-    ? "One question · single select"
+    ? `${body.quiz.question_count} questions · single select`
     : isRemedial
       ? `One smaller step · round ${activity.remedial_round}`
       : "2–3 sentences · meaning over exact wording";
@@ -1683,7 +1713,8 @@ function renderActivity(body) {
     : activity.source_origin === "external"
       ? "Includes an external supplement"
       : "Based on your material";
-  activityPrompt.textContent = activity.prompt;
+  activityPrompt.hidden = isQuiz;
+  activityPrompt.textContent = isQuiz ? "" : activity.prompt;
   remedialCompletion.hidden = !isRemedial;
   remedialCompletion.textContent = isRemedial ? `Done when: ${body.remedial.completion_condition}` : "";
   activitySaveStatus.textContent = body.session.last_saved_at ? "Saved" : "Ready to save";
@@ -1696,22 +1727,33 @@ function renderActivity(body) {
   quizOptions.hidden = !isQuiz;
   recallAnswerWrap.hidden = isQuiz;
   if (isQuiz) {
-    const legend = element("legend", "", "Choose one answer");
-    quizOptions.append(legend);
-    body.quiz.options.forEach((option, index) => {
-      const label = element("label", "quiz-option");
-      const input = element("input");
-      input.type = "radio";
-      input.name = "quiz-answer";
-      input.value = option.id;
-      input.checked = restoredContent === option.id;
-      input.disabled = activity.status !== "active";
-      input.addEventListener("change", () => {
-        queueDraftSave("quiz", input.value, activityDraftStatus, body.hints.depth);
+    body.quiz.questions.forEach((question, questionIndex) => {
+      const fieldset = element("fieldset", "quiz-question");
+      fieldset.dataset.questionId = question.id;
+      const legend = element("legend");
+      legend.append(
+        element("span", "quiz-question-number", `Question ${questionIndex + 1} of ${body.quiz.question_count}`),
+        element("strong", "", question.question),
+      );
+      fieldset.append(legend);
+      question.options.forEach((option, optionIndex) => {
+        const label = element("label", "quiz-option");
+        const input = element("input");
+        input.type = "radio";
+        input.name = `quiz-answer-${question.id}`;
+        input.value = option.id;
+        input.disabled = activity.status !== "active";
+        input.addEventListener("change", () => {
+          const content = currentActivityContent();
+          queueDraftSave("quiz", content, activityDraftStatus, body.hints.depth);
+          updateQuizDraftStatus(body.quiz.question_count);
+        });
+        label.append(input, element("span", "", `${String.fromCharCode(65 + optionIndex)}. ${option.text}`));
+        fieldset.append(label);
       });
-      label.append(input, element("span", "", `${String.fromCharCode(65 + index)}. ${option.text}`));
-      quizOptions.append(label);
+      quizOptions.append(fieldset);
     });
+    applyActivityDraftContent("quiz", restoredContent);
   } else {
     activityAnswerLabel.textContent = isRemedial ? "Your one-sentence answer" : "Your 2–3 sentence explanation";
     recallAnswer.value = restoredContent;
@@ -1720,11 +1762,14 @@ function renderActivity(body) {
       ? "Answer only this smaller prompt. One sentence is enough."
       : "Explain it in your own words. An incomplete attempt is still useful.";
   }
-  activityDraftStatus.textContent = serverContent && restoredContent === serverContent
-    ? "Draft saved on server"
-    : restoredContent
-      ? "Draft saved on this device · waiting to sync"
-      : "No answer saved yet";
+  if (isQuiz) updateQuizDraftStatus(body.quiz.question_count);
+  else {
+    activityDraftStatus.textContent = serverContent && restoredContent === serverContent
+      ? "Draft saved on server"
+      : restoredContent
+        ? "Draft saved on this device · waiting to sync"
+        : "No answer saved yet";
+  }
 
   hintList.replaceChildren();
   body.hints.revealed.forEach((hint) => {
@@ -1742,7 +1787,7 @@ function renderActivity(body) {
   submitActivityButton.disabled = submitted && body.submission?.feedback_ready;
   submitActivityButton.textContent = submitted
     ? body.submission?.feedback_ready ? "Answer submitted" : "Show result"
-    : "Submit answer";
+    : isQuiz ? "Submit 3 answers" : "Submit answer";
   closeActivityButton.textContent = isRemedial ? "Return to feedback" : "Return to concept";
   activityReturnButton.textContent = isRemedial ? "Return to feedback" : "Return to explanation";
   activityMessage.hidden = true;
@@ -1750,6 +1795,13 @@ function renderActivity(body) {
     activityDraftStatus.textContent = "Answer saved";
     activitySaveStatus.textContent = "Saved";
   }
+}
+
+function updateQuizDraftStatus(total) {
+  const answered = quizOptions.querySelectorAll(".quiz-question input[type='radio']:checked").length;
+  activityDraftStatus.textContent = answered === total
+    ? "All answers saved"
+    : `${answered} of ${total} answered`;
 }
 
 async function revealNextHint() {
@@ -1801,12 +1853,15 @@ async function submitCurrentActivity(event) {
   if (body.activity.status !== "active") return;
   const type = body.activity.type;
   const content = currentActivityContent().trim();
-  if (!content) {
-    setMessage(activityMessage, type === "quiz" ? "Choose one answer before submitting." : "Write one checkable attempt before submitting.", "error");
+  const quizComplete = type !== "quiz"
+    || quizOptions.querySelectorAll(".quiz-question input[type='radio']:checked").length === body.quiz.question_count;
+  if (!content || !quizComplete) {
+    setMessage(activityMessage, type === "quiz" ? "Answer all three questions before submitting." : "Write one checkable attempt before submitting.", "error");
     (type === "quiz" ? quizOptions : recallAnswer).focus();
     return;
   }
-  setButtonBusy(submitActivityButton, true, "Checking…", "Submit answer");
+  const submitLabel = type === "quiz" ? "Submit 3 answers" : "Submit answer";
+  setButtonBusy(submitActivityButton, true, "Checking…", submitLabel);
   try {
     const saved = await saveDraftNow(type, content, activityDraftStatus, body.hints.depth);
     if (!saved) return;
@@ -1827,7 +1882,7 @@ async function submitCurrentActivity(event) {
     setMessage(activityMessage, `${error.message} Your draft and hint depth remain saved; submit again when ready.`, "error");
   } finally {
     if (state.activity?.activity.status === "active") {
-      setButtonBusy(submitActivityButton, false, "", "Submit answer");
+      setButtonBusy(submitActivityButton, false, "", submitLabel);
     } else if (state.activity?.activity.status === "submitted" && !state.feedback) {
       setButtonBusy(submitActivityButton, false, "", "Show result");
     }
@@ -1878,7 +1933,7 @@ function renderFeedback(body) {
   const quizResult = feedback.quiz_result;
   const mastered = evidence?.outcome === "mastered";
   const resultTitle = quizResult
-    ? quizResult.is_correct ? "Correct" : "Not quite"
+    ? `${quizResult.correct_count} of ${quizResult.total_questions} correct`
     : mastered ? "Nice work" : evidence?.outcome === "partial" ? "Good start" : "Let’s clarify this";
   feedbackTitle.textContent = resultTitle;
   feedbackBreadcrumb.textContent = feedback.concept_title;
@@ -1891,12 +1946,32 @@ function renderFeedback(body) {
     ? "Explanation includes an AI supplement"
     : feedback.source_origin === "external" ? "Explanation includes an external supplement" : "Explanation based on your material";
   quizAnswerReview.hidden = !quizResult;
+  quizAnswerReview.replaceChildren();
+  feedbackExplanation.hidden = Boolean(quizResult);
   if (quizResult) {
-    feedbackSelectedAnswer.textContent = quizResult.selected_option_text;
-    feedbackCorrectAnswerRow.hidden = quizResult.is_correct;
-    feedbackCorrectAnswer.textContent = quizResult.correct_option_text;
+    quizResult.questions.forEach((question) => {
+      const review = element("article", "quiz-review-item");
+      review.dataset.correct = String(question.is_correct);
+      const heading = element("div", "quiz-review-heading");
+      heading.append(
+        element("span", "quiz-review-mark", question.is_correct ? "✓" : "→"),
+        element("strong", "", `Question ${question.question_number}`),
+        element("span", "", question.is_correct ? "Correct" : "Review"),
+      );
+      review.append(heading, element("p", "quiz-review-question", question.question));
+      const answer = element("p", "quiz-review-answer");
+      answer.append(element("span", "", "Your answer"), document.createTextNode(question.selected_option_text));
+      review.append(answer);
+      if (!question.is_correct) {
+        const correct = element("p", "quiz-review-answer");
+        correct.append(element("span", "", "Correct answer"), document.createTextNode(question.correct_option_text));
+        review.append(correct);
+      }
+      review.append(element("p", "quiz-review-why", question.explanation));
+      quizAnswerReview.append(review);
+    });
   }
-  feedbackCorrection.textContent = quizResult?.explanation || feedback.compact_correction;
+  feedbackCorrection.textContent = feedback.compact_correction;
   feedbackEncouragement.textContent = feedback.encouragement;
   feedbackMessage.hidden = true;
   completeFeedbackButton.textContent = "Continue";
@@ -1972,32 +2047,9 @@ function renderAgentDecision(body) {
     ? `About ${decision.estimated_minutes} minutes`
     : "Finish for now";
   agentSaveStatus.textContent = "Saved";
-
-  agentAlternatives.replaceChildren();
-  agentAlternatives.append(element("legend", "", "Valid alternatives"));
-  body.allowed_alternatives.forEach((alternative, index) => {
-    const label = element("label", "agent-alternative");
-    const input = element("input");
-    input.type = "radio";
-    input.name = "agent-alternative";
-    input.value = alternative.action;
-    if (index === 0) input.checked = true;
-    const title = element("span", "", alternative.label);
-    const estimate = alternative.estimated_minutes
-      ? `About ${alternative.estimated_minutes} minutes`
-      : "Finish now";
-    const detail = element("small", "", estimate);
-    label.append(input, title, detail);
-    agentAlternatives.append(label);
-  });
   const isProposed = decision.status === "proposed";
-  agentOverrideReason.value = "";
-  agentAlternativesPanel.open = false;
   setButtonBusy(acceptAgentButton, false, "", "Continue");
-  setButtonBusy(applyAgentOverrideButton, false, "", "Use this path");
-  applyAgentOverrideButton.disabled = body.allowed_alternatives.length === 0;
   acceptAgentButton.hidden = !isProposed;
-  agentAlternativesPanel.hidden = !isProposed || body.allowed_alternatives.length === 0;
   agentPauseButton.hidden = body.session.state === "session_summary";
   setMessage(agentMessage, "");
   if (!isProposed && body.session.state === "search_confirmation") {
@@ -2019,28 +2071,6 @@ async function acceptAgentDecision() {
   } catch (error) {
     setMessage(agentMessage, `${error.message} ${error.body?.saved_state || "The decision was not changed."}`, "error");
     setButtonBusy(acceptAgentButton, false, "", "Continue");
-  }
-}
-
-async function applyAgentOverride() {
-  const body = state.agent;
-  const selected = agentAlternatives.querySelector("input[name='agent-alternative']:checked");
-  if (!body || !selected) return;
-  setButtonBusy(applyAgentOverrideButton, true, "Continuing…", "Use this path");
-  try {
-    const result = await api(`/api/agent-decisions/${body.decision.id}/override`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: selected.value,
-        reason: agentOverrideReason.value.trim() || null,
-        version: body.session.version,
-      }),
-    });
-    await handleAgentExecution(result);
-  } catch (error) {
-    setMessage(agentMessage, `${error.message} ${error.body?.saved_state || "The original decision remains available."}`, "error");
-    setButtonBusy(applyAgentOverrideButton, false, "", "Use this path");
   }
 }
 
@@ -2341,27 +2371,6 @@ async function closeCurrentActivity() {
   }
 }
 
-function startFocusClock(timer) {
-  window.clearInterval(state.focusTimer);
-  const loadedAt = Date.now();
-  const baseElapsed = timer.elapsed_seconds;
-  const baseRemaining = timer.remaining_seconds;
-  const paint = () => {
-    const delta = state.session?.is_paused ? 0 : Math.floor((Date.now() - loadedAt) / 1000);
-    elapsedTime.textContent = formatDuration(baseElapsed + delta);
-    remainingTime.textContent = formatDuration(Math.max(0, baseRemaining - delta));
-  };
-  paint();
-  state.focusTimer = window.setInterval(paint, 1000);
-}
-
-function formatDuration(totalSeconds) {
-  const safe = Math.max(0, Number(totalSeconds) || 0);
-  const minutes = Math.floor(safe / 60);
-  const seconds = Math.floor(safe % 60);
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-}
-
 async function saveFocusNoteNow() {
   setButtonBusy(saveFocusNoteButton, true, "Saving note…", "Save this focus note");
   const draft = await saveDraftNow("focus_note", focusNote.value, focusNoteStatus);
@@ -2428,21 +2437,6 @@ async function resumeActiveSession() {
   }
 }
 
-async function saveAndExit() {
-  setButtonBusy(saveExitButton, true, "Saving session…", "Save and exit");
-  try {
-    const draft = await saveFocusNoteNow();
-    if (!draft) return;
-    const paused = await pauseActiveSession({ showDialog: false });
-    if (!paused) return;
-    showSummary();
-  } catch (error) {
-    focusSaveStatus.textContent = `${error.message} Local drafts remain available.`;
-  } finally {
-    setButtonBusy(saveExitButton, false, "", "Save and exit");
-  }
-}
-
 function showSummary() {
   const focus = state.focus;
   document.querySelector("#summary-title").textContent = "Your exact restart point is ready";
@@ -2465,7 +2459,6 @@ function selectMobilePanel(panel) {
   });
   document.querySelector("#focus-map-panel").dataset.mobileActive = String(panel === "map");
   document.querySelector("#focus-learn-panel").dataset.mobileActive = String(panel === "learn");
-  document.querySelector("#focus-more-panel").dataset.mobileActive = String(panel === "more");
 }
 
 async function chooseConflictVersion(choice) {
@@ -2566,18 +2559,10 @@ pauseLibraryButton.addEventListener("click", async () => {
 });
 keepLocalDraftButton.addEventListener("click", () => chooseConflictVersion("local"));
 keepServerDraftButton.addEventListener("click", () => chooseConflictVersion("server"));
-saveExitButton.addEventListener("click", saveAndExit);
 summaryLibraryButton.addEventListener("click", showHome);
 summaryExportButton.addEventListener("click", () => downloadWorkspaceExport("markdown"));
 summaryResumeButton.addEventListener("click", resumeActiveSession);
-reviewFullMapButton.addEventListener("click", () => {
-  focusRoute.scrollIntoView({ behavior: "smooth", block: "start" });
-  focusProgressCopy.textContent = "The complete confirmed route is shown in this panel.";
-});
-hideTimer.addEventListener("change", () => {
-  timerContent.hidden = hideTimer.checked;
-  window.localStorage.setItem("startframe_hide_timer", String(hideTimer.checked));
-});
+reviewFullMapButton.addEventListener("click", showPath);
 mobileSessionNav.addEventListener("click", (event) => {
   const button = event.target.closest("[data-focus-panel]");
   if (!button) return;
@@ -2616,7 +2601,6 @@ mobileFeedbackConcept.addEventListener("click", () => {
 runAgentButton.addEventListener("click", runPlanningAgent);
 agentPauseButton.addEventListener("click", () => pauseActiveSession());
 acceptAgentButton.addEventListener("click", acceptAgentDecision);
-applyAgentOverrideButton.addEventListener("click", applyAgentOverride);
 searchPauseButton.addEventListener("click", () => pauseActiveSession());
 declineSearchButton.addEventListener("click", declineControlledSearch);
 confirmSearchButton.addEventListener("click", confirmAndRunSearch);

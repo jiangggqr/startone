@@ -105,11 +105,17 @@ class QuizOptionExplanationOutput(StrictModel):
     explanation: str = Field(min_length=1, max_length=700)
 
 
-class QuizActivityOutput(StrictModel):
+class QuizQuestionOutput(StrictModel):
+    id: str = Field(min_length=1, max_length=12)
     question: str = Field(min_length=1, max_length=1000)
+    key_point: str = Field(min_length=1, max_length=700)
     options: list[QuizOptionOutput] = Field(min_length=3, max_length=4)
     correct_option_id: str = Field(min_length=1, max_length=12)
     explanation_by_option: list[QuizOptionExplanationOutput] = Field(min_length=3, max_length=4)
+
+
+class QuizActivityOutput(StrictModel):
+    questions: list[QuizQuestionOutput] = Field(min_length=3, max_length=3)
     hint_levels: list[str] = Field(min_length=3, max_length=3)
     source_origin: Literal["uploaded", "external", "ai_supplement"]
     source_refs: list[SourceReference] = Field(min_length=1, max_length=4)

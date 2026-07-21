@@ -8,6 +8,7 @@ from app.ai import (
     QuizActivityOutput,
     QuizOptionExplanationOutput,
     QuizOptionOutput,
+    QuizQuestionOutput,
     SourceReference,
 )
 from app.config import Settings
@@ -35,6 +36,18 @@ async def prepare_focus(client, *, demo_scenario: str = "standard"):
     return started.json()
 
 
+def quiz_answer_payload(activity: dict, *, correct: bool) -> str:
+    is_self_attention = activity["activity"]["concept_title"] == "Self-attention"
+    correct_ids = {"q1": "b", "q2": "b", "q3": "a" if is_self_attention else "b"}
+    wrong_ids = {"q1": "a", "q2": "a", "q3": "b" if is_self_attention else "a"}
+    expected = correct_ids if correct else wrong_ids
+    answers = {
+        question["id"]: expected[question["id"]]
+        for question in activity["quiz"]["questions"]
+    }
+    return json.dumps(answers, sort_keys=True)
+
+
 def test_quiz_hides_answer_and_restores_draft_hints_pause_and_attempt(tmp_path: Path) -> None:
     async def scenario() -> None:
         app = make_app(tmp_path)
@@ -49,7 +62,9 @@ def test_quiz_hides_answer_and_restores_draft_hints_pause_and_attempt(tmp_path: 
             quiz = created.json()
             activity_id = quiz["activity"]["id"]
             assert quiz["session"]["state"] == "practicing"
-            assert len(quiz["quiz"]["options"]) == 4
+            assert quiz["quiz"]["question_count"] == 3
+            assert len(quiz["quiz"]["questions"]) == 3
+            assert all(len(question["options"]) == 4 for question in quiz["quiz"]["questions"])
             assert quiz["hints"] == {
                 "depth": 0,
                 "total": 3,
@@ -64,7 +79,7 @@ def test_quiz_hides_answer_and_restores_draft_hints_pause_and_attempt(tmp_path: 
             assert quiz["boundaries"]["creates_agent_decision"] is False
             assert quiz["generation"]["internet_search_performed"] is False
 
-            selected_id = quiz["quiz"]["options"][1]["id"]
+            selected_id = quiz_answer_payload(quiz, correct=True)
             saved = await client.put(
                 f"/api/sessions/{session_id}/drafts/quiz",
                 json={"content": selected_id, "hint_depth": 0, "version": 0},
@@ -135,7 +150,7 @@ def test_quiz_hides_answer_and_restores_draft_hints_pause_and_attempt(tmp_path: 
                     "SELECT * FROM attempts WHERE activity_id = ?",
                     (activity_id,),
                 ).fetchone()
-                assert attempt["selected_option_id"] == selected_id
+                assert json.loads(attempt["selected_option_id"]) == json.loads(selected_id)
                 assert attempt["raw_answer"] is None
                 event = connection.execute(
                     "SELECT detail_json FROM session_events WHERE event_type = 'activity_submitted'"
@@ -196,17 +211,24 @@ def test_real_quiz_uses_gpt56_strict_schema_without_tools(tmp_path: Path) -> Non
         def parse(self, **kwargs):
             captured.update(kwargs)
             output = QuizActivityOutput(
-                question="What happens after relevance scores are computed?",
-                options=[
-                    QuizOptionOutput(id="a", text="Delete every token.", misconception_tag="deletion"),
-                    QuizOptionOutput(id="b", text="Combine value information by weight.", misconception_tag="correct"),
-                    QuizOptionOutput(id="c", text="Reorder the input.", misconception_tag="reordering"),
-                ],
-                correct_option_id="b",
-                explanation_by_option=[
-                    QuizOptionExplanationOutput(option_id="a", explanation="Weights do not delete every token."),
-                    QuizOptionExplanationOutput(option_id="b", explanation="This matches the source."),
-                    QuizOptionExplanationOutput(option_id="c", explanation="Attention does not reorder the input."),
+                questions=[
+                    QuizQuestionOutput(
+                        id=f"q{index}",
+                        question=f"Grounded question {index}?",
+                        key_point=f"Grounded key point {index}",
+                        options=[
+                            QuizOptionOutput(id="a", text="Delete every token.", misconception_tag="deletion"),
+                            QuizOptionOutput(id="b", text="Combine value information by weight.", misconception_tag="correct"),
+                            QuizOptionOutput(id="c", text="Reorder the input.", misconception_tag="reordering"),
+                        ],
+                        correct_option_id="b",
+                        explanation_by_option=[
+                            QuizOptionExplanationOutput(option_id="a", explanation="Weights do not delete every token."),
+                            QuizOptionExplanationOutput(option_id="b", explanation="This matches the source."),
+                            QuizOptionExplanationOutput(option_id="c", explanation="Attention does not reorder the input."),
+                        ],
+                    )
+                    for index in range(1, 4)
                 ],
                 hint_levels=["Think about values.", "Scores become weights.", "Weighted value combination."],
                 source_origin="uploaded",

@@ -6,7 +6,7 @@ from types import SimpleNamespace
 from app.agent import create_agent_decision
 from app.config import Settings
 from app.db import connect
-from tests.test_activities import prepare_focus
+from tests.test_activities import prepare_focus, quiz_answer_payload
 from tests.test_learning_path import app_client, make_app
 
 
@@ -18,7 +18,7 @@ async def complete_quiz_evidence(client, focus: dict, *, correct: bool) -> dict:
     )
     assert created.status_code == 201
     activity = created.json()
-    option = activity["quiz"]["options"][1 if correct else 0]["id"]
+    option = quiz_answer_payload(activity, correct=correct)
     saved = await client.put(
         f"/api/sessions/{session_id}/drafts/quiz",
         json={

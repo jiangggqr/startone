@@ -192,31 +192,72 @@ def get_feedback(database_path: Path, workspace_id: str, feedback_id: str) -> di
 
 
 def _quiz_result(row: dict[str, Any]) -> dict[str, Any] | None:
-    """Expose answer review only after a Quiz attempt has feedback."""
+    """Expose a compact per-question review only after Quiz submission."""
 
     if row["activity_type"] != "quiz":
         return None
     activity_output = json.loads(str(row["activity_output_json"]))
-    selected_id = str(row["selected_option_id"])
-    correct_id = str(activity_output["correct_option_id"])
-    options = {str(item["id"]): str(item["text"]) for item in activity_output["options"]}
-    explanations = {
-        str(item["option_id"]): str(item["explanation"])
-        for item in activity_output["explanation_by_option"]
-    }
-    selected_explanation = explanations.get(selected_id, "")
-    correct_explanation = explanations.get(correct_id, "")
-    explanation = correct_explanation
-    if selected_id != correct_id and selected_explanation:
-        explanation = f"{selected_explanation} {correct_explanation}".strip()
+    questions = _quiz_questions(activity_output)
+    answers = _quiz_answers(str(row["selected_option_id"]), questions)
+    reviews = []
+    correct_count = 0
+    for index, question in enumerate(questions):
+        question_id = str(question["id"])
+        selected_id = str(answers.get(question_id, ""))
+        correct_id = str(question["correct_option_id"])
+        is_correct = selected_id == correct_id
+        correct_count += int(is_correct)
+        options = {str(item["id"]): str(item["text"]) for item in question["options"]}
+        explanations = {
+            str(item["option_id"]): str(item["explanation"])
+            for item in question["explanation_by_option"]
+        }
+        selected_explanation = explanations.get(selected_id, "")
+        correct_explanation = explanations.get(correct_id, "")
+        explanation = correct_explanation
+        if not is_correct and selected_explanation:
+            explanation = f"{selected_explanation} {correct_explanation}".strip()
+        reviews.append({
+            "question_id": question_id,
+            "question_number": index + 1,
+            "question": str(question["question"]),
+            "is_correct": is_correct,
+            "selected_option_id": selected_id,
+            "selected_option_text": options.get(selected_id, ""),
+            "correct_option_id": correct_id,
+            "correct_option_text": options.get(correct_id, ""),
+            "explanation": explanation,
+        })
     return {
-        "is_correct": selected_id == correct_id,
-        "selected_option_id": selected_id,
-        "selected_option_text": options.get(selected_id, ""),
-        "correct_option_id": correct_id,
-        "correct_option_text": options.get(correct_id, ""),
-        "explanation": explanation,
+        "is_correct": correct_count == len(questions),
+        "correct_count": correct_count,
+        "total_questions": len(questions),
+        "questions": reviews,
     }
+
+
+def _quiz_questions(output: dict[str, Any]) -> list[dict[str, Any]]:
+    questions = output.get("questions")
+    if isinstance(questions, list) and questions:
+        return [dict(item) for item in questions]
+    return [{
+        "id": "q1",
+        "question": output["question"],
+        "key_point": output.get("question", "Quiz key point"),
+        "options": output["options"],
+        "correct_option_id": output["correct_option_id"],
+        "explanation_by_option": output["explanation_by_option"],
+    }]
+
+
+def _quiz_answers(value: str, questions: list[dict[str, Any]]) -> dict[str, str]:
+    try:
+        parsed = json.loads(value)
+    except json.JSONDecodeError:
+        parsed = None
+    if isinstance(parsed, dict):
+        return {str(key): str(answer) for key, answer in parsed.items()}
+    return {str(questions[0]["id"]): value} if questions else {}
 
 
 def get_feedback_for_attempt(database_path: Path, workspace_id: str, attempt_id: str) -> dict[str, Any]:
@@ -454,29 +495,44 @@ def _demo_feedback(context: dict[str, Any]) -> tuple[FeedbackOutput, list[dict[s
     output = activity["output"]
     refs = [SourceReference.model_validate(ref) for ref in activity["source_refs"]]
     if activity["type"] == "quiz":
-        selected = str(attempt["selected_option_id"])
-        correct = selected == str(output["correct_option_id"])
-        selected_option = next(item for item in output["options"] if str(item["id"]) == selected)
-        explanation = next(
-            item["explanation"] for item in output["explanation_by_option"] if str(item["option_id"]) == selected
-        )
-        key_point = str(context["concept"]["plain_definition"])
-        coverage = [{"key_point": key_point, "status": "covered" if correct else "missing"}]
-        tags = [] if correct else [str(selected_option["misconception_tag"])]
+        questions = _quiz_questions(output)
+        answers = _quiz_answers(str(attempt["selected_option_id"]), questions)
+        coverage = []
+        tags = []
+        corrections = []
+        for question in questions:
+            question_id = str(question["id"])
+            selected = str(answers.get(question_id, ""))
+            correct = selected == str(question["correct_option_id"])
+            selected_option = next(item for item in question["options"] if str(item["id"]) == selected)
+            coverage.append({
+                "key_point": str(question["key_point"]),
+                "status": "covered" if correct else "missing",
+            })
+            if not correct:
+                tags.append(str(selected_option["misconception_tag"]))
+                corrections.append(next(
+                    item["explanation"]
+                    for item in question["explanation_by_option"]
+                    if str(item["option_id"]) == str(question["correct_option_id"])
+                ))
+        correct_count = sum(1 for item in coverage if item["status"] == "covered")
+        mastered_points = [item["key_point"] for item in coverage if item["status"] == "covered"]
+        missing_points = [item["key_point"] for item in coverage if item["status"] == "missing"]
         return FeedbackOutput(
-            mastered_points=[key_point] if correct else [],
-            missing_or_unclear_points=[] if correct else [key_point],
-            misconceptions=[] if correct else [f"The selected answer reflects: {selected_option['misconception_tag'].replace('_', ' ')}."],
-            compact_correction=explanation,
+            mastered_points=mastered_points,
+            missing_or_unclear_points=missing_points,
+            misconceptions=[f"One answer reflects: {tag.replace('_', ' ')}." for tag in tags],
+            compact_correction=" ".join(corrections) or "All three answers match the source-grounded explanation.",
             next_micro_action=(
                 f"Restate the core action of {context['concept']['title']} once without looking at the source."
-                if correct
+                if correct_count == len(questions)
                 else f"Answer one smaller question about the missing step in {context['concept']['title']}."
             ),
             encouragement=(
-                "You matched the source's central action and completed the check without unnecessary hints."
-                if correct and int(attempt["hint_depth"]) == 0
-                else "You made a checkable choice; that gives the next short practice a precise target."
+                "You answered all three questions correctly without using a hint."
+                if correct_count == len(questions) and int(attempt["hint_depth"]) == 0
+                else f"You completed all three questions and answered {correct_count} correctly."
             ),
             source_origin=activity["source_origin"],
             source_refs=refs,
@@ -553,13 +609,21 @@ def _coverage_from_model_feedback(
 ) -> tuple[list[dict[str, str]], list[str]]:
     activity_output = context["activity"]["output"]
     if context["activity"]["type"] == "quiz":
-        selected = str(context["attempt"]["selected_option_id"])
-        correct = selected == str(activity_output["correct_option_id"])
-        selected_item = next(item for item in activity_output["options"] if str(item["id"]) == selected)
-        return ([{
-            "key_point": str(context["concept"]["plain_definition"]),
-            "status": "covered" if correct else "missing",
-        }], [] if correct else [str(selected_item["misconception_tag"])])
+        questions = _quiz_questions(activity_output)
+        answers = _quiz_answers(str(context["attempt"]["selected_option_id"]), questions)
+        coverage = []
+        tags = []
+        for question in questions:
+            selected = str(answers.get(str(question["id"]), ""))
+            correct = selected == str(question["correct_option_id"])
+            coverage.append({
+                "key_point": str(question["key_point"]),
+                "status": "covered" if correct else "missing",
+            })
+            if not correct:
+                selected_item = next(item for item in question["options"] if str(item["id"]) == selected)
+                tags.append(str(selected_item["misconception_tag"]))
+        return coverage, tags
     expected = list(activity_output["expected_key_points"])
     covered_count = min(len(expected), len(output.mastered_points))
     coverage = [
@@ -845,9 +909,15 @@ def _persist_remedial_activity(
 
 def _feedback_instructions(context: dict[str, Any]) -> str:
     origin_rule = _origin_rule(context["source_chunks"])
+    quiz_rule = (
+        "For a Quiz, evaluate all three submitted answers and keep each question's correctness distinct. "
+        if context["activity"]["type"] == "quiz"
+        else ""
+    )
     return (
         "Evaluate only the submitted answer for the active concept. Return the fixed feedback fields: mastered points, "
         "missing or unclear points, misconceptions, one compact correction, one specific encouragement, and one next micro-action. "
+        f"{quiz_rule}"
         "The next micro-action must stay inside the current concept and may only suggest a hint, another practice, or remediation. "
         "It must not change the route, end the session, request search, or make an Agent decision. Meaningful paraphrases count. "
         f"Use only verified source IDs and chunk IDs provided below. {origin_rule} Do not reveal hidden reasoning."

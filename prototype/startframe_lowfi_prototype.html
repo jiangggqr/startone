@@ -106,7 +106,7 @@
           </div>
           <div class="grid-2">
             <div class="card"><h3>Guided Mastery Loop</h3><p>Tutor、Quiz、复述、提示、反馈、鼓励、补救练习都围绕<strong>当前概念</strong>工作，并产生客观学习证据。</p><p class="small muted">不改变全局路线，不直接启动网络搜索。</p></div>
-            <div class="card"><h3>Adaptive Planning Agent</h3><p>读取证据后只选择一个动作：继续、重试、换练习、简化、插入前置知识、复习、请求搜索或结束。</p><p class="small muted">必须显示面向用户的理由，并允许用户选择其他路径。</p></div>
+            <div class="card"><h3>Adaptive Planning Agent</h3><p>读取证据后只选择一个动作：继续、重试、换练习、简化、插入前置知识、复习、请求搜索或结束。</p><p class="small muted">学习界面只显示这一个动作、理由和 Continue。</p></div>
           </div>
           <div class="grid-4">
             <div class="card"><h4>来源可信</h4><p class="small">每个概念、题目和解释都带来源标签和可打开的位置。</p></div>
@@ -158,17 +158,16 @@
       <section class="screen" id="path" data-title="05 简洁知识框架">
         <div class="screen-head"><div><h2>05 简洁知识框架</h2><p>只展示概念顺序、定义和依赖，不用多张卡片要求用户再做路线决策。</p></div></div>
         <div class="frame"><div class="frame-bar"><span>从基础到应用</span><span>AI 已从材料生成</span></div><div class="frame-body">
-          <div class="card node-map"><div class="node current">Transformer 目标<br><span class="small muted">为什么需要 attention</span></div><div class="arrow">↓</div><div class="node">Self-attention<br><span class="small muted">比较相关性并汇总信息</span></div><div class="arrow">↓</div><div class="node">Q / K / V<br><span class="small muted">完成比较与信息传递</span></div><div class="arrow">↓</div><div class="node-row"><div class="node">Scaled dot-product</div><div class="node">位置信息</div></div></div>
+          <div class="card node-map"><button class="node current" data-preview="Transformer 目标：解释为什么序列中的位置需要直接交换相关信息。">Transformer 目标<br><span class="small muted">为什么需要 attention</span></button><div class="arrow">↓</div><button class="node" data-preview="Self-attention：比较位置间的相关性，并按权重汇总信息。前置：Transformer 目标。">Self-attention<br><span class="small muted">比较相关性并汇总信息</span></button><div class="arrow">↓</div><button class="node" data-preview="Q / K / V：完成比较与信息传递。前置：Self-attention。">Q / K / V<br><span class="small muted">完成比较与信息传递</span></button><div class="arrow">↓</div><div class="node-row"><button class="node" data-preview="Scaled dot-product：控制相似度分数的尺度。前置：Q / K / V。">Scaled dot-product</button><button class="node" data-preview="位置信息：保留序列中位置关系。前置：Transformer 目标。">位置信息</button></div><div class="callout" data-map-preview>点击任一概念查看定义、作用和前置关系。</div></div>
           <div class="row between" style="margin-top:16px"><button data-go="source-review">返回</button><button class="primary" data-go="focus">Start learning the first concept</button></div>
         </div></div>
       </section>
 
       <section class="screen" id="focus" data-title="07 专注学习工作区">
-        <div class="screen-head"><div><h2>07 专注学习工作区</h2><p>桌面端三栏；中间始终只有一个当前概念和一个主推荐动作。</p></div></div>
-        <div class="frame"><div class="frame-bar"><span>Transformer 基础　›　Self-attention</span><span>已保存 · <button>暂停并保存</button></span></div><div class="frame-body grid-3">
-          <aside class="card"><h3>知识地图</h3><div class="concept-list"><div class="concept done">已完成：Transformer 目标</div><div class="concept active">当前：Self-attention</div><div class="concept">可进入：Q / K / V</div><div class="concept locked">锁定：Scaled dot-product</div><div class="concept locked">锁定：位置信息</div></div><p class="small muted">进度 1/5</p><button data-go="path">查看完整地图</button></aside>
-          <main class="stack"><div><span class="badge">当前概念 1/5</span><h2>Transformer 目标</h2><p><strong>它在整体中的作用：</strong>先理解为什么序列中不同位置需要直接交换相关信息。</p></div><div class="card stack"><span class="badge">先学这个概念</span><h3>是什么</h3><p>Transformer 为序列中的每个位置建立包含上下文的表示，而不是只依赖一步步传递信息。</p><h3>如何工作</h3><ol><li>表示序列中的每个位置。</li><li>让不同位置直接交换相关信息。</li><li>形成后续层可以使用的上下文表示。</li></ol><h3>具体例子</h3><p>一个代词可能依赖前面隔了多个词的名词；Transformer 可以直接连接这两个位置。</p><details><summary>查看这段讲解的材料依据</summary><p class="small"><span class="source-label source-uploaded">用户上传材料</span> transformer_notes.md · 第 1–6 行</p></details></div><div class="primary-action"><span class="badge">有问题时</span><h3>与 Tutor 讨论当前概念</h3><button class="primary" data-go="tutor">向 Tutor 提问</button></div><div class="quick-actions"><button data-go="quiz">开始 Quiz</button><button data-go="recall">自由复述</button><button data-go="tutor">解释简单一点</button></div></main>
-          <aside class="card session-rail"><h3>会话状态</h3><p>当前用时：01:18</p><p>剩余时间：23:42</p><label class="row"><input type="checkbox" style="width:auto;min-height:auto"> 隐藏时间显示</label><div class="progress"><span style="width:8%"></span></div><p class="small">当前概念 1/5</p><hr><button>保存并退出</button></aside>
+        <div class="screen-head"><div><h2>07 专注学习工作区</h2><p>桌面端两栏；左侧是可点击知识框架，右侧只保留当前概念讲解和测试入口。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>Transformer 基础　›　Self-attention</span><span>已保存 · <button>暂停并保存</button></span></div><div class="frame-body grid-2" style="grid-template-columns:280px 1fr">
+          <aside class="card"><h3>知识框架</h3><div class="concept-list"><button class="concept done" data-preview="Transformer 目标：已完成的基础概念。">Transformer 目标</button><button class="concept active" data-preview="Self-attention：当前概念；比较相关性并汇总信息。">Self-attention · 当前</button><button class="concept" data-preview="Q / K / V：建立在 Self-attention 之上。">Q / K / V</button><button class="concept locked" data-preview="Scaled dot-product：建立在 Q / K / V 之上。">Scaled dot-product</button><button class="concept locked" data-preview="位置信息：说明序列位置如何保留。">位置信息</button></div><div class="callout small" data-map-preview>点击任一节点查看定义、作用和前置关系。</div><button data-go="path">打开完整框架</button></aside>
+          <main class="stack"><div><span class="badge">当前概念 1/5</span><h2>Transformer 目标</h2><p><strong>它在整体中的作用：</strong>先理解为什么序列中不同位置需要直接交换相关信息。</p></div><div class="card stack"><span class="badge">先学这个概念</span><h3>是什么</h3><p>Transformer 为序列中的每个位置建立包含上下文的表示，而不是只依赖一步步传递信息。</p><h3>如何工作</h3><ol><li>表示序列中的每个位置。</li><li>让不同位置直接交换相关信息。</li><li>形成后续层可以使用的上下文表示。</li></ol><h3>具体例子</h3><p>一个代词可能依赖前面隔了多个词的名词；Transformer 可以直接连接这两个位置。</p><details><summary>查看这段讲解的材料依据</summary><p class="small"><span class="source-label source-uploaded">用户上传材料</span> transformer_notes.md · 第 1–6 行</p></details></div><div class="primary-action"><span class="badge">有问题时</span><h3>与 Tutor 讨论当前概念</h3><button class="primary" data-go="tutor">向 Tutor 提问</button></div><div class="card"><p class="small muted">测试理解</p><div class="grid-2"><button data-go="quiz"><strong>选择题</strong><br><span class="small">3 题</span></button><button data-go="recall"><strong>自由复述</strong><br><span class="small">1 题</span></button></div></div></main>
         </div></div>
       </section>
 
@@ -181,8 +180,8 @@
       </section>
 
       <section class="screen" id="quiz" data-title="09 Quiz：识别误解">
-        <div class="screen-head"><div><h2>09 Quiz</h2><p>页面只保留一道题和一个明确动作。</p></div></div>
-        <div class="frame"><div class="frame-bar"><span>Self-attention · Quiz</span><span>已保存</span></div><div class="frame-body"><div class="card stack" style="max-width:760px;margin:auto"><span class="badge">一道选择题</span><h2>Self-attention 计算相关程度后，下一步是什么？</h2><p class="small muted">基于你的材料</p><fieldset class="stack"><legend>选择一个答案</legend><label class="option"><input type="radio" name="q">A. 删除其他位置</label><label class="option"><input type="radio" name="q" checked>B. 按相关程度加权汇总信息</label><label class="option"><input type="radio" name="q">C. 只保留当前位置</label><label class="option"><input type="radio" name="q">D. 重新排序序列</label></fieldset><button>需要提示？</button><div class="row between"><button data-go="focus">返回讲解</button><button class="primary" data-go="feedback">提交答案</button></div></div></div></div>
+        <div class="screen-head"><div><h2>09 Quiz</h2><p>每个概念固定 3 道单选题：定义、机制、应用。</p></div></div>
+        <div class="frame"><div class="frame-bar"><span>Self-attention · Quiz</span><span>已保存</span></div><div class="frame-body"><div class="card stack" style="max-width:760px;margin:auto"><span class="badge">3 道选择题</span><p class="small muted">基于你的材料</p><fieldset class="stack"><legend><strong>第 1/3 题 · 主要目的是什么？</strong></legend><label class="option"><input type="radio" name="q1">A. 删除上下文</label><label class="option"><input type="radio" name="q1" checked>B. 为每个位置建立包含上下文的表示</label></fieldset><fieldset class="stack"><legend><strong>第 2/3 题 · 相关程度计算后做什么？</strong></legend><label class="option"><input type="radio" name="q2">A. 重排序列</label><label class="option"><input type="radio" name="q2" checked>B. 按权重汇总 value 信息</label></fieldset><fieldset class="stack"><legend><strong>第 3/3 题 · 哪个例子最合适？</strong></legend><label class="option"><input type="radio" name="q3" checked>A. 远距离相关词直接交换信息</label><label class="option"><input type="radio" name="q3">B. 只允许相邻词交互</label></fieldset><button>需要提示？</button><div class="row between"><button data-go="focus">返回讲解</button><button class="primary" data-go="feedback">提交 3 个答案</button></div></div></div></div>
       </section>
 
       <section class="screen" id="recall" data-title="10 自由复述与分层提示">
@@ -195,7 +194,7 @@
 
       <section class="screen" id="feedback" data-title="11 即时反馈与具体鼓励">
         <div class="screen-head"><div><h2>11 简短即时反馈</h2><p>不展开后台字段，只帮助用户理解本题。</p></div></div>
-        <div class="frame"><div class="frame-bar"><span>Self-attention · Quiz</span><span>已保存</span></div><div class="frame-body"><div class="card stack" style="max-width:760px;margin:auto"><div class="row"><span class="dot done">✓</span><h2>回答正确</h2></div><div class="result"><span class="small muted">你的答案</span><p><strong>按相关程度加权汇总其他位置的信息。</strong></p></div><div><h3>为什么</h3><p>相关程度会转换为权重，决定每个位置的信息对新表示贡献多少。</p></div><p class="small muted">解释基于你的材料</p><button class="primary" data-go="agent">继续</button></div></div></div>
+        <div class="frame"><div class="frame-bar"><span>Self-attention · Quiz</span><span>已保存</span></div><div class="frame-body"><div class="card stack" style="max-width:760px;margin:auto"><div class="row"><span class="dot done">✓</span><h2>3/3 正确</h2></div><div class="result"><strong>第 1 题 · 正确</strong><p class="small">每个位置建立包含上下文的表示，因为它会使用其他相关位置的信息。</p></div><div class="result"><strong>第 2 题 · 正确</strong><p class="small">相关程度转换为权重，决定 value 信息对新表示贡献多少。</p></div><div class="result"><strong>第 3 题 · 正确</strong><p class="small">Self-attention 能让远距离相关位置直接交换信息。</p></div><p class="small muted">解释基于你的材料</p><button class="primary" data-go="agent">继续</button></div></div></div>
       </section>
 
       <section class="screen" id="remedial" data-title="12 错误驱动的补救练习">
@@ -209,7 +208,7 @@
 
       <section class="screen" id="agent" data-title="13 简洁下一步">
         <div class="screen-head"><div><h2>13 下一步</h2><p>学习证据和 Agent 判断在后台完成，界面只显示结果。</p></div></div>
-        <div class="frame"><div class="frame-bar"><span>已保存</span><span>下一步</span></div><div class="frame-body"><div class="primary-action" style="max-width:760px;margin:auto"><p class="small muted">约 6 分钟</p><h2>继续学习 Q / K / V</h2><p>你已掌握当前概念，下一概念将建立在它之上。</p><button class="primary" data-go="focus">继续</button><details style="margin-top:12px"><summary>选择其他路径</summary><div class="row" style="margin-top:8px"><button data-go="recall">再练一次</button><button data-go="summary">暂停学习</button></div></details></div></div></div>
+        <div class="frame"><div class="frame-bar"><span>已保存</span><span>下一步</span></div><div class="frame-body"><div class="primary-action" style="max-width:760px;margin:auto"><p class="small muted">约 6 分钟</p><h2>继续学习 Q / K / V</h2><p>你已掌握当前概念，下一概念将建立在它之上。</p><button class="primary" data-go="focus">继续</button></div></div></div>
       </section>
 
       <section class="screen" id="search" data-title="14 受控外部搜索">
@@ -281,10 +280,10 @@
       </section>
 
       <section class="screen" id="responsive" data-title="21 响应式与键盘交互">
-        <div class="screen-head"><div><h2>21 响应式与键盘交互</h2><p>核心学习流程在手机上仍可完成；不是把桌面三栏简单缩小。</p></div></div>
+        <div class="screen-head"><div><h2>21 响应式与键盘交互</h2><p>核心学习流程在手机上仍可完成；不是把桌面两栏简单缩小。</p></div></div>
         <div class="frame"><div class="frame-bar"><span>移动端示例 · 390px</span><span>WCAG 2.2 AA 目标</span></div><div class="frame-body grid-2">
           <div class="mobile-shell"><div class="mobile-top"><strong>Self-attention</strong><div class="small">进度 2/5 · 已保存</div></div><div class="mobile-body stack"><span class="badge">当前概念</span><h2>Self-attention</h2><p>比较相关程度，再汇总相关信息。</p><details><summary>材料依据</summary><p class="small">transformer_notes.md · 第 7–13 行</p></details><div class="primary-action"><strong>推荐：让 Tutor 检查理解</strong><button class="primary" data-go="tutor">打开 Tutor</button></div><button data-go="quiz">Quiz</button><button data-go="recall">复述</button></div><nav class="mobile-bottom" aria-label="移动端会话导航"><button data-go="path">地图</button><button data-go="focus">学习</button><button data-go="tutor">Tutor</button><button data-go="settings">更多</button></nav></div>
-          <div class="stack"><div class="card"><h3>响应式规则</h3><ul class="small"><li>≥1200px：知识地图 / 内容 / 会话三栏。</li><li>768–1199px：地图可折叠，内容主栏，Tutor 为抽屉。</li><li>&lt;768px：单栏；底部导航；所有活动全屏。</li><li>不要在窄屏固定侧栏或横向滚动关键内容。</li></ul></div><div class="card"><h3>键盘与焦点</h3><p class="small"><span class="kbd">Tab</span> 顺序符合视觉顺序；模态框内焦点受控；关闭后焦点返回触发按钮。</p><p class="small">所有主要操作都有可见焦点；不依赖悬停；不能只用颜色传达正确与错误。</p></div><div class="card"><h3>目标尺寸</h3><p class="small">规范最低遵循 WCAG 2.2 的 24×24 CSS px；本产品主按钮和常用触控目标默认至少 44×44。</p></div></div>
+          <div class="stack"><div class="card"><h3>响应式规则</h3><ul class="small"><li>≥1200px：知识框架 / 当前内容两栏。</li><li>768–1199px：地图可折叠，内容主栏，Tutor 为抽屉。</li><li>&lt;768px：单栏；底部导航；所有活动全屏。</li><li>不要在窄屏固定侧栏或横向滚动关键内容。</li></ul></div><div class="card"><h3>键盘与焦点</h3><p class="small"><span class="kbd">Tab</span> 顺序符合视觉顺序；模态框内焦点受控；关闭后焦点返回触发按钮。</p><p class="small">所有主要操作都有可见焦点；不依赖悬停；不能只用颜色传达正确与错误。</p></div><div class="card"><h3>目标尺寸</h3><p class="small">规范最低遵循 WCAG 2.2 的 24×24 CSS px；本产品主按钮和常用触控目标默认至少 44×44。</p></div></div>
         </div></div>
       </section>
 
@@ -316,6 +315,7 @@
     const heading=document.querySelector('#'+CSS.escape(id)+' h2');
     if(heading){heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true})}
   }
+  document.addEventListener('click',e=>{const el=e.target.closest('[data-preview]');if(!el)return;const screen=el.closest('.screen');const preview=screen?.querySelector('[data-map-preview]');if(preview)preview.textContent=el.dataset.preview});
   document.addEventListener('click',e=>{const el=e.target.closest('[data-go]');if(el){e.preventDefault();go(el.dataset.go)}});
   if(!document.body.classList.contains('board-mode')) go(location.hash.slice(1)||'overview');
 </script>

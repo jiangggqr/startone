@@ -22,13 +22,13 @@ Use English narration or complete English captions. Do not include copyrighted m
 
 ## 1:02–1:28 — Tutor and mastery loop
 
-**On screen:** Focus workspace, open Tutor, use a quick action, then open free recall or Quiz.
+**On screen:** In the two-column focus workspace, click several knowledge-framework nodes to reveal their relationships, open Tutor, then show the compact Multiple choice / Free recall test selector.
 
 **Narration:** “The contextual Tutor explains, asks smaller questions, and guides only the active concept. Quiz, free recall, progressive hints, immediate feedback, specific encouragement, and targeted remediation form the separate Guided Mastery Loop.”
 
 ## 1:28–1:55 — Immediate feedback and the next step
 
-**On screen:** Submit a Quiz answer, show the immediate correct/not-quite result and concise explanation, select Continue, and show one next action.
+**On screen:** Submit all three Quiz answers, show the compact score and per-question explanations, select Continue, and show one next action.
 
 **Narration:** “Feedback is immediate and intentionally small: the result, the answer, and why. Behind the interface, the loop records factual LearningEvidence with no recommendation. Continue asks the planning Agent for exactly one bounded next action, without turning the product into a system dashboard.”
 
