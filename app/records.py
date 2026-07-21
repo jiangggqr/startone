@@ -338,7 +338,7 @@ def workspace_export(database_path: Path, workspace_id: str) -> dict[str, Any]:
         ).fetchall()), ("detail_json",))
     return {
         "export": {
-            "product": "StartFrame Agent",
+            "product": "StartOne",
             "format_version": 1,
             "exported_at": datetime.now(UTC).replace(microsecond=0).isoformat(),
             "excludes": ["API keys", "server file paths", "hidden answer keys", "internal prompts", "model response IDs"],
@@ -366,7 +366,7 @@ def workspace_export(database_path: Path, workspace_id: str) -> dict[str, Any]:
 
 def workspace_export_markdown(data: dict[str, Any]) -> str:
     lines = [
-        "# StartFrame Agent learning record",
+        "# StartOne learning record",
         "",
         f"Exported: {data['export']['exported_at']}",
         "",

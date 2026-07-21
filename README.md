@@ -1,6 +1,6 @@
-# StartFrame Agent
+# StartOne
 
-StartFrame Agent helps learners start faster, build a coherent knowledge structure, and finish learning one concept at a time. It is built first for dense AI and technical material, while its source-grounded Tutor, Guided Mastery Loop, and bounded Adaptive Planning Agent can work across text-based subjects.
+StartOne helps learners cross the gap between wanting to learn and actually moving. It turns source material into a visual knowledge map, gives one clear first step, and keeps a focused understand → retrieve → feedback → continue loop moving one concept at a time. It is built first for dense AI and technical material, while its source-grounded Tutor, Guided Mastery Loop, and bounded Adaptive Planning Agent can work across text-based subjects.
 
 Built for the **Education** track of OpenAI Build Week with Codex and GPT-5.6.
 
@@ -17,7 +17,7 @@ cp .env.example .env
 python -m uvicorn app.main:app --reload --port 8000
 ```
 
-Open `http://127.0.0.1:8000`, select **Upload material and start learning**, upload either file in `sample_data/`, and select **Build my learning path**. There is no goal, prior-knowledge, time, or energy form. A complete walkthrough is in [`submission/JUDGE_TESTING_GUIDE.md`](submission/JUDGE_TESTING_GUIDE.md).
+Open `http://127.0.0.1:8000`, select **Upload material and start learning**, upload either file in `sample_data/`, and select **Build my map and start**. There is no goal, prior-knowledge, time, or energy form. A complete walkthrough is in [`submission/JUDGE_TESTING_GUIDE.md`](submission/JUDGE_TESTING_GUIDE.md).
 
 - Public app: pending final deployment
 - API health: `/api/health`
@@ -27,12 +27,12 @@ Open `http://127.0.0.1:8000`, select **Upload material and start learning**, upl
 ## Product boundary
 
 1. Uploaded or pasted material is the required primary learning source and the only starting path.
-2. StartFrame preserves real source locations, lets AI select a learning focus from the material, and creates a verifiable 2–5 concept knowledge framework.
+2. StartOne preserves real source locations, lets AI select a learning focus from the material, and creates a verifiable 2–5 concept visual knowledge framework.
 3. The learner completes no setup form or pre-test. One click opens the first beginner-friendly explanation; Tutor interaction, Quiz, recall, and later validated evidence gradually calibrate support.
 4. Tutor explains, asks questions, and guides only the active concept.
 5. Tutor, Quiz, free recall, progressive hints, immediate feedback, specific encouragement, and remedial practice form the Guided Mastery Loop. Each concept Quiz uses three single-select questions; free recall uses one response. Feedback shows a compact score and per-question explanations.
 6. The loop produces factual `LearningEvidence` with no recommendation fields; this internal record is not another learner task.
-7. Continue from feedback automatically asks the Adaptive Planning Agent for exactly one bounded global action. The learner sees one concise next step, while the Agent itself does not teach or score.
+7. **Keep going** from feedback asks the Adaptive Planning Agent for exactly one bounded global action and automatically applies safe actions. The Agent itself does not teach or score; `request_search` still stops for explicit confirmation.
 8. External search can execute only when the session permits suggestions, the server validates a named `SourceGap`, the Agent selects `request_search`, and the learner confirms that exact scope.
 
 The product is ADHD-informed, but it makes no medical, diagnostic, or treatment claims.
@@ -41,12 +41,12 @@ The product is ADHD-informed, but it makes no medical, diagnostic, or treatment 
 
 - PDF, Markdown, TXT, and pasted-text ingestion with page, heading, line, paragraph, and character locations
 - Stable chunks, checksums, parsing progress, partial success, retry, cancellation, deletion, and lightweight inline source citations
-- Source coverage, named gaps, a concise dependency map, and explanation-first concept lessons
+- Source coverage, named gaps, a connected visual dependency map, and explanation-first concept lessons with prerequisite/current/next relationship diagrams and memory anchors
 - One-active-concept focus workspace with optional timer, autosave, optimistic conflict resolution, pause, exact resume, and concrete restart action
 - Source-grounded Tutor with six quick supports, free questions, a guidance ladder, persistent conversation, and factual confusion signals
 - Three-question Quiz, misconception-based distractors, one-response free recall, and three progressive hint levels
 - Minimal answer feedback backed by structured evaluation, targeted remediation, and recommendation-free evidence
-- Eight bounded Agent actions, one visible recommendation, server-valid alternatives, penalty-free override, and prerequisite/review return paths
+- Eight bounded Agent actions, automatic safe continuation, and prerequisite/review return paths; the compatibility override endpoint is server-valid but absent from the learner UI
 - Four server-revalidated search gates, required real-mode web search, citation-only persistence, and uploaded-source primacy after selection
 - Searchable session history, safe copy/delete, JSON/Markdown export, AI activity history, accessibility preferences, and full workspace deletion
 - Anonymous workspace isolation, private UUID file storage, public-release quotas, hardened browser headers, and no-store API responses

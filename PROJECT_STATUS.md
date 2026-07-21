@@ -1,4 +1,4 @@
-# Project status
+# StartOne project status
 
 ## Current state
 
@@ -21,6 +21,7 @@
 - Milestone 8 submission readiness: local 1.0.0 release package and live smoke test complete; external publication steps pending
 - Production UI language: English
 - Product positioning: focus-first learning; AI and technical learning are the launch focus, but the source-grounded MVP is not restricted to one subject
+- Product mechanism: the StartOne Momentum Loop — start one clear step, see the whole framework, focus on one concept, retrieve once, receive truthful feedback, and continue automatically
 
 ## What the prototype is
 
@@ -39,15 +40,15 @@
 - Source inventory with empty/error/partial-success/offline/recovery states; no competing full-panel preview in the upload flow
 - Material-driven automatic learning focus and map with no goal, prior-knowledge, time or energy setup gate
 - Grounded source coverage with candidate gaps that never authorize search
-- A concise 2–5 concept dependency framework followed by a direct first-concept explanation; no route-adjustment decision or pre-test gate
+- A connected 2–5 concept visual framework followed by a direct first-concept explanation; no route-adjustment decision or pre-test gate
 - Shared server-side GPT-5.6 Responses API gateway with Pydantic Structured Outputs; the interactive default is the low-latency `gpt-5.6-luna` variant
 - Server validation of every generated source/chunk reference before persistence or rendering
 - Internal fixture/real-model separation, AI activity metadata and recoverable no-key/model errors
 - Server-versioned focus-note and activity drafts with visible save/offline/failure/conflict states; legacy start-action drafts remain API-compatible but are absent from the learner flow
 - Explicit two-copy draft conflict comparison and user-selected resolution
-- One-current-concept focus workspace with a compact route, definition, key steps, concrete example, lightweight inline citations and one dominant Tutor action
-- Session timer, optional hiding, pause/resume mutation lock and refresh-safe restoration
-- Desktop three-column, tablet reflow and 390 px mobile session navigation
+- One-current-concept focus workspace with a clickable map, big idea, prerequisite/current/next relationship, key parts, concrete example, memory anchor and lightweight inline citations
+- Pause/resume mutation lock and refresh-safe restoration without a separate Session status rail
+- Desktop two-column framework-and-lesson layout, tablet reflow and 390 px mobile session navigation
 - Saved-exit summary with a concrete next restart action
 - Current-concept Tutor with persisted per-concept conversation and retry-safe unsent drafts
 - Six concrete Tutor quick actions, free questions and a visible seven-level guidance ladder
@@ -61,7 +62,7 @@
 - Persistent activity attempts with source references, pause/refresh recovery and no premature evidence or Agent decision
 - Strict GPT-5.6 Quiz/recall Structured Output contracts with deterministic test activities
 - Full-screen practice flows with English-only copy, flat backgrounds, one centered task and no repeated source-location or system-boundary panels
-- Backend five-part feedback compressed in the learner UI to correct/not-quite, answer review, one concise rationale and Continue
+- Backend five-part feedback compressed in the learner UI to correct/not-quite, answer review, one concise rationale and Keep going
 - Server-validated factual `LearningEvidence` for Quiz, recall, remedial and Tutor-close boundaries with no recommendation columns
 - Targeted remedial practice with five bounded strategy types and no immediate strategy repetition after an unsuccessful result
 - Durable `feedback_shown`, `remedial_practice` and `evidence_ready` states with pause/refresh recovery
@@ -69,12 +70,12 @@
 - Recommendation-free evidence stays internal; the learner is not asked to review or approve the evidence boundary
 - Exactly-one Adaptive Planning Agent decisions from validated `LearningEvidence` only
 - Eight-action bounded enum with server-validated targets, tools, prerequisites and state transitions
-- Penalty-free user override with only valid alternatives and no hidden reasoning display
+- Server-validated action execution with no hidden reasoning display or learner-facing alternative-path form
 - Prerequisite/review detours that return to the interrupted concept after mastery
 - Named-gap validation and `request_search` gating that stops before any external request
 - Strict real GPT-5.6 function calling with one forced tool call, disabled parallel calls and a deterministic test policy
 - Durable `agent_decision`, `search_confirmation` and `session_summary` transitions with pause/refresh recovery
-- Responsive English next-step screen with one visually dominant recommendation; evidence and Agent architecture are not exposed as learning content
+- Safe Agent actions apply automatically after Keep going; there is no ordinary next-step decision screen, and evidence/Agent architecture are not exposed as learning content
 - A separate search confirmation that visibly proves all four gates and states that no search has run before confirmation
 - Execution-time revalidation of session permission, named gap, accepted Agent request and exact-scope user confirmation
 - Required real-mode Responses API web search with cited public HTTPS result filtering and server-only credentials
@@ -99,15 +100,17 @@
 - Knowledge framework nodes are keyboard-operable and reveal each concept's definition, role and dependencies without bypassing the current route
 - The focus workspace is now a two-column knowledge-framework/lesson layout; the Session status rail and Agent alternative-path form are removed
 - Test selection is reduced to two compact choices: 3-question multiple choice or 1-response free recall
-- Continue from feedback completes the evidence boundary and requests the Agent automatically, replacing the separate Evidence review/"Ask Agent" task with a brief loading state and one concise next action
+- Keep going completes the evidence boundary, requests exactly one Agent action and applies safe actions automatically; only `request_search` stops for explicit confirmation
+- Source coverage and candidate-gap validation remain server-side and no longer occupy a learner page; only a real Agent `request_search` exposes the named gap in the required confirmation view
+- The background timer may shorten a proposed activity but cannot end an unfinished route; a mastered final concept is marked complete before the summary is generated
 
 ## Latest verification
 
-- 50 automated tests pass after the interactive-framework and three-question Quiz refinement
+- 51 automated tests pass after the StartOne Momentum Loop, hidden coverage-state and automatic-continuation refinements
 - JavaScript syntax, Python compilation, diff hygiene, English-only UI and no-gradient checks pass
-- Browser verification completed a real three-question Quiz, saved three independent answers, displayed a 3/3 score with one explanation per question, continued to exactly one next action and opened the next concept lesson
+- Browser verification created a fresh real-model session from pasted material, generated a four-node connected framework, opened the explanation, completed a real three-question Quiz, displayed a 3/3 score with one explanation per question, and automatically opened concept 2 of 4 after Keep going
 - Every knowledge-framework node was exercised as a selectable explanation target without bypassing the current route
-- Desktop document width matches the 1280 px viewport; there is no horizontal overflow, no gradient background, no Session status rail and no Agent alternative-path form
+- Desktop document width matches the 1280 px viewport; there is no horizontal overflow, Chinese learner copy, gradient background, learner coverage page, Session status rail or Agent alternative-path form
 
 ## Next action
 

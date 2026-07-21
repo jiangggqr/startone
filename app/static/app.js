@@ -34,14 +34,12 @@ const state = {
 const views = {
   home: document.querySelector("#home-view"),
   sources: document.querySelector("#source-view"),
-  coverage: document.querySelector("#coverage-view"),
   path: document.querySelector("#path-view"),
   focus: document.querySelector("#focus-view"),
   tutor: document.querySelector("#tutor-view"),
   activity: document.querySelector("#activity-view"),
   feedback: document.querySelector("#feedback-view"),
   evidence: document.querySelector("#evidence-ready-view"),
-  agent: document.querySelector("#agent-view"),
   search: document.querySelector("#search-view"),
   summary: document.querySelector("#summary-view"),
 };
@@ -107,20 +105,6 @@ const cancelDeleteButton = document.querySelector("#cancel-delete");
 const confirmDeleteButton = document.querySelector("#confirm-delete");
 
 
-const coverageTitle = document.querySelector("#coverage-title");
-const coverageMessage = document.querySelector("#coverage-message");
-const coveredList = document.querySelector("#covered-list");
-const gapList = document.querySelector("#gap-list");
-const coveredCount = document.querySelector("#covered-count");
-const coverageSourceOriginHeading = document.querySelector("#coverage-source-origin-heading");
-const uploadedPolicyText = document.querySelector("#uploaded-policy-text");
-const aiPolicyText = document.querySelector("#ai-policy-text");
-const gapCount = document.querySelector("#gap-count");
-const coverageGenerationLabel = document.querySelector("#coverage-generation-label");
-const regenerateCoverageButton = document.querySelector("#regenerate-coverage");
-const generateMapButton = document.querySelector("#generate-map");
-const backToSourcesFromCoverageButton = document.querySelector("#back-to-sources-from-coverage");
-
 const pathTitle = document.querySelector("#path-title");
 const pathMessage = document.querySelector("#path-message");
 const mapCount = document.querySelector("#map-count");
@@ -128,7 +112,6 @@ const conceptMap = document.querySelector("#concept-map");
 const pathConceptPreview = document.querySelector("#path-concept-preview");
 const pathGenerationLabel = document.querySelector("#path-generation-label");
 const confirmPathButton = document.querySelector("#confirm-path");
-const backToCoverageButton = document.querySelector("#back-to-coverage");
 
 const focusTitle = document.querySelector("#focus-title");
 const focusBreadcrumb = document.querySelector("#focus-breadcrumb");
@@ -136,6 +119,11 @@ const focusRole = document.querySelector("#focus-role");
 const focusDefinition = document.querySelector("#focus-definition");
 const focusKeyPoints = document.querySelector("#focus-key-points");
 const focusExample = document.querySelector("#focus-example");
+const focusPreviousConcept = document.querySelector("#focus-previous-concept");
+const focusCurrentConcept = document.querySelector("#focus-current-concept");
+const focusNextConcept = document.querySelector("#focus-next-concept");
+const conceptFlow = document.querySelector("#concept-flow");
+const focusMemoryAnchor = document.querySelector("#focus-memory-anchor");
 const focusSources = document.querySelector("#focus-sources");
 const focusRoute = document.querySelector("#focus-route");
 const focusMapPreview = document.querySelector("#focus-map-preview");
@@ -249,14 +237,6 @@ const evidenceReadyTitle = document.querySelector("#evidence-ready-title");
 const evidenceReadyMessage = document.querySelector("#evidence-ready-message");
 const runAgentButton = document.querySelector("#run-agent");
 
-const agentTitle = document.querySelector("#agent-title");
-const agentSaveStatus = document.querySelector("#agent-save-status");
-const agentPauseButton = document.querySelector("#agent-pause");
-const agentEstimate = document.querySelector("#agent-estimate");
-const agentActionTitle = document.querySelector("#agent-action-title");
-const agentReason = document.querySelector("#agent-reason");
-const acceptAgentButton = document.querySelector("#accept-agent");
-const agentMessage = document.querySelector("#agent-message");
 
 const searchTitle = document.querySelector("#search-title");
 const searchSaveStatus = document.querySelector("#search-save-status");
@@ -518,8 +498,7 @@ async function resumeSession(sessionId) {
       await showEvidenceReady();
       if (session.is_paused) pauseDialog.showModal();
     } else if (session.state === "agent_decision") {
-      await showAgentDecision();
-      if (session.is_paused) pauseDialog.showModal();
+      await resumePendingAgentDecision();
     } else if (["search_confirmation", "search_running", "search_results"].includes(session.state)) {
       await showControlledSearch();
       if (session.is_paused) pauseDialog.showModal();
@@ -536,7 +515,8 @@ async function resumeSession(sessionId) {
       try {
         await showPath();
       } catch (error) {
-        await showCoverage();
+        await showSources();
+        await prepareLearningPath();
       }
     } else if (session.setup_completed) {
       await showSources();
@@ -633,7 +613,7 @@ function downloadWorkspaceExport(format) {
   setMessage(dataControlMessage, `Preparing the ${label}. Your saved data will not be changed.`);
   const link = document.createElement("a");
   link.href = `/api/export?format=${format}`;
-  link.download = format === "markdown" ? "startframe-learning-record.md" : "startframe-learning-record.json";
+  link.download = format === "markdown" ? "startone-learning-record.md" : "startone-learning-record.json";
   document.body.append(link);
   link.click();
   link.remove();
@@ -799,8 +779,8 @@ function renderSources() {
   reviewCoverageButton.disabled = readySources.length === 0;
   learningReady.hidden = readySources.length === 0;
   coverageNote.textContent = readySources.length
-    ? `${readySources.length} readable ${readySources.length === 1 ? "source is" : "sources are"} ready. StartFrame will identify the core concepts, organize the knowledge framework, and open the first explanation.`
-    : "StartFrame will identify the core concepts, organize the knowledge framework, and open the first explanation.";
+    ? `${readySources.length} readable ${readySources.length === 1 ? "source is" : "sources are"} ready. StartOne will identify the core concepts, connect them in a visual map, and open the first focused step.`
+    : "StartOne will identify the core concepts, connect them in a visual map, and open the first focused step.";
 
   state.sources.forEach((source) => {
     const item = element("li", "source-item");
@@ -893,8 +873,7 @@ async function leaveSourceView() {
   const trigger = state.sourceReturnTrigger;
   state.sourceReturn = null;
   state.sourceReturnTrigger = null;
-  if (returnTo === "coverage") showView("coverage", `coverage/${state.sessionId}`, coverageTitle);
-  else if (returnTo === "path") showView("path", `path/${state.sessionId}`, pathTitle);
+  if (returnTo === "path") showView("path", `path/${state.sessionId}`, pathTitle);
   else if (returnTo === "focus") showView("focus", `focus/${state.sessionId}`, focusTitle);
   else if (returnTo === "tutor") showView("tutor", `tutor/${state.sessionId}`, tutorTitle);
   else if (returnTo === "activity") showView("activity", `activity/${state.activity?.activity?.id || ""}`, activityTitle);
@@ -966,7 +945,7 @@ async function submitPastedSource(event) {
 
 async function prepareLearningPath() {
   window.clearTimeout(state.pollTimer);
-  let readyLabel = "Build my learning path";
+  let readyLabel = "Build my map and start";
   let progressStage = "Reading representative sections across your material.";
   const startedAt = Date.now();
   const progressTimer = window.setInterval(() => {
@@ -1009,7 +988,7 @@ async function prepareLearningPath() {
       state.coverage = coverage;
       progressStage = "Source coverage is ready. Organizing the concept route.";
       setButtonBusy(reviewCoverageButton, true, "Building your learning path…", readyLabel);
-      setUploadMessage("Source coverage is ready. Building the knowledge framework and first learning action…", "success");
+      setUploadMessage("Source coverage is ready. Connecting the ideas and preparing your first focused step…", "success");
       path = await api(`/api/sessions/${state.sessionId}/path`, { method: "POST" });
     }
 
@@ -1018,7 +997,7 @@ async function prepareLearningPath() {
     showView("path", `path/${state.sessionId}`, pathTitle);
     renderPath(path);
     confirmPathButton.disabled = false;
-    setMessage(pathMessage, "Your knowledge framework is ready. Start with the first explanation when you are ready.", "success");
+    setMessage(pathMessage, "Your visual knowledge map is ready. One clear step starts the learning loop.", "success");
   } catch (error) {
     readyLabel = "Retry learning path";
     setUploadMessage(error.message, "error");
@@ -1026,47 +1005,6 @@ async function prepareLearningPath() {
   } finally {
     window.clearInterval(progressTimer);
     setButtonBusy(reviewCoverageButton, false, "", readyLabel);
-  }
-}
-
-async function createCoverage() {
-  showView("coverage", `coverage/${state.sessionId}`, coverageTitle);
-  coveredList.replaceChildren(loadingCard("Checking each grounded source section…"));
-  gapList.replaceChildren(loadingCard("Naming only specific candidate gaps…"));
-  setMessage(coverageMessage, "Reviewing uploaded material. No internet search is available in this step.");
-  setButtonBusy(regenerateCoverageButton, true, "Generating coverage…", "Regenerate coverage");
-  generateMapButton.disabled = true;
-  try {
-    const body = await api(`/api/sessions/${state.sessionId}/coverage`, { method: "POST" });
-    state.coverage = body;
-    renderCoverage(body);
-    setMessage(coverageMessage, "Coverage is ready. Every visible claim passed source-reference validation.", "success");
-    generateMapButton.disabled = false;
-  } catch (error) {
-    coveredList.replaceChildren(errorCard(error.message, "Retry coverage generation"));
-    gapList.replaceChildren(emptyCard("No candidate gaps are displayed until coverage validates."));
-    setMessage(coverageMessage, `${error.message} ${error.body?.saved_state || "Your sources are saved."}`, "error");
-    generateMapButton.disabled = true;
-  } finally {
-    setButtonBusy(regenerateCoverageButton, false, "", "Regenerate coverage");
-  }
-}
-
-async function showCoverage() {
-  showView("coverage", `coverage/${state.sessionId}`, coverageTitle);
-  try {
-    const body = await api(`/api/sessions/${state.sessionId}/coverage`);
-    state.coverage = body;
-    renderCoverage(body);
-    setMessage(coverageMessage, "Coverage restored from the saved session.", "success");
-    generateMapButton.disabled = false;
-  } catch (error) {
-    if (error.body?.error_code === "coverage_not_generated") {
-      await showSources();
-      setUploadMessage("Build the learning path first. Your material is ready.");
-      return;
-    }
-    setMessage(coverageMessage, `${error.message} Your sources remain saved.`, "error");
   }
 }
 
@@ -1082,12 +1020,6 @@ function emptyCard(text) {
   return card;
 }
 
-function errorCard(text, actionLabel) {
-  const card = element("div", "result-card error-result");
-  card.append(element("strong", "", "Result not displayed"), element("p", "", text), element("span", "micro-copy", actionLabel));
-  return card;
-}
-
 function referenceButton(reference, details) {
   const detail = details.find((item) => item.source_id === reference.source_id && item.chunk_id === reference.chunk_id);
   return element(
@@ -1095,71 +1027,6 @@ function referenceButton(reference, details) {
     "source-reference",
     detail ? `${sourceOriginLabel(detail.source_origin)} · ${detail.filename} · ${detail.location}` : "Verified source location",
   );
-}
-
-function renderCoverage(body) {
-  const coverage = body.coverage;
-  const origins = new Set(body.source_ref_details.map((item) => item.source_origin));
-  coverageSourceOriginHeading.textContent = origins.has("uploaded")
-    ? "Uploaded material"
-    : origins.has("ai_supplement")
-      ? "AI supplemental explanation"
-      : "Saved learning source";
-  uploadedPolicyText.textContent = origins.has("uploaded")
-    ? "Primary source for this map and later learning activities."
-    : "No uploaded material is available in this session.";
-  aiPolicyText.textContent = origins.has("ai_supplement")
-    ? "Supplemental explanations stay labeled and never claim uploaded or external provenance."
-    : "Must stay labeled and cannot invent source locations.";
-  coveredList.replaceChildren();
-  gapList.replaceChildren();
-  coveredCount.textContent = `${coverage.covered_concepts.length} covered`;
-  gapCount.textContent = `${body.source_gaps.length} ${body.source_gaps.length === 1 ? "gap" : "gaps"}`;
-  coverage.covered_concepts.forEach((concept) => {
-    const card = element("article", "result-card");
-    card.append(element("h3", "", concept.title), element("p", "", concept.coverage_summary));
-    const refs = element("div", "reference-list");
-    concept.source_refs.forEach((reference) => refs.append(referenceButton(reference, body.source_ref_details)));
-    card.append(refs);
-    coveredList.append(card);
-  });
-  if (!body.source_gaps.length) {
-    gapList.append(emptyCard("No specific source gaps were identified. The Agent still cannot search without later learning evidence."));
-  } else {
-    body.source_gaps.forEach((gap) => {
-      const card = element("article", "result-card gap-card");
-      const status = element("span", "candidate-label", "Candidate only");
-      card.append(status, element("h3", "", gap.description), element("p", "", gap.why_needed));
-      const evidence = element("p", "evidence-line", `Why it was named: ${gap.evidence}`);
-      card.append(evidence);
-      const refs = element("div", "reference-list");
-      gap.current_source_refs.forEach((reference) => refs.append(referenceButton(reference, body.source_ref_details)));
-      card.append(refs);
-      gapList.append(card);
-    });
-  }
-  coverageGenerationLabel.textContent = "Source references verified · No external search used";
-}
-
-async function createMap() {
-  showView("path", `path/${state.sessionId}`, pathTitle);
-  conceptMap.replaceChildren(loadingCard("Building 2–5 grounded concepts and dependency links…"));
-  setMessage(pathMessage, "Organizing the knowledge framework from foundation to application.");
-  setButtonBusy(generateMapButton, true, "Generating map…", "Generate the learning map");
-  confirmPathButton.disabled = true;
-  try {
-    const body = await api(`/api/sessions/${state.sessionId}/path`, { method: "POST" });
-    state.knowledgeMap = body;
-    state.fullRoute = body.knowledge_map.concepts.map((concept) => concept.concept_key);
-    renderPath(body);
-    setMessage(pathMessage, "Your knowledge framework is ready. Start with the first explanation when you are ready.", "success");
-    confirmPathButton.disabled = false;
-  } catch (error) {
-    conceptMap.replaceChildren(errorCard(error.message, "Return to coverage or retry map generation"));
-    setMessage(pathMessage, `${error.message} ${error.body?.saved_state || "Your coverage review is saved."}`, "error");
-  } finally {
-    setButtonBusy(generateMapButton, false, "", "Generate the learning map");
-  }
 }
 
 async function showPath() {
@@ -1178,6 +1045,7 @@ function renderPath(body) {
   pathConceptPreview.hidden = true;
   pathConceptPreview.replaceChildren();
   mapCount.textContent = `${map.concepts.length} concepts`;
+  conceptMap.style.setProperty("--concept-count", String(map.concepts.length));
   map.concepts.forEach((concept, index) => {
     const item = element("li", "concept-node");
     item.dataset.inRoute = String(map.recommended_route.includes(concept.concept_key));
@@ -1199,8 +1067,8 @@ function renderPath(body) {
   });
   conceptMap.querySelector(".concept-node-button")?.click();
   confirmPathButton.dataset.confirmed = String(Boolean(body.confirmed));
-  confirmPathButton.textContent = body.confirmed ? "Return to the current concept" : "Start learning the first concept";
-  pathGenerationLabel.textContent = "Built from your material · Ready to learn";
+  confirmPathButton.textContent = body.confirmed ? "Return to the current concept" : "Start one focused step";
+  pathGenerationLabel.textContent = "Understand → connect → retrieve";
 }
 
 function renderMapConceptPreview(container, concept, prerequisiteNames, position, total) {
@@ -1227,13 +1095,13 @@ async function confirmPath() {
     await showFocus();
     return;
   }
-  setButtonBusy(confirmPathButton, true, "Opening the first explanation…", "Start learning the first concept");
+  setButtonBusy(confirmPathButton, true, "Opening your first focused step…", "Start one focused step");
   try {
     await startFirstConcept();
   } catch (error) {
     setMessage(pathMessage, `${error.message} Your map is still saved.`, "error");
   } finally {
-    setButtonBusy(confirmPathButton, false, "", "Start learning the first concept");
+    setButtonBusy(confirmPathButton, false, "", "Start one focused step");
   }
 }
 
@@ -1342,6 +1210,7 @@ function renderFocus(body) {
   focusBreadcrumb.textContent = `${state.session.name} › ${concept.title}`;
   focusRole.textContent = concept.role_in_map;
   focusDefinition.textContent = concept.plain_definition;
+  focusMemoryAnchor.textContent = concept.plain_definition;
   focusKeyPoints.replaceChildren();
   (concept.key_points || []).forEach((point) => focusKeyPoints.append(element("li", "", point)));
   focusExample.textContent = concept.concrete_example;
@@ -1351,6 +1220,17 @@ function renderFocus(body) {
   focusMapPreview.hidden = true;
   focusMapPreview.replaceChildren();
   const routeByKey = new Map(body.route.map((item) => [item.concept_key, item]));
+  const activeRouteIndex = body.route.findIndex((item) => item.is_active);
+  const activeRouteItem = body.route[activeRouteIndex];
+  const prerequisiteTitles = (activeRouteItem?.prerequisite_keys || [])
+    .map((key) => routeByKey.get(key)?.title || key);
+  focusPreviousConcept.textContent = prerequisiteTitles.length ? prerequisiteTitles.join(" + ") : "The foundation";
+  focusCurrentConcept.textContent = concept.title;
+  focusNextConcept.textContent = body.route[activeRouteIndex + 1]?.title || "A completed framework";
+  conceptFlow.setAttribute(
+    "aria-label",
+    `${focusPreviousConcept.textContent}, then ${concept.title}, then ${focusNextConcept.textContent}`,
+  );
   body.route.forEach((item, index) => {
     const row = element("li", "focus-route-item");
     row.dataset.status = item.is_active ? "active" : item.status;
@@ -1409,6 +1289,9 @@ function renderFocus(body) {
       ? "Saved on this device · waiting to sync"
       : "Not saved yet";
   focusSaveStatus.textContent = body.session.last_saved_at ? "Saved" : "Ready to save";
+
+  startQuizButton.innerHTML = "<strong>Check this concept</strong><span>3 quick questions</span>";
+  startRecallButton.innerHTML = "<strong>Explain it yourself</strong><span>1 response</span>";
 
   selectMobilePanel("learn");
 }
@@ -1615,7 +1498,7 @@ async function closeTutor() {
 
 async function startActivity(type, trigger) {
   state.activityReturnTrigger = trigger;
-  const readyLabel = type === "quiz" ? "Multiple choice" : "Free recall";
+  const readyLabel = type === "quiz" ? "Check this concept" : "Explain it yourself";
   const busyLabel = type === "quiz" ? "Preparing Quiz…" : "Preparing free recall…";
   setButtonBusy(trigger, true, busyLabel, readyLabel);
   focusSaveStatus.textContent = "Preparing a grounded practice activity…";
@@ -1635,8 +1518,8 @@ async function startActivity(type, trigger) {
   } finally {
     setButtonBusy(trigger, false, "", readyLabel);
     trigger.innerHTML = type === "quiz"
-      ? "<strong>Multiple choice</strong><span>3 questions</span>"
-      : "<strong>Free recall</strong><span>1 response</span>";
+      ? "<strong>Check this concept</strong><span>3 quick questions</span>"
+      : "<strong>Explain it yourself</strong><span>1 response</span>";
   }
 }
 
@@ -1940,7 +1823,7 @@ function renderFeedback(body) {
   feedbackSaveStatus.textContent = "Saved";
   feedbackResultMark.textContent = mastered ? "✓" : "→";
   feedbackResultMark.dataset.result = mastered ? "correct" : "review";
-  feedbackResultLabel.textContent = feedback.activity_type === "quiz" ? "Quiz result" : "Practice result";
+  feedbackResultLabel.textContent = mastered ? "Concept strengthened" : "Progress made";
   feedbackSectionsTitle.textContent = resultTitle;
   feedbackOriginLabel.textContent = feedback.source_origin === "ai_supplement"
     ? "Explanation includes an AI supplement"
@@ -1974,14 +1857,14 @@ function renderFeedback(body) {
   feedbackCorrection.textContent = feedback.compact_correction;
   feedbackEncouragement.textContent = feedback.encouragement;
   feedbackMessage.hidden = true;
-  completeFeedbackButton.textContent = "Continue";
+  completeFeedbackButton.textContent = "Keep going";
   completeFeedbackButton.disabled = false;
 }
 
 async function completeFeedbackStep() {
   const body = state.feedback;
   if (!body) return;
-  setButtonBusy(completeFeedbackButton, true, "Preparing your next step…", "Continue");
+  setButtonBusy(completeFeedbackButton, true, "Keeping the momentum going…", "Keep going");
   try {
     const evidenceBody = await api(`/api/feedback/${body.feedback.id}/complete`, {
       method: "POST",
@@ -2009,7 +1892,7 @@ async function showEvidenceReady(existing = null, continueAutomatically = true) 
 }
 
 function renderEvidenceReady() {
-  evidenceReadyTitle.textContent = "Preparing your next step…";
+  evidenceReadyTitle.textContent = "Choosing the next small step…";
   runAgentButton.hidden = true;
   setButtonBusy(runAgentButton, false, "", "Try again");
   setMessage(evidenceReadyMessage, "");
@@ -2019,8 +1902,10 @@ async function runPlanningAgent() {
   runAgentButton.hidden = true;
   setMessage(evidenceReadyMessage, "");
   try {
-    const body = await api(`/api/sessions/${state.sessionId}/agent-decisions`, { method: "POST" });
-    await showAgentDecision(body);
+    const body = state.session?.state === "agent_decision"
+      ? await api(`/api/sessions/${state.sessionId}/agent-decisions/latest`)
+      : await api(`/api/sessions/${state.sessionId}/agent-decisions`, { method: "POST" });
+    await applyAgentDecision(body);
   } catch (error) {
     evidenceReadyTitle.textContent = "We couldn’t prepare the next step";
     setMessage(evidenceReadyMessage, `${error.message} Your progress remains saved.`, "error");
@@ -2029,49 +1914,28 @@ async function runPlanningAgent() {
   }
 }
 
-async function showAgentDecision(existing = null) {
-  const body = existing || await api(`/api/sessions/${state.sessionId}/agent-decisions/latest`);
+async function applyAgentDecision(body) {
   state.agent = body;
   state.session = body.session;
-  renderAgentDecision(body);
-  showView("agent", `agent/${body.decision.id}`, agentTitle);
-  if (body.session.is_paused && !pauseDialog.open) pauseDialog.showModal();
+  const result = await api(`/api/agent-decisions/${body.decision.id}/accept`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ version: body.session.version }),
+  });
+  await handleAgentExecution(result);
 }
 
-function renderAgentDecision(body) {
-  const decision = body.decision;
-  agentTitle.textContent = "Keep learning";
-  agentActionTitle.textContent = decision.action_label;
-  agentReason.textContent = decision.reason_for_user;
-  agentEstimate.textContent = decision.estimated_minutes
-    ? `About ${decision.estimated_minutes} minutes`
-    : "Finish for now";
-  agentSaveStatus.textContent = "Saved";
-  const isProposed = decision.status === "proposed";
-  setButtonBusy(acceptAgentButton, false, "", "Continue");
-  acceptAgentButton.hidden = !isProposed;
-  agentPauseButton.hidden = body.session.state === "session_summary";
-  setMessage(agentMessage, "");
-  if (!isProposed && body.session.state === "search_confirmation") {
-    setMessage(agentMessage, "The Agent requested a search, but no search has run. A separate source-gap confirmation is required next.", "success");
+async function resumePendingAgentDecision() {
+  const body = await api(`/api/sessions/${state.sessionId}/agent-decisions/latest`);
+  state.agent = body;
+  state.session = body.session;
+  renderEvidenceReady();
+  showView("evidence", `evidence/${state.sessionId}`, evidenceReadyTitle);
+  if (body.session.is_paused) {
+    if (!pauseDialog.open) pauseDialog.showModal();
+    return;
   }
-}
-
-async function acceptAgentDecision() {
-  const body = state.agent;
-  if (!body) return;
-  setButtonBusy(acceptAgentButton, true, "Continuing…", "Continue");
-  try {
-    const result = await api(`/api/agent-decisions/${body.decision.id}/accept`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ version: body.session.version }),
-    });
-    await handleAgentExecution(result);
-  } catch (error) {
-    setMessage(agentMessage, `${error.message} ${error.body?.saved_state || "The decision was not changed."}`, "error");
-    setButtonBusy(acceptAgentButton, false, "", "Continue");
-  }
+  await applyAgentDecision(body);
 }
 
 async function handleAgentExecution(body) {
@@ -2420,7 +2284,7 @@ async function resumeActiveSession() {
     if (["practicing", "remedial_practice"].includes(state.session.state)) await showActivity();
     else if (state.session.state === "feedback_shown") await showFeedback();
     else if (state.session.state === "evidence_ready") await showEvidenceReady();
-    else if (state.session.state === "agent_decision") await showAgentDecision();
+    else if (state.session.state === "agent_decision") await resumePendingAgentDecision();
     else if (["search_confirmation", "search_running", "search_results"].includes(state.session.state)) await showControlledSearch();
     else if (state.session.state === "session_summary") {
       const summary = await api(`/api/sessions/${state.sessionId}/summary`);
@@ -2541,10 +2405,6 @@ sessionFilter.addEventListener("change", renderSessions);
 [preferenceLargeText, preferenceReducedMotion, preferenceShowTimer, preferenceSearchSuggestions]
   .forEach((control) => control.addEventListener("change", savePreferences));
 
-backToSourcesFromCoverageButton.addEventListener("click", () => showSources());
-regenerateCoverageButton.addEventListener("click", createCoverage);
-generateMapButton.addEventListener("click", createMap);
-backToCoverageButton.addEventListener("click", showCoverage);
 confirmPathButton.addEventListener("click", confirmPath);
 focusNote.addEventListener("input", () => queueDraftSave("focus_note", focusNote.value, focusNoteStatus));
 saveFocusNoteButton.addEventListener("click", saveFocusNoteNow);
@@ -2596,11 +2456,9 @@ completeFeedbackButton.addEventListener("click", completeFeedbackStep);
 feedbackPauseButton.addEventListener("click", () => pauseActiveSession());
 mobileFeedbackPause.addEventListener("click", () => pauseActiveSession());
 mobileFeedbackConcept.addEventListener("click", () => {
-  setMessage(feedbackMessage, "Select Continue to move on.", "info");
+  setMessage(feedbackMessage, "Select Keep going to continue.", "info");
 });
 runAgentButton.addEventListener("click", runPlanningAgent);
-agentPauseButton.addEventListener("click", () => pauseActiveSession());
-acceptAgentButton.addEventListener("click", acceptAgentDecision);
 searchPauseButton.addEventListener("click", () => pauseActiveSession());
 declineSearchButton.addEventListener("click", declineControlledSearch);
 confirmSearchButton.addEventListener("click", confirmAndRunSearch);
@@ -2657,14 +2515,14 @@ async function initialize() {
   if (!state.sessionId) return;
   const hash = window.location.hash;
   try {
-    if (hash.startsWith("#coverage/")) await showCoverage();
+    if (hash.startsWith("#coverage/")) await showSources();
     else if (hash.startsWith("#path/")) await showPath();
     else if (hash.startsWith("#start/")) await startFirstConcept();
     else if (hash.startsWith("#tutor/")) await showTutor();
     else if (hash.startsWith("#activity/")) await showActivity();
     else if (hash.startsWith("#feedback/")) await showFeedback();
     else if (hash.startsWith("#evidence/")) await showEvidenceReady();
-    else if (hash.startsWith("#agent/")) await showAgentDecision();
+    else if (hash.startsWith("#agent/")) await resumePendingAgentDecision();
     else if (hash.startsWith("#search/")) await showControlledSearch();
     else if (hash.startsWith("#focus/")) await showFocus();
     else if (hash.startsWith("#summary/")) {

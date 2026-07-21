@@ -6,31 +6,31 @@ Use English narration or complete English captions. Do not include copyrighted m
 
 **On screen:** Landing page, then the uploaded-material card.
 
-**Narration:** “Wanting to learn is not the same as getting started, seeing how the ideas fit together, or finishing. StartFrame Agent helps learners start faster, build real understanding, and keep moving one concept at a time. It is built first for dense AI and technical learning, with a source-grounded method that works across subjects.”
+**Narration:** “Wanting to learn is not the same as getting started, seeing how the ideas fit together, or finishing. StartOne gives you one clear first step, a visual knowledge map, and a learning loop that keeps moving one concept at a time.”
 
 ## 0:18–0:42 — Sources and automatic planning
 
 **On screen:** Start a session, select **Try sample material**, show the two files inside the upload panel, and open an exact line location.
 
-**Narration:** “Uploaded PDFs, Markdown, text files, or pasted notes are the primary source. StartFrame preserves real source locations and shows parsing results inside the upload panel. One button lets AI select a learning focus and build the path—there is no setup form.”
+**Narration:** “Uploaded PDFs, Markdown, text files, or pasted notes are the primary source. StartOne preserves real source locations and shows parsing results inside the upload panel. One button lets AI select a learning focus, connect the concepts and prepare the first step—there is no setup form.”
 
 ## 0:42–1:02 — Map and first action
 
-**On screen:** Coverage review, named gaps, the concise knowledge framework, then the first concept explanation.
+**On screen:** The connected knowledge framework, click several concept nodes, then start the first focused concept.
 
-**Narration:** “GPT-5.6 produces schema-validated coverage, a compact dependency map, and beginner-friendly explanations with key steps and examples. There is no setup form or pre-test: one click opens the first concept. Every returned reference is verified on the server before it can be saved or shown.”
+**Narration:** “GPT-5.6 produces schema-validated coverage and a connected dependency map. There is no setup form or pre-test: one click opens a focused explanation with the big idea, where it fits, key parts, an example, and one memory anchor.”
 
 ## 1:02–1:28 — Tutor and mastery loop
 
-**On screen:** In the two-column focus workspace, click several knowledge-framework nodes to reveal their relationships, open Tutor, then show the compact Multiple choice / Free recall test selector.
+**On screen:** In the two-column focus workspace, show the prerequisite → current → next relationship, open Tutor, then show the compact Check this concept / Explain it yourself selector.
 
 **Narration:** “The contextual Tutor explains, asks smaller questions, and guides only the active concept. Quiz, free recall, progressive hints, immediate feedback, specific encouragement, and targeted remediation form the separate Guided Mastery Loop.”
 
 ## 1:28–1:55 — Immediate feedback and the next step
 
-**On screen:** Submit all three Quiz answers, show the compact score and per-question explanations, select Continue, and show one next action.
+**On screen:** Submit all three Quiz answers, show the compact score, per-question explanations and truthful small-win feedback, then select Keep going and land directly in the next safe learning task.
 
-**Narration:** “Feedback is immediate and intentionally small: the result, the answer, and why. Behind the interface, the loop records factual LearningEvidence with no recommendation. Continue asks the planning Agent for exactly one bounded next action, without turning the product into a system dashboard.”
+**Narration:** “Feedback is immediate and intentionally small: the result, the answer, why, and one truthful win. Behind the interface, the loop records factual LearningEvidence with no recommendation. Keep going asks the planning Agent for exactly one bounded action and automatically enters the next safe task.”
 
 ## 1:55–2:20 — Four-gate search
 

@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="StartFrame Agent turns your learning materials into a grounded, manageable study loop."
+      content="StartOne turns your learning material into one clear step, a visual knowledge map, and a guided loop that keeps moving."
     />
-    <title>StartFrame Agent</title>
+    <title>StartOne</title>
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/static/styles.css" />
     <script src="/static/app.js" defer></script>
@@ -17,9 +17,9 @@
 
     <header class="site-header">
       <div class="header-inner">
-        <a class="brand" href="/" aria-label="StartFrame Agent home">
-          <span class="brand-mark" aria-hidden="true">SF</span>
-          <span>StartFrame Agent</span>
+        <a class="brand" href="/" aria-label="StartOne home">
+          <span class="brand-mark" aria-hidden="true">1</span>
+          <span>StartOne</span>
         </a>
         <nav aria-label="Main navigation">
           <a href="#library" id="library-link" aria-current="page">Library</a>
@@ -34,11 +34,11 @@
       <div id="home-view">
       <section class="hero" id="library" aria-labelledby="hero-title">
         <div class="hero-copy">
-          <p class="eyebrow">Focus-first learning</p>
-          <h1 id="hero-title">Start faster. Build real understanding. Finish what you set out to learn.</h1>
+          <p class="eyebrow">Learning momentum, built in</p>
+          <h1 id="hero-title">Start with one clear step. Keep going until it sticks.</h1>
           <p class="hero-lead">
-            Upload your notes, papers, or course materials. StartFrame builds the knowledge structure,
-            gets you moving with one focused action, and guides you through explanation and practice until you can explain it yourself.
+            Upload your notes, papers, or course materials. StartOne builds a visual knowledge map and guides one focused loop at a time:
+            understand, retrieve, get feedback, and continue.
           </p>
           <div class="hero-actions">
             <button class="button button-primary" id="start-session" type="button">
@@ -47,7 +47,7 @@
             <a class="button button-secondary" href="#recent-sessions">View learning history</a>
           </div>
           <p class="support-note">
-            <strong>Focus-friendly:</strong> One active concept, one clear next action, and no penalty for pausing.
+            <strong>No setup decisions:</strong> One active concept, one clear action, and no penalty for pausing.
           </p>
         </div>
 
@@ -167,12 +167,12 @@
 
               <section class="learning-ready" id="learning-ready" aria-labelledby="learning-ready-title" hidden>
                 <p class="eyebrow">Material ready · next step</p>
-                <h3 id="learning-ready-title">Build a learning path from this material</h3>
-                <p id="coverage-note">StartFrame will identify the core concepts, organize the knowledge framework, and prepare the first explanation. Large PDFs usually take 20–60 seconds.</p>
+                <h3 id="learning-ready-title">Turn this material into your first clear step</h3>
+                <p id="coverage-note">StartOne will find the core ideas, build their connections, and prepare the first focused explanation. Large PDFs usually take 20–60 seconds.</p>
                 <div class="learning-ready-actions">
                   <button class="button button-quiet" id="save-for-later" type="button">Save and return later</button>
                   <button class="button button-primary" id="review-coverage" type="button" disabled>
-                    Build my learning path
+                    Build my map and start
                   </button>
                 </div>
               </section>
@@ -183,59 +183,17 @@
 
       </section>
 
-      <section class="workflow-view" id="coverage-view" aria-labelledby="coverage-title" hidden>
-        <div class="workflow-heading">
-          <button class="button button-quiet" id="back-to-sources-from-coverage" type="button">← Back to material</button>
-          <p class="eyebrow">Source coverage</p>
-          <h1 id="coverage-title" tabindex="-1">See what your material covers before planning</h1>
-          <p class="hero-lead">Covered concepts and candidate gaps stay tied to real saved source locations.</p>
-        </div>
-
-        <div class="trust-banner" role="status">
-          <strong>No internet search has run.</strong>
-          <span>A candidate gap is an observation, not permission to search.</span>
-        </div>
-        <div class="form-message" id="coverage-message" role="status" aria-live="polite" hidden></div>
-        <div class="coverage-grid">
-          <section class="result-panel" aria-labelledby="covered-title">
-            <div class="result-heading">
-              <div><p class="eyebrow" id="coverage-source-origin-heading">Saved learning source</p><h2 id="covered-title">Covered concepts</h2></div>
-              <span class="status-chip" id="covered-count">0 covered</span>
-            </div>
-            <div class="result-list" id="covered-list"></div>
-          </section>
-          <section class="result-panel" aria-labelledby="gaps-title">
-            <div class="result-heading">
-              <div><p class="eyebrow">Candidate observations</p><h2 id="gaps-title">Possible source gaps</h2></div>
-              <span class="status-chip" id="gap-count">0 gaps</span>
-            </div>
-            <div class="result-list" id="gap-list"></div>
-          </section>
-        </div>
-        <section class="source-policy" aria-label="Source origin policy">
-          <div><span class="origin-badge">Uploaded material</span><p id="uploaded-policy-text">Primary source for this map and later learning activities.</p></div>
-          <div><span class="origin-badge origin-external">External supplement</span><p>Unavailable until all four search gates pass.</p></div>
-          <div><span class="origin-badge origin-ai">AI supplemental explanation</span><p id="ai-policy-text">Must stay labeled and cannot invent source locations.</p></div>
-        </section>
-        <div class="workflow-actions">
-          <button class="button button-secondary" id="regenerate-coverage" type="button">Regenerate coverage</button>
-          <button class="button button-primary" id="generate-map" type="button">Generate the learning map</button>
-          <p id="coverage-generation-label">Waiting for a validated result.</p>
-        </div>
-      </section>
-
       <section class="workflow-view" id="path-view" aria-labelledby="path-title" hidden>
         <div class="workflow-heading">
-          <button class="button button-quiet" id="back-to-coverage" type="button">← Back to coverage</button>
-          <p class="eyebrow">Your learning path</p>
-          <h1 id="path-title" tabindex="-1">See the knowledge structure and where learning starts</h1>
-          <p class="hero-lead">The map shows how the concepts connect. StartFrame will adapt the route after it observes your actual learning performance.</p>
+          <p class="eyebrow">Your knowledge map</p>
+          <h1 id="path-title" tabindex="-1">See the whole picture. Start with one concept.</h1>
+          <p class="hero-lead">Click any idea to understand its role. StartOne keeps the learning route simple and adapts only after seeing how you learn.</p>
         </div>
         <div class="form-message" id="path-message" role="status" aria-live="polite" hidden></div>
         <div class="path-layout">
           <section class="result-panel knowledge-framework" aria-labelledby="map-heading">
             <div class="result-heading">
-              <div><p class="eyebrow">Knowledge framework</p><h2 id="map-heading">What you will learn</h2></div>
+              <div><p class="eyebrow">Visual knowledge framework</p><h2 id="map-heading">How the ideas connect</h2></div>
               <span class="status-chip" id="map-count">0 concepts</span>
             </div>
             <ol class="concept-map" id="concept-map"></ol>
@@ -243,8 +201,8 @@
           </section>
         </div>
         <div class="workflow-actions">
-          <button class="button button-primary" id="confirm-path" type="button">Start learning the first concept</button>
-          <p id="path-generation-label">The framework is ordered from foundation to application.</p>
+          <button class="button button-primary" id="confirm-path" type="button">Start one focused step</button>
+          <p id="path-generation-label">One step: understand → connect → retrieve.</p>
         </div>
       </section>
 
@@ -276,11 +234,23 @@
               <span class="status-chip" id="active-concept-count">Current concept</span>
               <h1 id="focus-title" tabindex="-1">Current concept</h1>
               <p class="concept-role"><strong>Why it matters:</strong> <span id="focus-role"></span></p>
+              <p class="focus-task-copy">Your only task: understand this idea, see where it fits, then retrieve it once.</p>
             </div>
             <section class="card-panel explanation-card" aria-labelledby="explanation-title">
-              <p class="eyebrow">Learn this concept</p>
-              <h2 id="explanation-title">What it means</h2>
+              <p class="eyebrow">Understand</p>
+              <h2 id="explanation-title">The big idea</h2>
               <p class="lesson-definition" id="focus-definition"></p>
+              <section class="concept-connection" aria-labelledby="concept-connection-title">
+                <p class="eyebrow">See the connection</p>
+                <h3 id="concept-connection-title">Where this idea fits</h3>
+                <div class="concept-flow" id="concept-flow">
+                  <div class="concept-flow-node"><span>Builds on</span><strong id="focus-previous-concept">Foundation</strong></div>
+                  <span class="concept-flow-arrow" aria-hidden="true">→</span>
+                  <div class="concept-flow-node current"><span>Now learning</span><strong id="focus-current-concept">Current concept</strong></div>
+                  <span class="concept-flow-arrow" aria-hidden="true">→</span>
+                  <div class="concept-flow-node"><span>Unlocks</span><strong id="focus-next-concept">Next idea</strong></div>
+                </div>
+              </section>
               <div class="lesson-section">
                 <h3>How it works</h3>
                 <ol class="lesson-key-points" id="focus-key-points"></ol>
@@ -289,16 +259,20 @@
                 <h3>A concrete example</h3>
                 <p id="focus-example"></p>
               </div>
+              <div class="memory-anchor">
+                <p class="eyebrow">Memory anchor</p>
+                <p><strong>If you remember one thing:</strong> <span id="focus-memory-anchor"></span></p>
+              </div>
               <details class="lesson-sources">
                 <summary>See where this explanation comes from</summary>
                 <div id="focus-sources" class="focus-sources"></div>
               </details>
             </section>
-            <section class="primary-action-card focus-primary" aria-labelledby="focus-action-title">
-              <p class="eyebrow">Ask while you learn</p>
-              <h2 id="focus-action-title">Talk with your Tutor about this concept</h2>
-              <p>Ask for a simpler explanation, a definition, an example, or help with one confusing step.</p>
-              <button class="button button-primary full-width" id="open-tutor" type="button">Ask Tutor a question</button>
+            <section class="card-panel tutor-support" aria-labelledby="focus-action-title">
+              <p class="eyebrow">Stuck on this step?</p>
+              <h2 id="focus-action-title">Ask Tutor for one focused explanation</h2>
+              <p>Get a simpler explanation, one example, or help with the exact step that feels unclear.</p>
+              <button class="button button-secondary" id="open-tutor" type="button">Ask Tutor</button>
               <details class="focus-note-tool">
                 <summary>Save a private focus note</summary>
                 <p>This note is not graded and does not create learning evidence.</p>
@@ -310,12 +284,13 @@
             </section>
             <section class="card-panel practice-launcher" aria-labelledby="practice-launcher-title">
               <div class="practice-launcher-heading">
-                <p class="eyebrow">Test</p>
-                <h2 id="practice-launcher-title">Check your understanding</h2>
+                <p class="eyebrow">Retrieve</p>
+                <h2 id="practice-launcher-title">Make it stick</h2>
+                <p>Retrieving the idea now strengthens memory more than rereading it.</p>
               </div>
               <div class="practice-launcher-actions">
-                <button class="practice-type-button" id="start-quiz" type="button"><strong>Multiple choice</strong><span>3 questions</span></button>
-                <button class="practice-type-button" id="start-recall" type="button"><strong>Free recall</strong><span>1 response</span></button>
+                <button class="practice-type-button recommended" id="start-quiz" type="button"><strong>Check this concept</strong><span>3 quick questions</span></button>
+                <button class="practice-type-button" id="start-recall" type="button"><strong>Explain it yourself</strong><span>1 response</span></button>
               </div>
             </section>
           </article>
@@ -443,7 +418,7 @@
       <section class="workflow-view feedback-view" id="feedback-view" aria-labelledby="feedback-title" hidden>
         <div class="feedback-topbar">
           <div>
-            <p class="eyebrow">Answer feedback</p>
+            <p class="eyebrow">Small win</p>
             <h1 id="feedback-title" tabindex="-1">Result</h1>
             <p class="focus-breadcrumb" id="feedback-breadcrumb"></p>
           </div>
@@ -469,7 +444,7 @@
           <p class="feedback-encouragement" id="feedback-encouragement"></p>
           <p class="practice-origin" id="feedback-origin-label">Explanation based on your material</p>
           <div class="feedback-actions">
-            <button class="button button-primary" id="complete-feedback" type="button">Continue</button>
+            <button class="button button-primary" id="complete-feedback" type="button">Keep going</button>
           </div>
           <div class="form-message" id="feedback-message" role="status" aria-live="polite" hidden></div>
         </section>
@@ -484,34 +459,10 @@
       <section class="workflow-view evidence-ready-view" id="evidence-ready-view" aria-labelledby="evidence-ready-title" hidden>
         <div class="evidence-ready-shell card-panel">
           <p class="eyebrow">One moment</p>
-          <h1 id="evidence-ready-title" tabindex="-1">Preparing your next step…</h1>
-          <p class="hero-lead">Your progress is saved.</p>
+          <h1 id="evidence-ready-title" tabindex="-1">Choosing the next small step…</h1>
+          <p class="hero-lead">This win is saved. StartOne will keep the momentum going.</p>
           <p class="upload-message" id="evidence-ready-message" role="status" aria-live="polite" hidden></p>
           <button class="button button-primary" id="run-agent" type="button" hidden>Try again</button>
-        </div>
-      </section>
-
-      <section class="workflow-view agent-view" id="agent-view" aria-labelledby="agent-title" hidden>
-        <div class="next-step-shell">
-          <div class="focus-topbar">
-            <div>
-              <p class="eyebrow">Next step</p>
-              <h1 id="agent-title" tabindex="-1">Keep learning</h1>
-            </div>
-            <div class="focus-top-actions">
-              <span class="save-state" id="agent-save-status" role="status" aria-live="polite">Saved</span>
-              <button class="button button-quiet" id="agent-pause" type="button">Pause session</button>
-            </div>
-          </div>
-          <section class="agent-decision-column" aria-label="Next learning step">
-            <section class="primary-action-card agent-primary" aria-labelledby="agent-action-title">
-              <p class="eyebrow" id="agent-estimate">Next</p>
-              <h2 id="agent-action-title">Next action</h2>
-              <p id="agent-reason"></p>
-              <button class="button button-primary full-width" id="accept-agent" type="button">Continue</button>
-            </section>
-            <p class="upload-message" id="agent-message" role="status" aria-live="polite" hidden></p>
-          </section>
         </div>
       </section>
 
@@ -597,7 +548,7 @@
     </main>
 
     <footer>
-      <p>StartFrame Agent</p>
+      <p>StartOne</p>
       <span class="visually-hidden" id="runtime-status" role="status" aria-live="polite">Checking service status…</span>
     </footer>
 
@@ -636,17 +587,17 @@
 
     <dialog id="help-dialog" aria-labelledby="help-title" aria-describedby="help-description">
       <div class="dialog-content help-dialog-content">
-        <p class="eyebrow">How StartFrame works</p>
+        <p class="eyebrow">How StartOne works</p>
         <h2 id="help-title">One concept at a time, grounded in your material</h2>
-        <p id="help-description">StartFrame turns material you already have into a short, guided learning loop.</p>
+        <p id="help-description">StartOne turns material you already have into a visual map and a guided momentum loop.</p>
         <ol class="method-steps">
-          <li><strong>Add your material.</strong><span>StartFrame keeps verifiable source locations.</span></li>
+          <li><strong>Add your material.</strong><span>StartOne keeps verifiable source locations.</span></li>
           <li><strong>Let AI prepare the learning focus.</strong><span>It identifies core concepts in the material and proposes a dependency-aware path.</span></li>
           <li><strong>Start with the first concept.</strong><span>Read the explanation before moving into guided practice.</span></li>
           <li><strong>Practice after learning.</strong><span>Use Tutor, a Quiz, free recall, or a hint when you are ready.</span></li>
           <li><strong>Respond to feedback.</strong><span>A short repair exercise closes a specific gap, then the Agent chooses one next step from validated learning evidence.</span></li>
         </ol>
-        <p class="context-note"><strong>If your material has a real gap:</strong> StartFrame asks before using any external source. Your uploaded material remains the primary source.</p>
+        <p class="context-note"><strong>If your material has a real gap:</strong> StartOne asks before using any external source. Your uploaded material remains the primary source.</p>
         <div class="dialog-actions dialog-actions-end">
           <button class="button button-primary" id="close-help-panel" type="button">Got it</button>
         </div>

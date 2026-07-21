@@ -1,4 +1,4 @@
-# StartFrame Agent repository guidance
+# StartOne repository guidance
 
 ## Read before coding
 

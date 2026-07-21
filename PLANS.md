@@ -40,13 +40,13 @@ Implement a three-question single-select Quiz, misconception-based distractors, 
 
 Implement structured immediate feedback, specific encouragement, misconception detection, remedial activity and normalized evidence with no recommendation fields.
 
-**Status:** Complete and verified on 2026-07-22. Every submitted Quiz, recall or remedial attempt still produces structured feedback and one factual evidence record, but the UI compresses it into a familiar result, answer review, short explanation and Continue. Evidence remains recommendation-free and is not exposed as a separate learner task.
+**Status:** Complete and verified on 2026-07-22. Every submitted Quiz, recall or remedial attempt still produces structured feedback and one factual evidence record, but the UI compresses it into a familiar result, answer review, short explanation and Keep going. Evidence remains recommendation-free and is not exposed as a separate learner task.
 
 ## Milestone 5 — Adaptive Planning Agent
 
-Implement bounded action enum, exactly one next decision, learner-facing reason, estimate, override path, prerequisite insertion/return and server-validated transitions.
+Implement a bounded action enum, exactly one next decision, automatic execution of safe actions, prerequisite insertion/return and server-validated transitions. Do not add a learner-facing decision or alternative-path page; `request_search` is the only action that must stop for confirmation.
 
-**Status:** Complete and verified on 2026-07-22. The Agent reads validated `LearningEvidence` as its sole learning-performance basis and proposes exactly one bounded action. Continue from feedback requests that decision automatically, and the learner sees only that concise next step. `request_search` still stops at explicit confirmation and performs no search on its own.
+**Status:** Complete and verified on 2026-07-22. The Agent reads validated `LearningEvidence` as its sole learning-performance basis and proposes exactly one bounded action. Keep going requests that decision and applies safe actions automatically without a separate decision page. `request_search` still stops at explicit confirmation and performs no search on its own.
 
 ## Milestone 6 — Controlled external search
 
@@ -65,3 +65,9 @@ Audit and close gaps in loading, empty, error, partial-success, offline and reco
 Finalize README, license, setup, deployment or judge path, sample data, under-three-minute video, Devpost copy, Codex build log and `/feedback` Session ID.
 
 **Status:** Local release and submission package complete on 2026-07-21. Version 1.0.0 includes public workspace quotas, Docker/Render deployment files, CI, MIT license, English README, judge instructions, Devpost copy, a timed 2:50 video script, final checklist, verified `/feedback` Session ID and a passing isolated live GPT-5.6 core-flow smoke test. Remaining external gates are a public repository and real GPT-5.6 deployment, video recording/upload, and the user-confirmed final Devpost action.
+
+## Product refinement — StartOne Momentum Loop
+
+Rename the learner-facing product to StartOne and make the initiation-to-completion mechanism explicit: one-click preparation, a connected visual knowledge map, one-concept focus, relationship visualization, a memory anchor, immediate retrieval, truthful small-win feedback and automatic application of the Agent's one safe next action. External search remains separately confirmed.
+
+**Status:** Implemented in the production client and aligned across the core specification, prototype, tests and submission artifacts on 2026-07-22.

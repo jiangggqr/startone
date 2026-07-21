@@ -589,32 +589,30 @@ def _allowed_action_metadata(context: dict[str, Any]) -> dict[str, dict[str, Any
             "source_gap_id": gap["id"],
         }
 
-    finish_reason = (
-        "The available session time is nearly complete. Finish with a saved restart point."
-        if context["remaining_seconds"] <= 120
-        else "You can finish now without penalty; the session will save a concrete restart point."
-    )
-    metadata["finish_session"] = {
-        "reason_for_user": finish_reason,
-        "estimated_minutes": 0,
-        "target_concept_id": None,
-        "return_to_concept_id": concept["id"],
-        "required_tool": TOOL_BY_ACTION["finish_session"],
-    }
+    # Finishing is selectable only when no validated learning action remains.
+    # A background timer must never interrupt an unfinished knowledge route.
+    if not metadata:
+        metadata["finish_session"] = {
+            "reason_for_user": "You completed the planned knowledge route. Save the session with one concrete restart point.",
+            "estimated_minutes": 0,
+            "target_concept_id": None,
+            "return_to_concept_id": concept["id"],
+            "required_tool": TOOL_BY_ACTION["finish_session"],
+        }
     return metadata
 
 
 def _demo_decision(
     context: dict[str, Any], allowed: dict[str, dict[str, Any]]
 ) -> AgentDecisionOutput:
-    if context["remaining_seconds"] <= 120:
-        action = "finish_session"
-    elif "continue_next" in allowed:
+    if "continue_next" in allowed:
         action = "continue_next"
     elif "request_search" in allowed:
         action = "request_search"
     elif "insert_prerequisite" in allowed:
         action = "insert_prerequisite"
+    elif "finish_session" in allowed:
+        action = "finish_session"
     else:
         latest_scored = next(
             (
@@ -891,6 +889,7 @@ def _apply_controlled_transition(
     elif action == "request_search":
         next_state = "search_confirmation"
     elif action == "finish_session":
+        connection.execute("UPDATE concepts SET status = 'completed' WHERE id = ?", (current_id,))
         next_state = "session_summary"
 
     connection.execute(

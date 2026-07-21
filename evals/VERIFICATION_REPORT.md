@@ -1,4 +1,4 @@
-# StartFrame Agent verification report
+# StartOne verification report
 
 Date: 2026-07-22
 Application verification: deterministic fixtures plus isolated real GPT-5.6 smoke flow
@@ -17,14 +17,14 @@ Live GPT-5.6 status: passed an isolated real-mode core flow on 2026-07-21
 | C05 Tutor boundary | Pass | Tutor persistence, gap-signal, source validation, and no-tool real contract tests pass. |
 | C06 Quiz quality | Pass | Every concept Quiz contains three four-option questions covering definition, mechanism and application; answer keys and explanations remain server-only before submission. |
 | C07 Recall paraphrase | Pass | Deterministic evaluator accepts meaning-level paraphrases and records key-point coverage. |
-| C08 Feedback quality | Pass | The server preserves structured feedback while the browser renders correct/not-quite, answer review, one rationale and Continue. |
+| C08 Feedback quality | Pass | The server preserves structured feedback while the browser renders correct/not-quite, answer review, one rationale and Keep going. |
 | C09 Evidence purity | Pass | Database/API evidence fields contain observations only; recommendation field scans pass. |
 | C10 Agent single action | Pass | Deterministic and strict function-call tests return exactly one bounded action. |
 | C11 Prerequisite return | Pass | Inserted prerequisite stores and executes `return_to_concept_id`. |
 | C12 Search gates | Pass | Execution revalidates permission, named gap, Agent request, and exact-scope confirmation. |
 | C13 Search failure recovery | Pass | Failure/cancel/ignore flows preserve the session and return to the current concept. |
 | C14 Resume | Pass | Draft, hint depth, activity, concept, pause overlay, and timer recovery pass. |
-| C15 User override | Pass | Only valid alternatives are accepted; override remains penalty-free and durable. |
+| C15 Automatic continuation | Pass | Safe Agent actions execute without a learner decision page; a search request still stops at the confirmation boundary. The compatibility override endpoint remains server-validated but is not exposed in the product UI. |
 | C16 Session end | Pass | `finish_session` reaches a durable summary with a concrete 1–2 minute restart action. |
 | C17 Agent evidence basis | Pass | Agent tests prove learning-performance claims originate only from validated evidence. |
 | C18 Local versus global action | Pass | Feedback micro-actions are rejected if they encode route, search, or finish behavior. |

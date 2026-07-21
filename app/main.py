@@ -1,4 +1,4 @@
-"""FastAPI entry point for StartFrame Agent."""
+"""FastAPI entry point for StartOne."""
 
 from __future__ import annotations
 
@@ -224,7 +224,7 @@ def create_app(
         yield
 
     application = FastAPI(
-        title="StartFrame Agent",
+        title="StartOne",
         version=__version__,
         docs_url="/api/docs",
         redoc_url=None,
@@ -391,11 +391,11 @@ def create_app(
         if format == "markdown":
             content = workspace_export_markdown(exported)
             media_type = "text/markdown; charset=utf-8"
-            filename = "startframe-learning-record.md"
+            filename = "startone-learning-record.md"
         else:
             content = json.dumps(exported, ensure_ascii=False, indent=2)
             media_type = "application/json"
-            filename = "startframe-learning-record.json"
+            filename = "startone-learning-record.json"
         return Response(
             content=content,
             media_type=media_type,

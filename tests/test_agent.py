@@ -53,6 +53,13 @@ def test_agent_selects_one_action_and_applies_validated_progression(tmp_path: Pa
             evidence = await complete_quiz_evidence(client, focus, correct=True)
             session_id = evidence["session"]["id"]
 
+            # Time pressure must not end a route while a validated next concept exists.
+            with connect(app.state.settings.database_path) as connection:
+                connection.execute(
+                    "UPDATE learning_sessions SET remaining_seconds = 60 WHERE id = ?",
+                    (session_id,),
+                )
+
             proposed = await client.post(f"/api/sessions/{session_id}/agent-decisions")
             assert proposed.status_code == 201
             body = proposed.json()
@@ -89,6 +96,41 @@ def test_agent_selects_one_action_and_applies_validated_progression(tmp_path: Pa
     asyncio.run(scenario())
 
 
+def test_agent_finishes_only_after_the_final_concept_is_mastered(tmp_path: Path) -> None:
+    async def scenario() -> None:
+        app = make_app(tmp_path)
+        async with app_client(app) as client:
+            current_focus = await prepare_focus(client)
+            session_id = current_focus["session"]["id"]
+            path = (await client.get(f"/api/sessions/{session_id}/path")).json()
+            route = path["knowledge_map"]["recommended_route"]
+            route_length = len(route)
+            active_index = route.index(current_focus["active_concept"]["concept_key"])
+            remaining_length = route_length - active_index
+
+            for concept_index in range(remaining_length):
+                evidence = await complete_quiz_evidence(client, current_focus, correct=True)
+                decision = (
+                    await client.post(f"/api/sessions/{session_id}/agent-decisions")
+                ).json()
+                expected_action = "finish_session" if concept_index == remaining_length - 1 else "continue_next"
+                assert decision["decision"]["action"] == expected_action
+                accepted = await client.post(
+                    f"/api/agent-decisions/{decision['decision']['id']}/accept",
+                    json={"version": decision["session"]["version"]},
+                )
+                assert accepted.status_code == 200
+                current_focus = accepted.json()["execution"]
+
+            assert current_focus["destination"] == "session_summary"
+            summary = await client.get(f"/api/sessions/{session_id}/summary")
+            assert summary.status_code == 200
+            assert summary.json()["summary"]["still_to_review"] == []
+            assert len(summary.json()["summary"]["completed_concepts"]) == route_length
+
+    asyncio.run(scenario())
+
+
 def test_agent_override_is_penalty_free_and_invalid_paths_are_rejected(tmp_path: Path) -> None:
     async def scenario() -> None:
         app = make_app(tmp_path)
@@ -121,21 +163,20 @@ def test_agent_override_is_penalty_free_and_invalid_paths_are_rejected(tmp_path:
             assert search_without_gap.status_code == 422
             assert search_without_gap.json()["error_code"] == "agent_override_not_allowed"
 
-            finished = await client.post(
+            switched = await client.post(
                 f"/api/agent-decisions/{proposed['decision']['id']}/override",
                 json={
-                    "action": "finish_session",
-                    "reason": "I am done for today.",
+                    "action": "switch_activity",
+                    "reason": "Use another retrieval format.",
                     "version": proposed["session"]["version"],
                 },
             )
-            assert finished.status_code == 200
-            result = finished.json()
+            assert switched.status_code == 200
+            result = switched.json()
             assert result["decision"]["status"] == "overridden"
-            assert result["decision"]["selected_action"] == "finish_session"
+            assert result["decision"]["selected_action"] == "switch_activity"
             assert result["boundaries"]["user_override_penalty"] is False
-            assert result["execution"]["destination"] == "session_summary"
-            assert result["execution"]["summary"]["penalty_for_stopping"] is False
+            assert result["execution"]["destination"] == "activity"
 
     asyncio.run(scenario())
 

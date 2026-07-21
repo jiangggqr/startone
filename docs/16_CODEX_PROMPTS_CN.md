@@ -8,7 +8,7 @@
 
 ```text
 Goal:
-Create Milestone 0, the clean runnable foundation for StartFrame Agent.
+Create Milestone 0, the clean runnable foundation for StartOne.
 
 Read first:
 AGENTS.md, PLANS.md, STARTFRAME_FULL_SPEC_CN.md,
@@ -259,8 +259,8 @@ Implement:
 - AgentDecision Structured Output with exactly one enum action.
 - Evidence, remaining time, prerequisites, source coverage and retry history as input.
 - Server-validated tools/transitions for all eight actions.
-- Learner-facing reason, estimate and target.
-- User override path and audit record.
+- Automatic execution of safe actions without a learner decision page.
+- Server-valid compatibility override audit endpoint, not exposed in the production UI.
 - Prerequisite insertion with return path.
 - Loop protection and safe session end.
 - Deterministic decision fixtures and real model path.
@@ -270,7 +270,7 @@ Boundaries:
 - request_search only creates a pending request.
 - Invalid or impossible decisions are rejected server-side.
 
-Verify normal progression, retry, activity switch, prerequisite insertion/return, user override and safe finish.
+Verify normal progression, retry, activity switch, prerequisite insertion/return, automatic continuation, search confirmation and safe finish.
 ```
 
 ---
@@ -337,7 +337,7 @@ Do not call the work complete until every acceptance case has an explicit result
 
 ```text
 Goal:
-Prepare StartFrame Agent for judging and submission.
+Prepare StartOne for judging and submission.
 
 Implement or update:
 - Final README with clean installation, internal deterministic tests, real product mode and judge path.

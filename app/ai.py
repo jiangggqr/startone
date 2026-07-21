@@ -1,4 +1,4 @@
-"""Typed OpenAI Responses API gateway for StartFrame Agent."""
+"""Typed OpenAI Responses API gateway for StartOne."""
 
 from __future__ import annotations
 
@@ -207,7 +207,7 @@ def model_gateway_error_for_exception(exc: Exception) -> ModelGatewayError:
     if error_name == "APIConnectionError":
         return ModelGatewayError(
             "openai_connection_failed",
-            "StartFrame could not reach the model service. Your material is saved; check the connection and retry.",
+            "StartOne could not reach the model service. Your material is saved; check the connection and retry.",
         )
     if error_name == "AuthenticationError":
         return ModelGatewayError(

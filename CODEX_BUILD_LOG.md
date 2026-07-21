@@ -269,3 +269,17 @@ Record one section after each verified milestone.
 - Boundary preservation: map exploration never bypasses Agent-controlled progression; answer keys remain server-side; `LearningEvidence` remains observations only; the Agent still returns exactly one next action; external search gates are unchanged
 - Verification: 50 automated tests passed; JavaScript syntax, Python compilation, diff hygiene, English-only and no-gradient scans passed; a real `gpt-5.6-luna` browser flow generated three distinct questions, saved three independent answers, returned 3/3 with three item explanations, continued automatically to one next action, and opened the next concept lesson
 - Browser layout audit: no horizontal overflow at 1280 px, no gradient backgrounds, no Chinese learner-facing copy, no Session status rail and no “Choose another path” interface
+
+## StartOne Momentum Loop — one clear step and automatic continuation
+
+- Status: complete
+- Date: 2026-07-22
+- Trigger: learner review found that the product still did not clearly reduce activation friction, visualize the knowledge structure, sustain attention, celebrate real progress or move smoothly from one learning task to the next; the StartFrame name was also ambiguous
+- Product decision: rename the product to **StartOne** and define the StartOne Momentum Loop as start one clear step → see the whole framework → focus on one concept → retrieve once → receive truthful feedback → continue automatically
+- UI correction: replaced the homepage promise, added a connected horizontal knowledge framework, added prerequisite/current/next relationship diagrams and memory anchors, made Tutor secondary to the lesson, renamed the retrieval choices to “Check this concept · 3 quick questions” and “Explain it yourself · 1 response”, and changed feedback to one truthful Small win with Keep going
+- Information reduction: removed the learner source-coverage page and the ordinary Agent decision page; coverage, candidate gaps, LearningEvidence and Agent action validation remain enforced server-side, while only a real external-search request exposes the named gap in the required confirmation view
+- Momentum correction: safe Agent actions apply automatically. Browser testing caught an old timer rule that ended an unfinished route after a correct 3/3 result; the rule now forbids automatic finish while a validated next concept exists and marks the mastered final concept complete before summary generation
+- Boundary preservation: uploaded material remains primary; Tutor explains and guides the current concept; Quiz, recall, hints, feedback, encouragement and remediation stay inside Guided Mastery; LearningEvidence contains observations only; Agent returns one action; external search still requires all four gates and exact user confirmation
+- Verification: 51 automated tests passed; Python compilation, JavaScript syntax, diff hygiene, English-only UI and no-gradient scans passed
+- Browser verification: a fresh real-model session created from pasted material generated a four-concept visual framework, rendered a grounded concept explanation and relationship diagram, produced three distinct Quiz questions, returned 3/3 with one explanation per item, and opened concept 2 of 4 automatically after Keep going with no Agent or coverage page
+- Browser layout audit: at 1280 px, document width equaled viewport width, the graph nodes formed one connected row, no gradient or Chinese learner text appeared, and no horizontal overflow was present

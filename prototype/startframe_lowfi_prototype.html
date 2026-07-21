@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>StartFrame Agent 低保真交互原型</title>
+  <title>StartOne 低保真交互原型</title>
   <style>
     :root {
       --bg:#f4f4f4; --surface:#fff; --ink:#171717; --muted:#666; --line:#aaa;
@@ -81,7 +81,7 @@
 <body>
 <div class="app">
   <aside class="sidebar" aria-label="原型页面导航">
-    <h1>StartFrame Agent</h1>
+    <h1>StartOne</h1>
     <p>低保真 UI/UX 交互原型 · V4</p>
     <nav class="screen-nav" id="screenNav"></nav>
     <div class="side-note">
@@ -92,21 +92,21 @@
   </aside>
   <main class="workspace">
     <header class="topbar">
-      <div class="left"><strong>StartFrame Agent</strong><span class="badge">低保真</span></div>
+      <div class="left"><strong>StartOne</strong><span class="badge">低保真</span></div>
       <div class="right"><span class="badge">自动保存：已保存</span><button class="ghost" data-go="history">学习记录</button><button class="ghost" data-go="settings">设置</button></div>
     </header>
     <div class="content">
 
       <section class="screen" id="overview" data-title="00 总览与完整流程">
         <div class="screen-head"><div><h2>00 总览与完整流程</h2><p>产品信息架构、学习闭环、Agent 边界和生产级设计要求。</p></div></div>
-        <div class="frame"><div class="frame-bar"><span>StartFrame Agent · Product Blueprint</span><span>上传材料优先 · 搜索受控 · 一次一个下一步</span></div><div class="frame-body stack">
+        <div class="frame"><div class="frame-bar"><span>StartOne · Product Blueprint</span><span>上传材料优先 · 搜索受控 · 一次一个下一步</span></div><div class="frame-body stack">
           <div class="callout"><strong>一句话定义</strong>用户上传自己的学习材料，系统把材料转化为可核查的知识地图和短学习任务；Tutor 负责当前知识点的讲解与练习，规划 Agent 根据学习证据只选择一个下一步。</div>
           <div class="flow">
-            <span class="step">上传材料</span><span class="arr">→</span><span class="step">知识框架</span><span class="arr">→</span><span class="step">概念解释</span><span class="arr">→</span><span class="step">Tutor / Quiz / 复述</span><span class="arr">→</span><span class="step">简短反馈</span><span class="arr">→</span><span class="step">下一个动作</span><span class="arr">→</span><span class="step">总结与恢复</span>
+            <span class="step">上传材料</span><span class="arr">→</span><span class="step">可视化知识框架</span><span class="arr">→</span><span class="step">单概念理解</span><span class="arr">→</span><span class="step">主动提取</span><span class="arr">→</span><span class="step">真实小胜利</span><span class="arr">→</span><span class="step">自动进入下一任务</span><span class="arr">→</span><span class="step">总结与恢复</span>
           </div>
           <div class="grid-2">
             <div class="card"><h3>Guided Mastery Loop</h3><p>Tutor、Quiz、复述、提示、反馈、鼓励、补救练习都围绕<strong>当前概念</strong>工作，并产生客观学习证据。</p><p class="small muted">不改变全局路线，不直接启动网络搜索。</p></div>
-            <div class="card"><h3>Adaptive Planning Agent</h3><p>读取证据后只选择一个动作：继续、重试、换练习、简化、插入前置知识、复习、请求搜索或结束。</p><p class="small muted">学习界面只显示这一个动作、理由和 Continue。</p></div>
+            <div class="card"><h3>Adaptive Planning Agent</h3><p>读取证据后只选择一个动作：继续、重试、换练习、简化、插入前置知识、复习、请求搜索或结束。</p><p class="small muted">安全动作自动执行；只有外部搜索必须停下并获得用户逐次确认。</p></div>
           </div>
           <div class="grid-4">
             <div class="card"><h4>来源可信</h4><p class="small">每个概念、题目和解释都带来源标签和可打开的位置。</p></div>
@@ -120,7 +120,7 @@
 
       <section class="screen" id="landing" data-title="01 首页与学习资料库">
         <div class="screen-head"><div><h2>01 首页与学习资料库</h2><p>上传材料是主入口；历史学习会话和继续学习始终可见。</p></div></div>
-        <div class="frame"><div class="frame-bar"><span>StartFrame Agent</span><span>资料库　学习记录　设置　帮助</span></div><div class="frame-body stack">
+        <div class="frame"><div class="frame-bar"><span>StartOne</span><span>资料库　学习记录　设置　帮助</span></div><div class="frame-body stack">
           <div class="grid-2">
             <div class="card stack"><h3>更快开始，建立真正的理解，并把学习完成</h3><p class="muted">上传课程讲义、论文或笔记。AI 建立知识体系，从一个低阻力动作开始，一次教会并检验一个概念。首发聚焦 AI 与技术学习，但方法适用于有清晰文字材料的其他学科。</p><div class="row"><button class="primary" data-go="upload">上传材料并开始学习</button><button data-go="history">继续上次学习</button></div><div class="callout"><strong>专注友好</strong>不会先展示一长串任务。系统始终提供一个清晰的下一步，允许暂停且不惩罚中断。</div></div>
             <div class="choice"><span class="icon">▣</span><strong>上传 PDF / MD / TXT</strong><span class="small muted">唯一入口 · 基于你的材料学习</span></div>
@@ -143,23 +143,11 @@
         </div></div>
       </section>
 
-      <section class="screen" id="source-review" data-title="04 来源覆盖与缺口审阅">
-        <div class="screen-head"><div><h2>04 来源覆盖与缺口审阅</h2><p>在生成路径之前，先让用户知道材料覆盖了什么、缺什么。</p></div></div>
-        <div class="frame"><div class="frame-bar"><span>可选审阅 · 来源覆盖</span><span>尚未搜索互联网</span></div><div class="frame-body stack">
-          <div class="grid-2">
-            <div class="card"><h3>材料已覆盖</h3><div class="concept-list"><div class="concept done">Transformer 的整体目标</div><div class="concept done">Self-attention 基本流程</div><div class="concept done">Query、Key、Value</div><div class="concept done">Scaled dot-product attention</div><div class="concept done">位置编码</div></div></div>
-            <div class="card"><h3>材料可能缺少</h3><div class="concept-list"><div class="concept">矩阵乘法直观理解 <span class="badge">前置知识</span></div><div class="concept">为什么除以 √d<sub>k</sub> <span class="badge">解释较少</span></div></div><p class="small muted">缺口只是候选，不代表必须搜索。Agent 会先看用户表现，再决定是否需要补充。</p></div>
-          </div>
-          <div class="card"><h3>来源使用规则</h3><div class="grid-3" style="grid-template-columns:repeat(3,1fr)"><div><span class="source-label source-uploaded">用户上传材料</span><p class="small">默认主来源。概念、题目和反馈首先基于此。</p></div><div><span class="source-label source-external">外部补充</span><p class="small">只有明确缺口、Agent 请求、用户确认后才使用。</p></div><div><span class="source-label source-ai">AI 补充解释</span><p class="small">用于简化、组织或生成例子，不能冒充原文。</p></div></div></div>
-          <div class="row between"><button data-go="upload">返回材料</button><button class="primary" data-go="path">生成学习地图</button></div>
-        </div></div>
-      </section>
-
       <section class="screen" id="path" data-title="05 简洁知识框架">
         <div class="screen-head"><div><h2>05 简洁知识框架</h2><p>只展示概念顺序、定义和依赖，不用多张卡片要求用户再做路线决策。</p></div></div>
         <div class="frame"><div class="frame-bar"><span>从基础到应用</span><span>AI 已从材料生成</span></div><div class="frame-body">
           <div class="card node-map"><button class="node current" data-preview="Transformer 目标：解释为什么序列中的位置需要直接交换相关信息。">Transformer 目标<br><span class="small muted">为什么需要 attention</span></button><div class="arrow">↓</div><button class="node" data-preview="Self-attention：比较位置间的相关性，并按权重汇总信息。前置：Transformer 目标。">Self-attention<br><span class="small muted">比较相关性并汇总信息</span></button><div class="arrow">↓</div><button class="node" data-preview="Q / K / V：完成比较与信息传递。前置：Self-attention。">Q / K / V<br><span class="small muted">完成比较与信息传递</span></button><div class="arrow">↓</div><div class="node-row"><button class="node" data-preview="Scaled dot-product：控制相似度分数的尺度。前置：Q / K / V。">Scaled dot-product</button><button class="node" data-preview="位置信息：保留序列中位置关系。前置：Transformer 目标。">位置信息</button></div><div class="callout" data-map-preview>点击任一概念查看定义、作用和前置关系。</div></div>
-          <div class="row between" style="margin-top:16px"><button data-go="source-review">返回</button><button class="primary" data-go="focus">Start learning the first concept</button></div>
+          <div class="row" style="justify-content:flex-end;margin-top:16px"><button class="primary" data-go="focus">Start one focused step</button></div>
         </div></div>
       </section>
 
@@ -167,7 +155,7 @@
         <div class="screen-head"><div><h2>07 专注学习工作区</h2><p>桌面端两栏；左侧是可点击知识框架，右侧只保留当前概念讲解和测试入口。</p></div></div>
         <div class="frame"><div class="frame-bar"><span>Transformer 基础　›　Self-attention</span><span>已保存 · <button>暂停并保存</button></span></div><div class="frame-body grid-2" style="grid-template-columns:280px 1fr">
           <aside class="card"><h3>知识框架</h3><div class="concept-list"><button class="concept done" data-preview="Transformer 目标：已完成的基础概念。">Transformer 目标</button><button class="concept active" data-preview="Self-attention：当前概念；比较相关性并汇总信息。">Self-attention · 当前</button><button class="concept" data-preview="Q / K / V：建立在 Self-attention 之上。">Q / K / V</button><button class="concept locked" data-preview="Scaled dot-product：建立在 Q / K / V 之上。">Scaled dot-product</button><button class="concept locked" data-preview="位置信息：说明序列位置如何保留。">位置信息</button></div><div class="callout small" data-map-preview>点击任一节点查看定义、作用和前置关系。</div><button data-go="path">打开完整框架</button></aside>
-          <main class="stack"><div><span class="badge">当前概念 1/5</span><h2>Transformer 目标</h2><p><strong>它在整体中的作用：</strong>先理解为什么序列中不同位置需要直接交换相关信息。</p></div><div class="card stack"><span class="badge">先学这个概念</span><h3>是什么</h3><p>Transformer 为序列中的每个位置建立包含上下文的表示，而不是只依赖一步步传递信息。</p><h3>如何工作</h3><ol><li>表示序列中的每个位置。</li><li>让不同位置直接交换相关信息。</li><li>形成后续层可以使用的上下文表示。</li></ol><h3>具体例子</h3><p>一个代词可能依赖前面隔了多个词的名词；Transformer 可以直接连接这两个位置。</p><details><summary>查看这段讲解的材料依据</summary><p class="small"><span class="source-label source-uploaded">用户上传材料</span> transformer_notes.md · 第 1–6 行</p></details></div><div class="primary-action"><span class="badge">有问题时</span><h3>与 Tutor 讨论当前概念</h3><button class="primary" data-go="tutor">向 Tutor 提问</button></div><div class="card"><p class="small muted">测试理解</p><div class="grid-2"><button data-go="quiz"><strong>选择题</strong><br><span class="small">3 题</span></button><button data-go="recall"><strong>自由复述</strong><br><span class="small">1 题</span></button></div></div></main>
+          <main class="stack"><div><span class="badge">当前概念 1/5</span><h2>Transformer 目标</h2><p><strong>唯一任务：</strong>理解这个概念、看清它的位置、再主动提取一次。</p></div><div class="card stack"><span class="badge">理解</span><h3>大意</h3><p>Transformer 为序列中的每个位置建立包含上下文的表示，而不是只依赖一步步传递信息。</p><h3>在知识框架中的位置</h3><div class="row"><span class="node">基础</span><span class="arrow">→</span><span class="node current">Transformer 目标</span><span class="arrow">→</span><span class="node">Self-attention</span></div><h3>关键部分</h3><ol><li>表示序列中的每个位置。</li><li>让不同位置直接交换相关信息。</li><li>形成后续层可以使用的上下文表示。</li></ol><h3>具体例子</h3><p>一个代词可能依赖前面隔了多个词的名词；Transformer 可以直接连接这两个位置。</p><div class="callout"><strong>记忆锚点：</strong>每个位置都能直接组合与自己相关的上下文。</div><details><summary>查看这段讲解的材料依据</summary><p class="small"><span class="source-label source-uploaded">用户上传材料</span> transformer_notes.md · 第 1–6 行</p></details></div><div class="card"><span class="badge">卡住时</span><h3>向 Tutor 问一个具体问题</h3><button data-go="tutor">打开 Tutor</button></div><div class="primary-action"><p class="small muted">主动提取 · 让知识记得更牢</p><div class="grid-2"><button class="primary" data-go="quiz"><strong>检查这个概念</strong><br><span class="small">3 道快速题</span></button><button data-go="recall"><strong>自己解释一次</strong><br><span class="small">1 次复述</span></button></div></div></main>
         </div></div>
       </section>
 
@@ -194,28 +182,23 @@
 
       <section class="screen" id="feedback" data-title="11 即时反馈与具体鼓励">
         <div class="screen-head"><div><h2>11 简短即时反馈</h2><p>不展开后台字段，只帮助用户理解本题。</p></div></div>
-        <div class="frame"><div class="frame-bar"><span>Self-attention · Quiz</span><span>已保存</span></div><div class="frame-body"><div class="card stack" style="max-width:760px;margin:auto"><div class="row"><span class="dot done">✓</span><h2>3/3 正确</h2></div><div class="result"><strong>第 1 题 · 正确</strong><p class="small">每个位置建立包含上下文的表示，因为它会使用其他相关位置的信息。</p></div><div class="result"><strong>第 2 题 · 正确</strong><p class="small">相关程度转换为权重，决定 value 信息对新表示贡献多少。</p></div><div class="result"><strong>第 3 题 · 正确</strong><p class="small">Self-attention 能让远距离相关位置直接交换信息。</p></div><p class="small muted">解释基于你的材料</p><button class="primary" data-go="agent">继续</button></div></div></div>
+        <div class="frame"><div class="frame-bar"><span>Self-attention · Quiz</span><span>已保存</span></div><div class="frame-body"><div class="card stack" style="max-width:760px;margin:auto"><div class="row"><span class="dot done">✓</span><div><span class="badge">真实小胜利</span><h2>3/3 正确</h2></div></div><div class="result"><strong>第 1 题 · 正确</strong><p class="small">每个位置建立包含上下文的表示，因为它会使用其他相关位置的信息。</p></div><div class="result"><strong>第 2 题 · 正确</strong><p class="small">相关程度转换为权重，决定 value 信息对新表示贡献多少。</p></div><div class="result"><strong>第 3 题 · 正确</strong><p class="small">Self-attention 能让远距离相关位置直接交换信息。</p></div><p><strong>你已经能从记忆中提取这个概念的三个关键部分。</strong></p><p class="small muted">点击后，Agent 在后台选择并直接进入一个安全下一步。</p><button class="primary" data-go="focus">Keep going</button></div></div></div>
       </section>
 
       <section class="screen" id="remedial" data-title="12 错误驱动的补救练习">
         <div class="screen-head"><div><h2>12 错误驱动的补救练习</h2><p>补救内容由当前误解驱动，仍属于掌握循环，不是 Agent 的教学输出。</p></div></div>
         <div class="frame"><div class="frame-bar"><span>检测到具体缺口：不清楚“加权汇总”</span><span>约 60–90 秒</span></div><div class="frame-body stack">
           <div class="grid-3" style="grid-template-columns:repeat(3,1fr)"><button class="card"><h3>更简单解释</h3><p class="small">只保留必要步骤，不使用新术语。</p></button><button class="card"><h3>更小问题</h3><p class="small">先回答一个局部问题，再返回完整概念。</p></button><button class="card"><h3>具体例子</h3><p class="small">明确标注为 AI 补充例子，不冒充原文。</p></button></div>
-          <div class="card"><h3>更小问题</h3><p><span class="source-label source-uploaded">用户上传材料</span> matrix_prerequisite.md · 第 7–9 行</p><p>如果位置 A 与位置 B 的相关程度更高，位置 A 在更新自己时，应该怎样处理来自 B 的信息？</p><textarea aria-label="补救练习回答" placeholder="用一句话回答"></textarea><div class="row between"><button data-go="feedback">换一种帮助</button><button class="primary" data-go="agent">提交并形成学习证据</button></div></div>
+          <div class="card"><h3>更小问题</h3><p><span class="source-label source-uploaded">用户上传材料</span> matrix_prerequisite.md · 第 7–9 行</p><p>如果位置 A 与位置 B 的相关程度更高，位置 A 在更新自己时，应该怎样处理来自 B 的信息？</p><textarea aria-label="补救练习回答" placeholder="用一句话回答"></textarea><div class="row between"><button data-go="feedback">换一种帮助</button><button class="primary" data-go="focus">提交并继续下一步</button></div></div>
           <div class="callout small"><strong>循环保护</strong>连续两次补救仍未改善时，不继续重复同一题型；Agent 应选择简化概念、插入前置知识或结束本次会话。</div>
         </div></div>
-      </section>
-
-      <section class="screen" id="agent" data-title="13 简洁下一步">
-        <div class="screen-head"><div><h2>13 下一步</h2><p>学习证据和 Agent 判断在后台完成，界面只显示结果。</p></div></div>
-        <div class="frame"><div class="frame-bar"><span>已保存</span><span>下一步</span></div><div class="frame-body"><div class="primary-action" style="max-width:760px;margin:auto"><p class="small muted">约 6 分钟</p><h2>继续学习 Q / K / V</h2><p>你已掌握当前概念，下一概念将建立在它之上。</p><button class="primary" data-go="focus">继续</button></div></div></div>
       </section>
 
       <section class="screen" id="search" data-title="14 受控外部搜索">
         <div class="screen-head"><div><h2>14 受控外部搜索</h2><p>四重搜索门：会话允许、明确来源缺口、Agent 请求、用户本次确认。</p></div></div>
         <div class="frame"><div class="frame-bar"><span>外部补充请求</span><span>当前未调用搜索</span></div><div class="frame-body stack">
           <div class="callout"><strong>前三项已验证，本次确认待完成</strong><span class="small">会话允许建议搜索 ✓　命名 SourceGap ✓　Agent request_search ✓　用户本次确认：待完成</span><br><strong>检测到的材料缺口</strong>当前搜索场景只包含 transformer_notes.md；材料使用点积但没有解释点积怎样产生 Q/K 相关程度。你连续两次询问了该前置知识。</div>
-          <div class="grid-2"><div class="card"><h3>搜索将寻找什么</h3><p>一个适合初学者、解释矩阵乘法与向量点积的短资料。</p><p class="small">优先：大学课程官方讲义、教材、官方文档。</p><label class="row"><input type="checkbox" checked style="width:auto;min-height:auto"> 仅使用可公开访问的来源</label></div><div class="card"><h3>你的控制</h3><p class="small">搜索结果会明确标记为外部来源，不替代上传材料。拒绝搜索不会中断当前会话。</p><div class="row"><button data-go="agent">暂不搜索</button><button class="primary" data-go="search-results">确认搜索</button></div></div></div>
+          <div class="grid-2"><div class="card"><h3>搜索将寻找什么</h3><p>一个适合初学者、解释矩阵乘法与向量点积的短资料。</p><p class="small">优先：大学课程官方讲义、教材、官方文档。</p><label class="row"><input type="checkbox" checked style="width:auto;min-height:auto"> 仅使用可公开访问的来源</label></div><div class="card"><h3>你的控制</h3><p class="small">搜索结果会明确标记为外部来源，不替代上传材料。拒绝搜索不会中断当前会话。</p><div class="row"><button data-go="focus">暂不搜索</button><button class="primary" data-go="search-results">确认搜索</button></div></div></div>
           <div class="callout small"><strong>失败恢复</strong>搜索超时、无结果或来源打不开时，系统返回当前概念，并提供“基于现有材料继续”或“稍后再试”。</div>
         </div></div>
       </section>

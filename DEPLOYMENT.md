@@ -1,6 +1,6 @@
 # Deployment guide
 
-StartFrame Agent ships as one FastAPI process that serves both the API and the static Web App. The public judge deployment runs the real GPT-5.6 path. Credentials belong only in the deployment secret store and never in browser code, repository files, screenshots, or chat.
+StartOne ships as one FastAPI process that serves both the API and the static Web App. The public judge deployment runs the real GPT-5.6 path. Credentials belong only in the deployment secret store and never in browser code, repository files, screenshots, or chat.
 
 ## Required public settings
 

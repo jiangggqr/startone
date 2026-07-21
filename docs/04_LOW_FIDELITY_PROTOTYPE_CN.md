@@ -18,11 +18,11 @@
 
 `prototype/startframe_lowfi_prototype.html`
 
-它包含 19 个可切换视图，覆盖主流程与代表性恢复分支。已删除独立的开始前测试和大屏来源查看器；来源改为讲解内的轻量引用。生产状态完整清单以 05、06、11、12 和 evals 为准。
+它包含 17 个可切换视图，覆盖主流程与代表性恢复分支。已删除独立的开始前测试、大屏来源查看器和学习者来源覆盖页；来源改为讲解内的轻量引用，覆盖与缺口验证留在后台。生产状态完整清单以 05、06、11、12 和 evals 为准。
 
 ## 全页面总览
 
-![StartFrame Agent 低保真总览](../prototype/startframe_lowfi_overview.png)
+![StartOne 低保真总览](../prototype/startframe_lowfi_overview.png)
 
 ## Codex 应如何使用
 

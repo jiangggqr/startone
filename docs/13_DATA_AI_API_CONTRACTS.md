@@ -501,7 +501,7 @@ Implemented endpoint groups. FastAPI's generated schema at `/api/docs` is author
 - `POST /api/agent-decisions/{decision_id}/accept`
 - `POST /api/agent-decisions/{decision_id}/override`
 
-The production client does not expose a separate Evidence review step. After the learner selects Continue on feedback, it completes the feedback boundary, requests one Agent decision automatically, and renders only the concise next-action result. The API separation remains mandatory so `LearningEvidence` cannot contain or silently become a recommendation.
+The production client does not expose a separate Evidence review or ordinary Agent confirmation step. After the learner selects Keep going on feedback, it completes the feedback boundary, requests exactly one Agent decision and automatically accepts the safe action. `request_search` still stops at the separate search confirmation. The API separation remains mandatory so `LearningEvidence` cannot contain or silently become a recommendation.
 
 ### Search
 

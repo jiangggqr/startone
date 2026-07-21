@@ -1,4 +1,4 @@
-# StartFrame Agent — judge testing guide
+# StartOne — judge testing guide
 
 ## Fastest product path
 
@@ -7,15 +7,15 @@ The public deployment needs no learner account. GPT-5.6 credentials stay on the 
 1. Open the public app URL.
 2. Select **Upload material and start learning**.
 3. Upload `sample_data/transformer_notes.md` and `sample_data/matrix_prerequisite.md`, or upload your own readable PDF, Markdown, or TXT file.
-4. Confirm that both file status and the next action appear inside the upload panel, then select **Build my learning path**.
-5. Review the AI-selected learning focus, knowledge framework, concept route, and grounded references. No setup form is required.
-6. Review the concise knowledge framework and click **Start learning the first concept**. Confirm that the explanation appears immediately, with no setup form or pre-test.
-7. In the focus workspace, click several knowledge-framework nodes, inspect the concept explanation, open Tutor, then choose either the 3-question Multiple choice test or the 1-response Free recall test.
+4. Confirm that both file status and the next action appear inside the upload panel, then select **Build my map and start**.
+5. Review the AI-selected focus and connected visual knowledge framework. No goal, level, time, energy, route-adjustment form, or pre-test is required.
+6. Select **Start one focused step**. Confirm that the first concept explanation appears immediately with its prerequisite → current → next relationship, concrete example, memory anchor, and lightweight source disclosure.
+7. Click several map nodes to inspect how each idea fits the framework, open the secondary Tutor support if useful, then choose either **Check this concept · 3 quick questions** or **Explain it yourself · 1 response**.
 8. Submit an answer and review the immediate correct/not-quite result, answer check, and concise explanation.
-9. Select Continue. StartFrame records factual `LearningEvidence` and requests the Adaptive Planning Agent automatically, then shows one concise next action.
+9. Select **Keep going**. StartOne records factual `LearningEvidence`, requests exactly one Adaptive Planning Agent action and applies that safe action automatically; only external search pauses for the required confirmation.
 10. Pause or refresh at any point to verify exact recovery.
 
-Expected result: every map node is keyboard-clickable and reveals its relationship without changing the route; the Session status rail is absent; explanations show source provenance; Quiz contains exactly three questions and uses only a quiet origin line rather than file-location rows; `LearningEvidence` contains observations only; and the next-step screen presents one global action without alternative-path controls or system architecture.
+Expected result: every map node is keyboard-clickable and reveals its relationship without changing the route; the Session status rail is absent; explanations show source provenance; Quiz contains exactly three questions and uses only a quiet origin line rather than file-location rows; `LearningEvidence` contains observations only; and no Agent decision screen interrupts momentum. Safe next actions apply automatically, while external search still stops for exact user confirmation.
 
 ## Controlled-search verification
 

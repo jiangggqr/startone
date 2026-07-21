@@ -83,7 +83,7 @@ def test_export_ai_activity_summary_and_workspace_delete(tmp_path: Path) -> None
 
             markdown = await client.get("/api/export?format=markdown")
             assert markdown.status_code == 200
-            assert markdown.text.startswith("# StartFrame Agent learning record")
+            assert markdown.text.startswith("# StartOne learning record")
             assert "## Transformer attention foundations" in markdown.text
 
             with connect(app.state.settings.database_path) as connection:

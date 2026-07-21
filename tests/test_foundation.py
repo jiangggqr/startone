@@ -49,11 +49,12 @@ def test_homepage_serves_accessible_app_shell(tmp_path: Path) -> None:
     assert response.status_code == 200
     assert 'lang="en"' in response.text
     assert 'id="main-content"' in response.text
-    assert "Start faster. Build real understanding." in response.text
+    assert "StartOne" in response.text
+    assert "Start with one clear step. Keep going until it sticks." in response.text
     assert "Upload material and start learning" in response.text
     assert "AI and technical learning first" in response.text
-    assert "Build my learning path" in response.text
-    assert "Start learning the first concept" in response.text
+    assert "Build my map and start" in response.text
+    assert "Start one focused step" in response.text
     assert 'id="start-action-view"' not in response.text
     assert "Verifiable preview" not in response.text
     assert "Suggested outcome" not in response.text
@@ -66,9 +67,13 @@ def test_homepage_serves_accessible_app_shell(tmp_path: Path) -> None:
     assert 'id="focus-more-panel"' not in response.text
     assert "Choose another path" not in response.text
     assert "Start one-question Quiz" not in response.text
-    assert "Multiple choice" in response.text
-    assert "3 questions" in response.text
-    assert "Free recall" in response.text
+    assert "Check this concept" in response.text
+    assert "3 quick questions" in response.text
+    assert "Explain it yourself" in response.text
+    assert "Where this idea fits" in response.text
+    assert "Memory anchor" in response.text
+    assert 'id="agent-view"' not in response.text
+    assert 'id="coverage-view"' not in response.text
     assert "Demo mode" not in response.text
     assert "Enter a topic only" not in response.text
     assert 'id="setup-view"' not in response.text

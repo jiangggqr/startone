@@ -56,9 +56,9 @@ A timeout or no-result response preserves the current session and allows learnin
 
 Refresh during an unfinished recall restores the active concept, draft answer, hint depth and session time state.
 
-## C15 User override
+## C15 Automatic continuation
 
-The user can select another valid next path; the override is recorded without punishment or loss of progress.
+After Keep going, the Agent selects exactly one action and a safe action opens the corresponding next task without another decision page. A `request_search` action stops before execution and requires exact user confirmation.
 
 ## C16 Session end
 

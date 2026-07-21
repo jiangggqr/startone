@@ -1,3 +1,3 @@
-"""StartFrame Agent application package."""
+"""StartOne application package."""
 
 __version__ = "1.0.0"

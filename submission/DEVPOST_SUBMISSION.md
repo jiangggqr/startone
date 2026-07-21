@@ -2,11 +2,11 @@
 
 ## Project name
 
-StartFrame Agent
+StartOne
 
 ## Tagline
 
-Start faster. Build real understanding. Finish one concept at a time.
+Start with one clear step. Keep going until it sticks.
 
 ## Category
 
@@ -14,24 +14,24 @@ Education
 
 ## Short description
 
-StartFrame Agent helps learners overcome the gap between intending to learn and actually finishing. It turns source material into a verifiable knowledge structure, starts with one low-friction action, teaches and checks one active concept at a time, and uses factual learning evidence to keep progress moving. It is built first for dense AI and technical learning, while the method works across text-based subjects.
+StartOne helps learners overcome the gap between intending to learn and actually finishing. It turns source material into a visual, verifiable knowledge structure, starts with one low-friction action, teaches and checks one active concept at a time, and automatically carries factual learning evidence into the next safe step. It is built first for dense AI and technical learning, while the method works across text-based subjects.
 
 ## Inspiration
 
 Many learning tools assume that the learner has already started: they wait for a good question, a clean plan, and enough working memory to decide what to do next. The harder problem spans the whole journey: starting despite friction, seeing how ideas connect, returning after attention breaks, and knowing whether the learning is actually complete.
 
-StartFrame Agent was designed around that initiation-to-mastery gap. It is ADHD-informed without making medical, diagnostic, or treatment claims.
+StartOne was designed around that initiation-to-mastery gap. It is ADHD-informed without making medical, diagnostic, or treatment claims.
 
 ## What it does
 
 - Treats uploaded material as the primary learning source and preserves real page, heading, line, paragraph, and character locations.
-- Uses GPT-5.6 to select a learning focus from the material and build source coverage, named gaps, a compact 2–5 concept dependency map, and beginner-friendly explanations with key steps and examples.
+- Uses GPT-5.6 to select a learning focus from the material and build source coverage, named gaps, a connected 2–5 concept knowledge map, and beginner-friendly explanations with relationship diagrams, key parts, examples, and memory anchors.
 - Removes the goal, prior-knowledge, time, and energy setup form as well as the pre-test; later validated practice evidence calibrates support.
-- Keeps one active concept and one visually dominant recommended action in a responsive focus workspace.
+- Keeps one active concept and one visually dominant action in a responsive focus workspace, reducing every lesson to understand → connect → retrieve.
 - Uses a contextual Tutor for explanation, questions, and guided checks inside the current concept.
 - Runs Quiz, free recall, three-level hints, immediate feedback, specific encouragement, and targeted remediation as one Guided Mastery Loop.
 - Stores `LearningEvidence` as factual observations only, with no recommendation fields.
-- Lets a bounded Adaptive Planning Agent select exactly one of eight server-validated global actions from that evidence.
+- Lets a bounded Adaptive Planning Agent select exactly one of eight server-validated global actions from that evidence and automatically applies safe actions so the learner does not face another planning decision.
 - Requires four gates before external search: session permission, a validated named source gap, an accepted Agent `request_search` action, and explicit confirmation of the exact scope.
 - Supports autosave, optimistic conflict resolution, pause/resume, precise restart actions, exports, AI activity history, lightweight inline citations, and deletion controls.
 
@@ -57,9 +57,9 @@ Grounding was another challenge. Locations cannot be invented by a model, so the
 
 ## Accomplishments
 
-- A complete upload-to-summary learning loop rather than a chat-only proof of concept.
+- A complete StartOne Momentum Loop from one-click preparation through visual orientation, active retrieval, truthful small-win feedback and automatic safe continuation.
 - Strict source provenance from ingestion through Tutor, activities, feedback, Agent decisions, and external supplements.
-- Eight bounded Agent actions with controlled transitions and penalty-free override.
+- Eight bounded Agent actions with controlled transitions and automatic safe continuation without another learner decision page.
 - Search that is structurally gated rather than governed by prompt wording alone.
 - Exact pause, refresh, draft-conflict, and activity recovery across desktop and mobile.
 - English-only production UI with flat solid backgrounds, semantic controls, visible focus, and 390 px coverage.
