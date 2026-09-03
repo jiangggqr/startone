@@ -75,6 +75,7 @@ def test_homepage_serves_accessible_app_shell(tmp_path: Path) -> None:
     assert "StartOne" in response.text
     assert "Start with one clear step. Keep going until it sticks." in response.text
     assert "Upload material and start learning" in response.text
+    assert "No setup decisions" not in response.text
     assert "AI and technical learning first" in response.text
     assert "Build my map and start" in response.text
     assert "Start one focused step" in response.text
